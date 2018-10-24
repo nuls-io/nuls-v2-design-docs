@@ -30,18 +30,6 @@
 }
 ```
 
-- fail
-
-```json
-{
-  "code": -10,
-  "msg": "What happend",
-  "result": {
-
-  },
-}
-```
-
 - 响应参数
 
 | 参数   | 必选 | 类型   | 说明                                    |
@@ -56,6 +44,7 @@
 
 | Code      | Possible Return message | Description                                                  |
 | --------- | ----------------------- | ------------------------------------------------------------ |
+| 0         | Success                 | Operation success                                            |
 | 1         | Parse error             | Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text. |
 | 2         | Invalid Request         | The JSON sent is not a valid Request object.                 |
 | 3         | Method not found        | The method does not exist / is not available.                |
