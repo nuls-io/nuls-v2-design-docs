@@ -89,14 +89,15 @@ The chain factory is built on the NULS module, so when designing the NULS module
 1. The address a in the friend chain A initiates the transaction tx_a, and transfers the aCoin to the b address of the B chain.
 
 - The format of the b address is the address in the nuls format starting with ChainId_B. When the asset is transferred to the address, the address is not allowed to initiate a transaction on the A chain, ie the address of the other chain cannot initiate a transaction in the chain.
+- Generate a transaction for the satellite chain tx_a_trans based on the cross-chain protocol and sign the cross-chain transaction with the private key of b.
 
-2. tx_a is packed in the A chain, and after the n block is confirmed, the transaction is discovered by the cross-chain module (independent of the basic module other than the A-chain function), and the transaction is generated according to the cross-chain protocol to generate a satellite chain. Transaction tx_a_trans.
+2. tx_a is packed in the A chain, and after the n block is confirmed, the satellite chain is sent by the cross-chain module (independent of the basic module other than the A-chain function).
 
 3. The cross-chain module broadcasts the transaction to the connected satellite chain node (broadcast mode: first broadcast hash, wait for the other party to obtain a complete transaction)
 
-4. After receiving the transaction (tx_a_trans), the satellite chain node (transaction management module) first performs basic verification (format, required field, chain balance, etc.), and then asks whether the connected A-chain node has a tx_a_hash After the transaction is confirmed n blocks and converted to a satellite chain format transaction, the transaction summary is tx_a_trans_hash.
+4. After receiving the transaction (tx_a_trans), the satellite chain node (transaction management module) first performs basic verification (format, required field, signature, chain balance, etc.), and then asks whether the connected A-chain node has a The tx_a_hash transaction is confirmed by n blocks and converted to a satellite chain format transaction, the transaction digest is tx_a_trans_hash.
 
-5. The result of the aggregate inquiry of the satellite chain node. If more than 51% of the nodes confirm the transaction, the node approves the transaction.
+2. The result of the aggregate inquiry of the satellite chain node. If more than 51% of the nodes confirm the transaction, the node approves the transaction.
 
 - The normal node asks for any node, the consensus node queries all nodes, and the ordinary node forwards the transaction if any 3 nodes confirm it, otherwise it discards. If the consensus node gets more than 51% node confirmation, it will sign tx_a_trans_hash and broadcast the hash and signature data to the network.
 
