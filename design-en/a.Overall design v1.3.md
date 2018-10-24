@@ -6,7 +6,14 @@ Chapter 1 Overall design (by google translate)
 
 Blockchain is the operating system for decentralized applications. It needs cross-chain technology to connect the operating systems that run one by one, in order to form an ecological development, that is, the blockchain Internet.
 
-It is very difficult to rely on a team to build a blockchain operating system, innovate blockchain technology, and support enterprise-level applications. We need to integrate the power of all community partners around the world, we need a more open and inclusive system architecture, lower the threshold for community community members to participate, so that all members who want to participate can participate in the contribution of nuls, improve nuls, guide nuls toward A better tomorrow.
+Adhering to the idea of making the blockchain simpler and making NULS one of the most important blockchain infrastructures, the NULS core team decided to develop a more open, inclusive and new modular underlying architecture with a core purpose around the concession area. The blockchain is simpler to make a series of attempts.
+One: rich NULS modules
+The new architecture allows NULS modules to run independently, combining a basic blockchain operation framework through a standard base module interface. The NULS module does not limit any developers, supports all programming languages that can provide http services, and strives to get the most out of every blockchain technician without setting any threshold. On this basis, more possibilities are extended.
+
+Second: building a technical community for NULS
+NULS is a pure blockchain project that integrates the idea of blockchain to create a blockchain community of development, freedom, and evolution. Therefore, the vitality of NULS depends on the degree of development of the community, especially the degree of construction of the technical community. Therefore, NULS takes advantage of the new architecture design, simultaneously attaches great importance to and develops the technology community, allowing the technical community and the core development team to “distribute” from the beginning; to attract all regions of the world with open technology and ideal forward-looking. Added in the development of blockchain.
+
+Based on the above, the NULS core team initiated the design of the new version of the architecture, and hoped that the partners in the community actively participated in the construction of NULS, contributing to the development of the blockchain industry, and contributing a bright future.
 
 ## 二、Design goals
 
