@@ -45,7 +45,7 @@
 
   线程任务管理，数据存储管理等。
 
-![](.\image\network-module\network-functions.png)
+![](./image/network-module/network-functions.png)
 
 - 节点管理 Node management 
 
@@ -124,7 +124,7 @@
 
 * 流程描述
 
-  ![](.\image\network-module\recMessage2.png)
+  ![](./image/network-module/recMessage2.png)
 
 * 外部模块提供的接口参数约束
 
@@ -161,7 +161,7 @@
 
 
 
-  ![](.\image\network-module\sendMsg1.png)
+  ![](./image/network-module/sendMsg1.png)
 
 - 接口定义
 
@@ -230,7 +230,7 @@
 
 - 流程描述
 
-  ![](.\image\network-module\sendMsg2.png)
+  ![](./image/network-module/sendMsg2.png)
 
 - 接口定义
 
@@ -317,7 +317,7 @@
 
 * 流程描述
 
-  ![](.\image\network-module\createNodeGroup.png)
+  ![](./image/network-module/createNodeGroup.png)
 
 * 接口定义
 
@@ -408,7 +408,7 @@
 
 - 流程描述
 
-   ![](.\image\network-module\deleteNodeGroup2.png)
+   ![](./image/network-module/deleteNodeGroup2.png)
 
 - 接口定义
 
@@ -950,7 +950,7 @@
 
 - 流程描述
 
-​        ![](.\image\network-module\start.png)
+​        ![](./image/network-module/start.png)
 
 
 
@@ -966,7 +966,7 @@
 
 - 流程描述
 
-![](.\image\network-module\shutdown.png)
+![](./image/network-module/shutdown.png)
 
 
 
@@ -990,7 +990,7 @@
 
 - 流程描述
 
-![](.\image\network-module\discoverPeer.png)
+![](./image/network-module/discoverPeer.png)
 
 
 
@@ -1012,7 +1012,7 @@
 
 ​        client在与server完成tcp连接后，需要通过业务version协议握手，只有握手成功的连接才能进行业务转发工作。连接中状态在持续X分钟后无法跃迁到已连接，则主动断开连接。
 
-![](.\image\network-module\connection.png)
+![](./image/network-module/connection.png)
 
 
 
@@ -1027,7 +1027,7 @@
 
 - 流程描述
 
-![](.\image\network-module\pingpong.png)
+![](./image/network-module/pingpong.png)
 
 
 
@@ -1043,7 +1043,7 @@
 
   流程描述
 
-​      ![](.\image\network-module\connet-validate.png)
+​      ![](./image/network-module/connet-validate.png)
 
 
 
@@ -1063,7 +1063,7 @@
 
     在client接收到version消息时，可以知道自己的IP地址信息。
 
-![](.\image\network-module\saveNodeIp.png)
+![](./image/network-module/saveNodeIp.png)
 
 
 
@@ -1081,7 +1081,7 @@
 
   自我连接可能成功，也可能失败，如果成功则说明外网IP是可达的，便可以在建立连接时广播传递给网络中其他节点，如果不可达，则连接无法建立不用处理。
 
-![](.\image\network-module\connectSelf.png)
+![](./image/network-module/connectSelf.png)
 
 
 
@@ -1096,7 +1096,7 @@
 
 - 流程描述
 
-![](.\image\network-module\connectSelf-recieve.png)
+![](./image/network-module/connectSelf-recieve.png)
 
 
 
@@ -1116,7 +1116,7 @@
 
   如下图，我们卫星链网络与友链网络产生一个跨链连接，当卫星链中有个节点2连接上节点1时，是通过内部服务Port1来建立的连接，而节点1是可以将节点2 发送给 友链的节点A与节点B来进行连接，则此时发送给友链的信息中 应该是serverPort2，因此serverPort2需要再卫星链的内部交互中进行传递。我们将该部分数据定义在version协议中进行传递。
 
-​      ![](.\image\network-module\crossPortDeliver.png)
+​      ![](./image/network-module/crossPortDeliver.png)
 
 * 依赖服务
 

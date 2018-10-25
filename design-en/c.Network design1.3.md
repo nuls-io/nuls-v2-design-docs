@@ -43,7 +43,7 @@ The network module is the basic module of the entire system, which is used to ma
 
 ​    The  internal infrastructure functions include: state management of the  module (including startup and shutdown management), and management of  external interfaces.   Thread task management, data storage management, etc.  。
 
-![](.\image\network-module\network-functions.png)
+![](./image/network-module/network-functions.png)
 
 - Peer Nodes Management 
 
@@ -121,7 +121,7 @@ The network module is the basic module of the entire system, which is used to ma
 
 * Process description
 
-  ![](.\image\network-module\recMessage2.png)
+  ![](./image/network-module/recMessage2.png)
 
 * External module network message receiving interface constraint
 
@@ -163,7 +163,7 @@ Function Description：
 
 - Process description
 
-![](.\image\network-module\sendMsg1.png)
+![](./image/network-module/sendMsg1.png)
 
 
 
@@ -236,7 +236,7 @@ certain nodes (which can be 1 node) send messages.
 
 - Process description
 
-  ![](.\image\network-module\sendMsg2.png)
+  ![](./image/network-module/sendMsg2.png)
 
 - Interface definition
 
@@ -328,7 +328,7 @@ certain nodes (which can be 1 node) send messages.
 
 * Process description
 
-  ![](.\image\network-module\createNodeGroup.png)
+  ![](./image/network-module/createNodeGroup.png)
 
 * interface definition
 
@@ -356,7 +356,7 @@ certain nodes (which can be 1 node) send messages.
         ]}
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter         | required | type   |                 description                 |
     | ----- | ----------------- | -------- | ------ | :-----------------------------------------: |
@@ -416,7 +416,7 @@ Relies on remote service interface data provided by the kernel module.
 
 - Process description
 
-   ![](.\image\network-module\deleteNodeGroup.png)
+   ![](./image/network-module/deleteNodeGroup.png)
 
 -  Interface definition
 
