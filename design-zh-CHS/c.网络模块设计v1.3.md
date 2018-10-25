@@ -126,9 +126,36 @@
 
   ![](.\image\network-module\recMessage2.png)
 
-* 接口定义
+* 设置运行参数接口
 
-   暂无
+   - method : ***  //同消息头中的CMD指令，约束12字节
+
+     接口说明：转发消息到外部模块
+
+   - params
+
+```
+    0：chainId //链id
+    1：nodeId //节点Id
+    2：message //16进制网络序消息体
+    ......
+```
+
+- returns 
+
+```
+    {
+        "code": -1,
+        "msg": "What happend",
+        "version":"1.0",
+        "result": {
+        }
+    }
+```
+
+```
+
+```
 
   * 依赖服务
 
