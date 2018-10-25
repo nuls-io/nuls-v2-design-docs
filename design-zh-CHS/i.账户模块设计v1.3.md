@@ -1133,13 +1133,13 @@
 
 - 流程描述
 
-```
-1、验证密码格式是否正确，密码可为空
-2、获取所有本地账户
-3、本地账户的加密信息必须一致，如果参数密码不为空，所有账户的密码都必须与之相同，如果参数密码为空，所有账户都不能设置密码，否则提示错误
-4、如果账户加密则通过密码反解出未加密私匙，否则未加密直接获得私匙
-5、将所有私匙添加到集合并返回
-```
+    ```
+    1、验证密码格式是否正确，密码可为空
+    2、获取所有本地账户
+    3、本地账户的加密信息必须一致，如果参数密码不为空，所有账户的密码都必须与之相同，如果参数密码为空，所有账户都不能设置密码，否则提示错误
+    4、如果账户加密则通过密码反解出未加密私匙，否则未加密直接获得私匙
+    5、将所有私匙添加到集合并返回
+    ```
 - ac_getAllPriKey接口
 
     - 接口说明
@@ -1193,12 +1193,12 @@
 
 - 流程描述
 
+  ```
+  1、验证账户是否存在
+  2、验证密码是否已经设置
+  3、设置账户密码
+  ```
 
-    ```
-    1、验证账户是否存在
-    2、验证密码是否已经设置
-    3、设置账户密码
-    ```
 - ac_setPassword接口定义
 
     - 接口说明
@@ -1254,12 +1254,13 @@
 
 - 流程描述
 
-```
-1、验证地址是否正确
-2、验证私匙是否正确
-3、根据私匙创建
-4、设置离线账户密码
-```
+  ```
+  1、验证地址是否正确
+  2、验证私匙是否正确
+  3、根据私匙创建
+  4、设置离线账户密码
+  ```
+
 - ac_setOfflineAccountPassword接口
 
     - 接口说明
@@ -1275,7 +1276,7 @@
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
-              "00c22ad91a170fc49df53b79791f702879eb0604235787eee2c303463bf6e41111"
+              "00c22ad91a170fc49df53b79791f702879eb0604235787eee2c303463bf6e41111",
               "123456"
           ]
       }
@@ -1322,12 +1323,12 @@
 
 - 流程描述
 
+  ```
+  1、验证旧密码正确性
+  2、更新私钥密文
+  3、发送修改密码事件
+  ```
 
-    ```
-    1、验证旧密码正确性
-    2、更新私钥密文
-    3、发送修改密码事件
-    ```
 - ac_updatePassword接口
 
     - 接口说明
@@ -1337,16 +1338,13 @@
     - 请求示例
 
       ```
-      0：address //账户地址
-      1：password //账户旧密码
-      2：newPassword //账户新密码
       {
         "cmd": "ac_updatePassword",
         "version":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
-              "123456"
+              "123456",
               "111111"
           ]
       }
@@ -1388,32 +1386,46 @@
 
 - 流程描述
 
-  
-    ```
-    1、验证地址是否正确
-    2、根据地址、私匙、新密码生成离线账户
-    ```
-- 接口定义
+  ```
+  1、验证地址是否正确
+  2、根据地址、私匙、新密码生成离线账户
+  ```
 
-    - 修改离线账户密码参数接口
-    
-      - method : ac_updateOfflineAccountPassword
-        
-            接口说明：该接口用于修改离线账户密码。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          1：priKey //账户私匙
-          2：password //账户旧密码
-          3：newPassword //账户新密码
-          
-          ```
+- ac_updateOfflineAccountPassword接口
+
+    - 接口说明
+
+      该接口用于修改离线账户密码。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_updateOfflineAccountPassword",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
+              "00c22ad91a170fc49df53b79791f702879eb0604235787eee2c303463bf6e41111",
+              "123456",
+              "111111"
+          ]
+      }
       
-    - returns 
-      
-          ```
+      ```
+
+    - 请求参数说明
+
+      | index | parameter   | required | type    | description |
+      | ----- | ----------- | -------- | ------- | ----------- |
+      | 0     | chainId     | true     | Integer | 链ID        |
+      | 1     | address     | true     | String  | 账户地址    |
+      | 2     | priKey      | true     | String  | 私匙        |
+      | 3     | password    | true     | String  | 账户密码    |
+      | 4     | newPassword | true     | String  | 账户新密码  |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1422,16 +1434,15 @@
                   "encryptedPriKey":""
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段        |  type | 说明         |
-          | :-------------- | :------- | :----------- |
-          | code            | Integer  | 返回结果状态 |
-          | msg             | String   | 失败时的信息 |
-          | result          | jsonObj  | 业务数据     |
-          | encryptedPriKey | String   | 加密私匙     |
+
+      | parameter | type | description |
+      | :-------------- | :------- | :----------- |
+      | code            | Integer  | 返回结果状态 |
+      | msg             | String   | 失败时的信息 |
+      | result          | jsonObj  | 业务数据     |
+      | encryptedPriKey | String   | 加密私匙     |
 #### 2.2.20 验证密码
 
 - 功能说明：
@@ -1440,29 +1451,41 @@
 
 - 流程描述
 
-  
-    ```
-    1、验证密码是否正确
-    2、返回验证结果
-    ```
-- 接口定义
+  ```
+  1、验证密码是否正确
+  2、返回验证结果
+  ```
 
-    - 验证密码参数接口
-    
-      - method : ac_validationPassword
-        
-            接口说明：该接口用于验证密码。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          1：password //账户密码
-          ```
-      
-    - returns 
-      
-          ```
+- ac_validationPassword接口
+
+    - 接口说明
+
+      该接口用于验证密码。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_validationPassword",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
+              "123456"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | address   | true     | String  | 账户地址    |
+      | 2     | password  | true     | String  | 账户密码    |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1471,16 +1494,15 @@
                   "value":true
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段 |  type | 说明         |
-          | :------- | :------- | :----------- |
-          | code     | Integer  | 返回结果状态 |
-          | msg      | String   | 失败时的信息 |
-          | result   | jsonObj  | 业务数据     |
-          | value    | boolean  | 密码是否正确 |
+
+      | parameter | type | description |
+      | :------- | :------- | :----------- |
+      | code     | Integer  | 返回结果状态 |
+      | msg      | String   | 失败时的信息 |
+      | result   | jsonObj  | 业务数据     |
+      | value    | boolean  | 密码是否正确 |
 #### 2.2.21 验证账户是否加密
 
 - 功能说明：
@@ -1489,47 +1511,59 @@
 
 - 流程描述
 
-  
+
     ```
     1、验证账户是否存在
     2、验证账户是否加密
     3、返回验证结果
     ```
-- 接口定义
+- ac_isEncrypted接口
 
-    - 验证账户是否加密参数接口
-    
-      - method : ac_isEncrypted
-        
-            接口说明：该接口用于验证账户是否加密。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          ```
-      
-    - returns 
-      
-          ```
-          {
-              "code": 0,
-              "msg": "success",
-              "version":1.0,
-              "result": {
-              	"value":true
-              }
+    - 接口说明
+
+      该接口用于验证账户是否加密。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_isEncrypted",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | address   | true     | String  | 账户地址    |
+
+    - 返回示例
+
+      ```
+      {
+          "code": 0,
+          "msg": "success",
+          "version":1.0,
+          "result": {
+          	"value":true
           }
-          ```
-      
+      }
+      ```
+
     - 返回字段说明
-      
-          | 返回字段 |  type | 说明         |
-          | :------- | :------- | :----------- |
-          | code     | Integer  | 返回结果状态 |
-          | msg      | String   | 失败时的信息 |
-          | result   | jsonObj  | 业务数据     |
-          | value    | boolean  | 账户是否加密 |
+
+      | parameter | type | description |
+      | :------- | :------- | :----------- |
+      | code     | Integer  | 返回结果状态 |
+      | msg      | String   | 失败时的信息 |
+      | result   | jsonObj  | 业务数据     |
+      | value    | boolean  | 账户是否加密 |
 #### 2.2.22 设置账户别名
 
 - 功能说明：
@@ -1546,25 +1580,38 @@
     5、交易确认后，会保存别名到数据库，将address和alias分别作为key存储，也就是别名数据会存两条数据，主要是为了便于根据address和alias分别查询
     ```
 
-- 接口定义
+- ac_setAlias接口定义
 
-    -  设置账户别名参数接口
+    - 接口说明
 
-      - method : ac_setAlias
-        
-            接口说明：该接口用于设置账户别名。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          1：password //账户密码
-          2：alias //别名
-          ```
-        
-    - returns 
-      
-          ```
+      该接口用于设置账户别名。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_setAlias",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
+              "123456",
+              "abc"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | address   | true     | String  | 账户地址    |
+      | 2     | password  | false    | String  | 账户密码    |
+      | 3     | alias     | true     | String  | 别名        |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1573,16 +1620,15 @@
                 "txHash":"1cb336b834494fb7eef070cf9c3e60a5a49e762ca1f81cb2592593047235f308"
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段 |  type | 说明         |
-          | :------- | :------- | :----------- |
-          | code     | Integer  | 返回结果状态 |
-          | msg      | String   | 失败时的信息 |
-          | result   | jsonObj  | 业务数据     |
-          | txHash   | String   | 别名交易hash |
+
+      | parameter | type | description |
+      | :------- | :------- | :----------- |
+      | code     | Integer  | 返回结果状态 |
+      | msg      | String   | 失败时的信息 |
+      | result   | jsonObj  | 业务数据     |
+      | txHash   | String   | 别名交易hash |
 
 - 依赖服务
 
@@ -1595,29 +1641,41 @@
 
 - 流程描述
 
-  
-    ```
-    1、验证账户是否存在，验证别名是否正确
-    2、计算别名设置所需手续费
-    ```
-- 接口定义
+  ```
+  1、验证账户是否存在，验证别名是否正确
+  2、计算别名设置所需手续费
+  ```
 
-    - 获取设置别名手续费参数接口
-    
-      - method : ac_getAliasFee
-        
-            接口说明：该接口用于获取设置别名手续费。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          1：alias //别名
-          ```
-      
-    - returns 
-      
-          ```
+- ac_getAliasFee接口
+
+    - 接口说明
+
+      该接口用于获取设置别名手续费。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_getAliasFee",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
+              "abc"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | address   | true     | String  | 账户地址    |
+      | 2     | alias     | true     | String  | 别名        |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1627,17 +1685,16 @@
                   "maxAmount":"10000"
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段            |  type | 说明         |
-          | :------------------ | :------- | :----------- |
-          | code                | Integer  | 返回结果状态 |
-          | msg                 | String   | 失败时的信息 |
-          | result              | jsonObj  | 业务数据     |
-          | fee                 | String   | 别名交易手续费 |
-          | maxAmount           | String   | 交易最大手续费 |
+
+      | parameter   | type | description |
+      | :------------------ | :------- | :----------- |
+      | code                | Integer  | 返回结果状态 |
+      | msg                 | String   | 失败时的信息 |
+      | result              | jsonObj  | 业务数据     |
+      | fee                 | String   | 别名交易手续费 |
+      | maxAmount           | String   | 交易最大手续费 |
 #### 2.3.24 根据地址查询别名
 
 - 功能说明：
@@ -1646,28 +1703,39 @@
 
 - 流程描述
 
-  
-    ```
-    1、验证账户是否存在
-    2、从数据库中查询账户对应的别名
-    ```
-- 接口定义
+  ```
+  1、验证账户是否存在
+  2、从数据库中查询账户对应的别名
+  ```
 
-    - 根据地址查询别名参数接口
-    
-      - method : ac_getAliasByAddress
-        
-            接口说明：该接口用于根据地址查询别名。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          ```
-      
-    - returns 
-      
-          ```
+- ac_getAliasByAddress接口
+
+    - 接口说明
+
+      该接口用于根据地址查询别名。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_getAliasByAddress",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | address   | true     | String  | 账户地址    |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1676,16 +1744,15 @@
                   "alias":""
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段 |  type | 说明         |
-          | :------- | :------- | :----------- |
-          | code     | Integer  | 返回结果状态 |
-          | msg      | String   | 失败时的信息 |
-          | result   | jsonObj  | 业务数据     |
-          | alias    | String   | 账户别名     |
+
+      | parameter | type | description |
+      | :------- | :------- | :----------- |
+      | code     | Integer  | 返回结果状态 |
+      | msg      | String   | 失败时的信息 |
+      | result   | jsonObj  | 业务数据     |
+      | alias    | String   | 账户别名     |
 #### 2.2.25 验证别名是否可用
 
 - 功能说明：
@@ -1694,27 +1761,38 @@
 
 - 流程描述
 
-  
-    ```
-    1、查询别名是否已存在，如果存在则不可用，反之则可用
-    ```
-- 接口定义
+  ```
+  1、查询别名是否已存在，如果存在则不可用，反之则可用
+  ```
 
-    - 验证别名是否可用参数接口
-    
-      - method : ac_isAliasUsable
-        
-            接口说明：该接口用于验证别名是否可用。
-        
-      - params
-        
-          ```
-          0：alias //账户别名
-          ```
-      
-    - returns 
-      
-          ```
+- ac_isAliasUsable接口
+
+    - 接口说明
+
+      该接口用于验证别名是否可用。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_isAliasUsable",
+        "version":1.0,
+        "params": [
+              1234,
+              "abc"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | alias     | true     | String  | 账户别名    |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1723,16 +1801,15 @@
                   "value":true
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段            |  type | 说明         |
-          | :------------------ | :------- | :----------- |
-          | code                | Integer  | 返回结果状态 |
-          | msg                 | String   | 失败时的信息 |
-          | result              | jsonObj  | 业务数据    |
-          | value               | boolean  | 别名是否可用 |
+
+      | parameter   | type | description |
+      | :------------------ | :------- | :----------- |
+      | code                | Integer  | 返回结果状态 |
+      | msg                 | String   | 失败时的信息 |
+      | result              | jsonObj  | 业务数据    |
+      | value               | boolean  | 别名是否可用 |
 #### 2.2.26 设置账户备注
 
 - 功能说明：
@@ -1741,29 +1818,41 @@
 
 - 流程描述
 
-  
-    ```
-    1、验证账户是否存在
-    2、修改备注信息并保存
-    ```
-- 接口定义
+  ```
+  1、验证账户是否存在
+  2、修改备注信息并保存
+  ```
 
-    - 设置账户备注参数接口
-    
-      - method : ac_setRemark
-        
-            接口说明：该接口用于设置账户备注。
-        
-      - params
-        
-          ```
-          0：address //账户地址
-          1：remark //账户备注
-          ```
-      
-    - returns 
-      
-          ```
+- ac_setRemark接口
+
+    - 接口说明
+
+      该接口用于设置账户备注。
+
+    - 请求示例
+
+      ```
+      {
+        "cmd": "ac_setRemark",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
+              "remark1"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+      | index | parameter | required | type    | description |
+      | ----- | --------- | -------- | ------- | ----------- |
+      | 0     | chainId   | true     | Integer | 链ID        |
+      | 1     | address   | true     | String  | 账户地址    |
+      | 2     | remark    | true     | String  | 账户备注    |
+
+    - 返回示例
+
           {
               "code": 0,
               "msg": "success",
@@ -1772,16 +1861,15 @@
                   "value":true
               }
           }
-          ```
-      
+
     - 返回字段说明
-      
-          | 返回字段 |  type | 说明         |
-          | :------- | :------- | :----------- |
-          | code     | Integer  | 返回结果状态 |
-          | msg      | String   | 失败时的信息 |
-          | result   | jsonObj  | 业务数据     |
-          | value    | boolean  | 设置是否成功 |
+
+      | parameter | type | description |
+      | :------- | :------- | :----------- |
+      | code     | Integer  | 返回结果状态 |
+      | msg      | String   | 失败时的信息 |
+      | result   | jsonObj  | 业务数据     |
+      | value    | boolean  | 设置是否成功 |
 #### 2.2.27 设置多签账户别名
 
 - 功能说明：
@@ -1801,24 +1889,39 @@
   8、返回交易hash
   ```
 
-- 接口定义
+- ac_setMutilSigAlias接口
 
-  - 设置多签账户别名参数接口
+  - 接口说明
 
-  - method : ac_setMutilSigAlias
+      该接口用于设置多签账户别名。
 
-      接口说明：该接口用于设置多签账户别名。
+  - 请求示例
 
-  - params
+      ```
+      {
+        "cmd": "ac_setMutilSigAlias",
+        "version":1.0,
+        "params": [
+              1234,
+              "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
+              "DCQMUi1q9TefkXUcaysAuvFjj4NbTEST",
+              "123456",
+              "abc"
+          ]
+      }
+      ```
 
-    ```
-    0：address //账户地址
-    1：password //账户密码
-    2：alias //别名
-    3：signAddress //签名地址
-    ```
+  - 请求参数说明
 
-  - returns 
+    | index | parameter   | required | type    | description  |
+    | ----- | ----------- | -------- | ------- | ------------ |
+    | 0     | chainId     | true     | Integer | 链ID         |
+    | 1     | address     | true     | String  | 多签账户地址 |
+    | 2     | signAddress | true     | String  | 签名地址     |
+    | 3     | password    | false    | String  | 账户密码     |
+    | 4     | alias       | true     | String  | 别名         |
+
+  - 返回示例
 
     ```
     {
@@ -1834,12 +1937,12 @@
 
   - 返回字段说明
 
-    | 返回字段 | type    | 说明             |
-    | :------- | :------ | :--------------- |
-    | code     | Integer | 返回结果状态     |
-    | msg      | String  | 失败时的信息     |
-    | result   | jsonObj | 业务数据         |
-    | txHash   | String  | 多签别名交易hash |
+    | parameter | type    | description      |
+    | :-------- | :------ | :--------------- |
+    | code      | Integer | 返回结果状态     |
+    | msg       | String  | 失败时的信息     |
+    | result    | jsonObj | 业务数据         |
+    | txHash    | String  | 多签别名交易hash |
 
 - 依赖服务
 
@@ -1859,21 +1962,33 @@
   8、返回删除是否成功
   ```
 
-- 接口定义
+- ac_removeMultiSigAccount接口
 
-  - 移除多签账户参数接口
+  - 接口说明
 
-  - method : ac_removeMultiSigAccount
+      该接口用于移除多签账户。
 
-      接口说明：该接口用于移除多签账户。
+  - 请求示例
 
-  - params
+      ```
+      {
+        "cmd": "ac_setMutilSigAlias",
+        "version":1.0,
+        "params": [
+              1234,
+              "DCQMUi1q9TefkXUcaysAuvFjj4NbTEST",
+          ]
+      }
+      ```
 
-    ```
-    0：address //多签账户地址
-    ```
+  - 请求参数说明
 
-  - returns 
+    | index | parameter | required | type    | description  |
+    | ----- | --------- | -------- | ------- | ------------ |
+    | 0     | chainId   | true     | Integer | 链ID         |
+    | 1     | address   | true     | String  | 多签账户地址 |
+
+  - 返回示例
 
     ```
     {
@@ -1889,12 +2004,12 @@
 
   - 返回字段说明
 
-    | 返回字段 | type    | 说明         |
-    | :------- | :------ | :----------- |
-    | code     | Integer | 返回结果状态 |
-    | msg      | String  | 失败时的信息 |
-    | result   | jsonObj | 业务数据     |
-    | value    | boolean | 是否移除成功 |
+    | parameter | type    | description  |
+    | :-------- | :------ | :----------- |
+    | code      | Integer | 返回结果状态 |
+    | msg       | String  | 失败时的信息 |
+    | result    | jsonObj | 业务数据     |
+    | value     | boolean | 是否移除成功 |
 
   
 
@@ -2014,27 +2129,27 @@ server.port:8080    //提供服务的端口
   非NULS体系：chainId+length+address
 
 
-> | `字段名称`      | ` type` | `说明`                   |
-> | :-------------- | :------ | :----------------------- |
-> | chainId         | short   | 链ID                     |
-> | address         | String  | 账户地址（Base58Encode） |
-> | alias           | String  | 账户别名                 |
-> | status          | Integer | 账户状态                 |
-> | pubKey          | byte[]  | 公匙                     |
-> | priKey          | byte[]  | 私匙-未加密              |
-> | encryptedPriKey | byte[]  | 已加密私匙               |
-> | extend          | byte[]  | 扩展数据                 |
-> | remark          | String  | 备注                     |
-> | createTime      | long    | 创建时间                 |
+| `字段名称`      | ` type` | `说明`                   |
+| :-------------- | :------ | :----------------------- |
+| chainId         | short   | 链ID                     |
+| address         | String  | 账户地址（Base58Encode） |
+| alias           | String  | 账户别名                 |
+| status          | Integer | 账户状态                 |
+| pubKey          | byte[]  | 公匙                     |
+| priKey          | byte[]  | 私匙-未加密              |
+| encryptedPriKey | byte[]  | 已加密私匙               |
+| extend          | byte[]  | 扩展数据                 |
+| remark          | String  | 备注                     |
+| createTime      | long    | 创建时间                 |
 
 * Address对象设计（不持久化存储）
 
-> | `字段名称`   | ` type` | `说明`       |
-> | ------------ | ------- | ------------ |
-> | chainId      | short   | 链ID         |
-> | addressType  | byte    | 地址类型     |
-> | hash160      | byte[]  | 公匙hash     |
-> | addressBytes | byte[]  | 地址字节数组 |
+| `字段名称`   | ` type` | `说明`       |
+| ------------ | ------- | ------------ |
+| chainId      | short   | 链ID         |
+| addressType  | byte    | 地址类型     |
+| hash160      | byte[]  | 公匙hash     |
+| addressBytes | byte[]  | 地址字节数组 |
 
 - Alias对象设计
 
@@ -2044,18 +2159,18 @@ server.port:8080    //提供服务的端口
 
   需要按照不同的链分别创建不同的别名表
 
-> | `字段名称` | ` type` | `说明`   |
-> | ---------- | ------- | -------- |
-> | address    | byte[]  | 账户地址 |
-> | alias      | String  | 账户别名 |
+| `字段名称` | ` type` | `说明`   |
+| ---------- | ------- | -------- |
+ | address    | byte[]  | 账户地址 |
+ | alias      | String  | 账户别名 |
 
 - MultiSigAccount对象设计
 
-> | `字段名称` | ` type`      | `说明`             |
-> | ---------- | ------------ | ------------------ |
-> | address    | String       | 账户地址           |
-> | pubKeyList | List<byte[]> | 需要签名的公钥列表 |
-> | minSigns   | long         | 最少签名数         |
+| `字段名称` | ` type`      | `说明`             |
+| ---------- | ------------ | ------------------ |
+| address    | String       | 账户地址           |
+| pubKeyList | List<byte[]> | 需要签名的公钥列表 |
+| minSigns   | long         | 最少签名数         |
 
 
 
