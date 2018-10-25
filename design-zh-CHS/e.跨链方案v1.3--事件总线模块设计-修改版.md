@@ -40,6 +40,7 @@
 > 只依赖核心系统，核心系统可以对事件模块系统的启动，停止，参数修改等，
 
 ### 2.3 模块内部功能
+![event-bus-function](image/eventbus/event-bus-function.png)
 
 > 模块内部工能主要包含，订阅管理器，事件管理器，转发管理器。
 
