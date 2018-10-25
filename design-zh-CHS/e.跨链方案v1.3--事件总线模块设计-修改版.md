@@ -81,12 +81,12 @@
 
 ```json
 {
-  "jsonrpc": "1.0"，
+  "jsonrpc": "1.0",
   "method": "subscribe",
   "params":[
     "app.nuls.network.bandwidth",//topic 事件主题
-    "moduleId", //moduleId订阅者模块id
-  }
+    "moduleId" //moduleId订阅者模块id
+  ]
 }
 ```
 ##### 返回值说明 (response content)
@@ -109,7 +109,7 @@
 
 ```json
 {
-"jsonrpc": "1.0"，
+"jsonrpc": "1.0",
 "method": "unsubscribe",
 "params":[
   "app.nuls.network.bandwidth", //topic 事件主题
@@ -139,12 +139,12 @@
 
 ```json
 {
- "jsonrpc": "1.0"，
+ "jsonrpc": "1.0",
  "method": "send",
  "params":[
    "app.nuls.network.bandwidth",//topic 事件主题
    "moduleId", //moduleId订阅者模块id
-   {data} // 需要发送的事件，jsonObj
+   {"key" : "data value"} // 需要发送的事件，jsonObj
  ]
 }
 ```
@@ -167,7 +167,7 @@
 
 ```json
 {
- "jsonrpc": "1.0"，
+ "jsonrpc": "1.0",
  "method": "dispatcher",
  "params":[
    {} //data 需要发送的事件，payload
@@ -196,7 +196,7 @@
 
 ```json
 {
- "jsonrpc": "1.0"，
+ "jsonrpc": "1.0",
  "method": "topics",
  "params":[]
 }
@@ -211,13 +211,13 @@
   "msg": "reponse message.",//失败时的信息
   "result": {
     "topics":[{
-        topic: "",  //主题id
-        createTime:"",	//创建时间
-        moduleId:"",   //主题创建者（模块）Id
-        subscribes:[//订阅者信息
+        "topic": "",  //主题id
+        "createTime":"",	//创建时间
+        "moduleId":"",   //主题创建者（模块）Id
+        "subscribes":[//订阅者信息
             {
-                moduleId:"", //订阅者
-                subscribeTime:"" //订阅时间
+                "moduleId":"", //订阅者
+                "subscribeTime":"" //订阅时间
             }
         ]}
     ]
@@ -241,14 +241,14 @@
 ### 5.2 交易协议
 
 ## 六、模块配置
-### 配置说明
+### 6.1 配置说明
 > 一般支持性配置，端口，重试次数，重试时间，默认执行器的线程池大小，网络调用超时配置等。
 ```yml
 server:
   ip: 127.0.01   //本机ip，用于提供服务给其他模块,可以不填，默认自动获取
   port: 8080    //提供服务的端口,可以不填，默认自动获取
 ```
-### 模块依赖关系
+### 6.2 模块依赖关系
 
 - 内核模块
   - 模块注册
