@@ -142,7 +142,7 @@ Community governance requires account signature
   ```
   {
       "cmd":"ac_createAccount",
-      "version":1.0,
+      "minVersion":1.0,
       "params":[
           1234,
           10,
@@ -223,7 +223,7 @@ Community governance requires account signature
     ```
     {
         "cmd":"ac_createOfflineAccount",
-        "version":1.0,
+        "minVersion":1.0,
         "params":[
             1234,
             10,
@@ -290,7 +290,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "createMultiAccount",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               ["pubKey1","pubKey2"],
@@ -377,7 +377,7 @@ Community governance requires account signature
     ```
     {
       "cmd": "ac_removeAccount",
-      "version":1.0,
+      "minVersion":1.0,
       "params": [
             1234,
             "AAax8wqxALqjyhrL8Wv1tQiqswAshAnX",
@@ -461,7 +461,7 @@ Community governance requires account signature
     ```
     {
       "cmd": "ac_importAccountByPriKey",
-      "version":1.0,
+      "minVersion":1.0,
       "params": [
             1234,
             "00c22ad91a170fc49df53b79791f702879eb0604235787eee2c303463bf6e41111",
@@ -541,10 +541,10 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_importAccountByKeystore",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
-              "",
+              "HEX",
               "123456",
               true
           ]
@@ -553,12 +553,12 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type        | description                                  |
-      | ----- | --------- | -------- | ----------- | -------------------------------------------- |
-      | 0     | chainId   | true     | Integer     | Chain ID                                     |
-      | 1     | keyStore  | true     | InputStream | Imported keyStore file                       |
-      | 2     | password  | false    | String      | Account password                             |
-      | 3     | overwrite | true     | Boolean     | Whether to overwrite when the account exists |
+      | index | parameter | required | type    | description                                  |
+      | ----- | --------- | -------- | ------- | -------------------------------------------- |
+      | 0     | chainId   | true     | Integer | Chain ID                                     |
+      | 1     | keyStore  | true     | String  | Imported keyStore hex code                   |
+      | 2     | password  | false    | String  | Account password                             |
+      | 3     | overwrite | true     | Boolean | Whether to overwrite when the account exists |
 
     - Return example
 
@@ -617,7 +617,7 @@ Community governance requires account signature
     ```
     {
       "cmd": "ac_importMultiSigAccount",
-      "version":1.0,
+      "minVersion":1.0,
       "params": [
             1234,
             "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -688,7 +688,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_importMultiSigAccount",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -755,7 +755,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_exportAccountKeyStore",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -818,7 +818,7 @@ Community governance requires account signature
       ```
       {
           "cmd":"ac_getAccountList",
-          "version":1.0,
+          "minVersion":1.0,
           "params":[
               1234
           ]
@@ -883,7 +883,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getAccountByAddress",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -951,7 +951,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getAddressList",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               0,
@@ -1011,7 +1011,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getAddressList",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "abc"
@@ -1072,7 +1072,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getPriKeyByAddress",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1134,7 +1134,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getAllPriKey",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "123456"
@@ -1193,7 +1193,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_setPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1255,7 +1255,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_setOfflineAccountPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1323,7 +1323,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_updatePassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1385,7 +1385,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_updateOfflineAccountPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1450,7 +1450,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_validationPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1511,7 +1511,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_isEncrypted",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -1574,7 +1574,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_setAlias",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1640,7 +1640,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getAliasFee",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1702,7 +1702,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_getAliasByAddress",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -1759,7 +1759,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_isAliasUsable",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "abc"
@@ -1817,7 +1817,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_setRemark",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -1883,7 +1883,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_setMutilSigAlias",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1956,7 +1956,7 @@ Community governance requires account signature
       ```
       {
         "cmd": "ac_setMutilSigAlias",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "DCQMUi1q9TefkXUcaysAuvFjj4NbTEST",
