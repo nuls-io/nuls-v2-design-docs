@@ -2,7 +2,7 @@
 
 [TOC]
 
-## I. Overall description
+## 1. Overall description
 
 ### 1.1 Module Overview
 
@@ -25,7 +25,7 @@
   - Microservice registration and service information acquisition with the system core module.
   - Event message creation, subscription, and forwarding management with other base modules.
 
-## II, functional design
+## 2. functional design
 
 ### 2.1 Functional Architecture
 ![event-bus-content](image/eventbus/event-bus-content.png)
@@ -71,31 +71,31 @@
 - 1. Retaining event calls Repeat calls by queue until the forwarding is successful.
 - 2. Discard it directly after trying many times. (Tentatively 5 times) Retry every 10 seconds.
 
-## III. Interface Design
+## 3. Interface Design
 
 ### 3.1 Module Interface
 #### 3.1.1 Event Theme Subscription
 > cmd: subscribe
 
-##### Parameter Description (request body)
+##### Parameter Description (Request body)
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "method": "subscribe",
+  "cmd": "subscribe",
+  "min_version": 1.0,
   "params":[
     "app.nuls.network.bandwidth",//topic event topic
     "moduleId" //moduleId subscriber module id
   ]
 }
 ```
-##### Return value description (response content)
+##### Return value description (Response content)
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "code": 0, / / ​​opcode
-  "msg": "reponse message.", / / ​​information on failure
+  "version": 1.2,
+  "code": 0,
+  "msg": "reponse message.", // ​​information on failure
   "result": {
     "app_secret": "xxxxxxxxxxxx" // app_secret, temporarily not needed, may need to be verified later if it is not required to be called locally
   }
@@ -109,11 +109,11 @@
 
 ```json
 {
-"jsonrpc": "1.0",
-"method": "unsubscribe",
-"params":[
-  "app.nuls.network.bandwidth", //topic event topic
-  "moduleId" //moduleId subscriber module id
+  "cmd": "unsubscribe",
+  "min_version": 1.0,
+  "params":[
+    "app.nuls.network.bandwidth", //topic event topic
+    "moduleId" //moduleId subscriber module id
   ]
 }
 ```
@@ -122,9 +122,9 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "code": 0, //opcode
-  "msg": "reponse message.", / / ​​information on failure
+  "version": 1.2,
+  "code": 0,
+  "msg": "reponse message.", // ​​information on failure
   "result": {
   }
 }
@@ -139,8 +139,8 @@
 
 ```json
 {
- "jsonrpc": "1.0",
- "method": "send",
+ "cmd": "send",
+ "min_version": 1.0,
  "params":[
    "app.nuls.network.bandwidth",//topic event topic
    "moduleId", //moduleId subscriber module id
@@ -153,9 +153,9 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "code": 0, //opcode
-  "msg": "reponse message.", / / ​​information on failure
+  "version": 1.2,
+  "code": 0,
+  "msg": "reponse message.", // ​​information on failure
   "result": {
   }
 }
@@ -167,8 +167,8 @@
 
 ```json
 {
- "jsonrpc": "1.0",
- "method": "dispatcher",
+ "cmd": "dispatcher",
+ "min_version": 1.0,
  "params":[
    {} //data event to be sent, payload
  ]
@@ -179,9 +179,9 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "code": 0, / / ​​must return correctly, do not need to tell you whether the business logic is wrong, as long as you receive it, tell me that you have successfully received it.
-  "msg": "reponse message.", / / ​​information on failure
+  "version": 1.2,
+  "code": 0, // ​​must return correctly, do not need to tell you whether the business logic is wrong, as long as you receive it, tell me that you have successfully received it.
+  "msg": "reponse message.", // ​​information on failure
   "result": {
   }
 }
@@ -202,13 +202,13 @@
 }
 ```
 
-##### return value description (response content)
+##### Response Body (response content)
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "code": 0, / / ​​must return correctly, do not need to tell you whether the business logic is wrong, as long as you receive it, tell me that you have successfully received it.
-  "msg": "reponse message.", / / ​​information on failure
+  "version": 1.2,
+  "code": 0, // ​​must return correctly, do not need to tell you whether the business logic is wrong, as long as you receive it, tell me that you have successfully received it.
+  "msg": "reponse message.", // ​​information on failure
   "result": {
     "topics":[{
         "topic": "", //topic id
@@ -228,11 +228,11 @@
 #### Get event topic information (including all event information on this topic?) Every event I don't care about.
 > cmd : get_topic
 
-## IV. Description of the event
+## 4. Description of the event
 
 > does not depend on any events
 
-## 五, agreement
+## 5. agreement
 
 ### 5.1 Network Communication Protocol
 
@@ -240,12 +240,12 @@ no
 
 ### 5.2 Trading Agreement
 
-## 六, Module Configuration
+## 6. Module Configuration
 ### 6.1 Configuration Instructions
 > General support configuration, port, number of retries, retry time, thread pool size of default executor, network call timeout configuration, etc.
 ```yml
 Server:
-  Ip: 127.0.0.1 / / local ip, used to provide services to other modules, you can not fill, the default is automatically obtained
+  Ip: 127.0.0.1 // local ip, used to provide services to other modules, you can not fill, the default is automatically obtained
   Port: 8080 //The port that provides the service, you can leave it blank, the default is automatically obtained.
 ```
 ### 6.2 Module Dependencies
@@ -256,10 +256,10 @@ Server:
   - Module status escalation (heartbeat)
   - Service interface data acquisition and timing update
 
-## VII, Java-specific design
+## 7. Java-specific design
 
 > Core object class definition, storing data structures, ...
 
-## 八, supplementary content
+## 8. supplementary content
 
 > Required content not covered above
