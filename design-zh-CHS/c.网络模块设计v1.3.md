@@ -45,7 +45,7 @@
 
   线程任务管理，数据存储管理等。
 
-![](.\image\network-module\network-functions.png)
+![](./image/network-module/network-functions.png)
 
 - 节点管理 Node management 
 
@@ -124,15 +124,24 @@
 
 * 流程描述
 
-  ![](.\image\network-module\recMessage2.png)
+  ![](./image/network-module/recMessage2.png)
 
-* 接口定义
+* 外部模块提供的接口参数约束
 
-   暂无
+   - method : ***  //同消息头中的CMD指令，约束12字节
 
-  * 依赖服务
+   - params
 
-    解析消息头中的command参数，在调用远程接口处理时，依赖内核模块提供的远程的服务接口数据。
+```
+    0：chainId //链id
+    1：nodeId //节点Id
+    2：message //16进制网络序消息体
+    ......
+```
+
+- 依赖服务
+
+​        解析消息头中的command参数，在调用远程接口处理时，依赖内核模块提供的远程的服务接口数据。
 
   #### 2.2.2网络消息发送
 
@@ -152,33 +161,58 @@
 
 
 
-  ![](.\image\network-module\sendMsg1.png)
+  ![](./image/network-module/sendMsg1.png)
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_broadcast
+     method : nw_broadcast
 
-      接口说明：外部模块可以通过该接口去广播消息
+    外部模块可以通过该接口去广播消息
 
-    - params
-
-    ```
-    0：chainId //链id
-    1：excludeNodes //排除的节点Id列表，用逗号分隔  "nodeId1,nodeId2,nodeId3"
-    2：message //16进制网络序消息体
-    ......
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
-        "result": {
+        "method":"nw_broadcast",
+        "minVersion":1.1,
+        "params":[
+            1234，
+            "10.13.25.36:5003,20.30.25.65:8009",
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter    | required | type   |    description    |
+    | ----- | ------------ | -------- | ------ | :---------------: |
+    | 0     | chainId      | true     | int    |      链标识       |
+    | 1     | excludeNodes | true     | String | 排除节点,逗号分割 |
+    | 2     | message      | true     | String |  对象16进制字符   |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
@@ -196,41 +230,72 @@
 
 - 流程描述
 
-  ![](.\image\network-module\sendMsg2.png)
+  ![](./image/network-module/sendMsg2.png)
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_sendPeersMsg
+    外部模块可以通过该接口去广播消息
 
-      接口说明：外部模块可以通过该接口去广播消息
+    method : nw_sendPeersMsg
 
-    - params
-
-    ```
-    0：chainId //链id
-    1：nodes //要发送的节点Id列表，用逗号分隔  "nodeId1,nodeId2,nodeId3"
-    2：message //16进制网络序消息体,"FFFFFAAAAAA"
-    ......
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
-        "result": {
+        "method":"nw_sendPeersMsg",
+        "minVersion":1.1,
+        "params":[
+            1234，
+            "10.13.25.36:5003,20.30.25.65:8009",
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type   |    description    |
+    | ----- | --------- | -------- | ------ | :---------------: |
+    | 0     | chainId   | true     | int    |      链标识       |
+    | 1     | nodes     | true     | String | 发送节点,逗号分割 |
+    | 2     | message   | true     | String |  对象16进制字符   |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
 
+  - 返回字段说明
 
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+  
 - 依赖服务
 
   无
+
 
 #### 2.2.3 创建节点组
 
@@ -252,46 +317,84 @@
 
 * 流程描述
 
-  ![](.\image\network-module\createNodeGroup.png)
+  ![](./image/network-module/createNodeGroup.png)
 
 * 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_createNodeGroup
+    接收外部模块的调用，创建节点组
 
-      接口说明：接收外部模块的调用，创建节点组
+    method : nw_createNodeGroup
 
-    - params
-
-    ```
-    0：chainId //链id
-    1：magicNumber //网络魔法参数
-    2：maxOut //主动连接数量
-    3：maxIn //被动连接数量
-    4：minAvailableCount //最小连接数量
-    5：seedIps  //种子节点
-    6：isMoonNode //默认0，非卫星链节点，1是卫星链节点
-    7：serverPort //节点作为server的端口号
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
+        "method":"nw_createNodeGroup",
+        "version":1.1,
+        "params":[
+            1234,
+            232342,
+            10,
+            100,
+            20，
+            "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003",
+            0,
+            8008
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter         | required | type   |      description      |
+    | ----- | ----------------- | -------- | ------ | :-------------------: |
+    | 0     | chainId           | true     | int    |        链标识         |
+    | 1     | magicNumber       | true     | long   |       魔法参数        |
+    | 2     | maxOut            | true     | int    |    最大主动连接数     |
+    | 3     | maxIn             | true     | int    |    最大被动连接数     |
+    | 4     | minAvailableCount | true     | int    |    友链最小连接数     |
+    | 5     | seedIps           | true     | String |   种子节组逗号分割    |
+    | 6     | isMoonNode        | true     | int    | 是否卫星链节点，默认0 |
+    | 7     | serverPort        | true     | int    |         端口          |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
 
- * 依赖服务
+  - 返回字段说明
 
-  依赖内核模块提供的远程的服务接口数据。
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
 
 
+- 依赖服务
+
+​       依赖内核模块提供的远程的服务接口数据。
+
+​     
 
 #### 2.2.4 注销节点组
 
@@ -305,33 +408,65 @@
 
 - 流程描述
 
-   ![](.\image\network-module\deleteNodeGroup2.png)
+   ![](./image/network-module/deleteNodeGroup2.png)
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_delNodeGroup
+    接收外部模块的调用，删除节点组
 
-      接口说明：接收外部模块的调用，删除节点组
+    method : nw_delNodeGroup
 
-    - params
-
-    ```
-    0：chainId //链id
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": -1,
-        "msg": "What happend",
-        "result": {
+        "method":"nw_createNodeGroup",
+        "version":1.1,
+        "params":[
+            1234
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type | description |
+    | ----- | --------- | -------- | ---- | :---------: |
+    | 0     | chainId   | true     | int  |   链标识    |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
+
+  - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
+ 
 
 - 依赖服务
 
@@ -351,30 +486,59 @@
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_getSeeds
+    获取卫星链种子节点
 
-      接口说明：获取卫星链种子节点
+    method : nw_getSeeds
 
-    - params
-
-    ```
-    0：chainId //链id
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
-         seedsIps:"101.132.33.140:8003,116.62.135.185:8003,47.90.243.131:8003"
+        "method":"nw_getSeeds",
+        "minVersion":1.1,
+        "params":[
+            1234
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type | description |
+    | ----- | --------- | -------- | ---- | :---------: |
+    | 0     | chainId   | true     | int  |   链标识    |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+          seedsIps:"101.132.33.140:8003,116.62.135.185:8003,47.90.243.131:8003" 
         }
     }
     ```
+
+  - 返回字段说明
+
+    | parameter | type   | description          |
+    | --------- | ------ | -------------------- |
+    | seedsIps  | String | 种子节点信息逗号分割 |
 
 - 依赖服务
 
@@ -394,37 +558,66 @@
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_addNode
+    添加网络peer节点
 
-      接口说明：添加网络peer节点
+    method : nw_addNodes
 
-    - params
-
-    ```
-    0：chainId //链id
-    1：magicNumber //魔法参数
-    2：ip //peer Ip地址
-    3：port //端口号
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
-           "nodeId":"" //返回节点Id
+        "method":"nw_addNodes",
+        "minVersion":1.1,
+        "params":[
+            1234，
+           "10.20.23.02:5006,53.26.65.58:8003"
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type   | description |
+    | ----- | --------- | -------- | ------ | :---------: |
+    | 0     | chainId   | true     | int    |   链标识    |
+    | 1     | nodes     | true     | String |   节点组    |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
 
+  - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
 - 依赖服务
 
-   无
+  ​        无
+
 
 
 
@@ -432,7 +625,7 @@
 
 - 功能说明：
 
-  cmd指令下，对某个网络删除peer连接信息。
+  cmd指令下，删除某个网络下的peers连接信息。
 
 - 流程描述
 
@@ -440,34 +633,66 @@
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_delNode
+    删除网络peer节点
 
-      接口说明：删除网络peer节点
+    method : nw_delNodes
 
-    - params
-
-    ```
-    0：chainId //链id
-    1：nodeId //节点id
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
+        "method":"nw_addNodes",
+        "minVersion":1.1,
+        "params":[
+            1234，
+           "10.20.23.02:5006,53.26.65.58:8003"
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type   | description |
+    | ----- | --------- | -------- | ------ | :---------: |
+    | 0     | chainId   | true     | int    |   链标识    |
+    | 1     | nodes     | true     | String |   节点组    |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
 
+  - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
 - 依赖服务
 
-   无
+  无
+
 
 ####  2.2.8重连指定网络
 
@@ -479,37 +704,68 @@
 
   接收指令后，对指定的nodeGroup下的所有peer进行断连接后，重新连接网络。
 
-  （是否要删除nodeGroup系peer节点，并重新去发现peer？）
+  （是否要删除nodeGroup下peer节点，并重新去发现peer？）
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_reconnect
+    获取卫星链种子节点
 
-      接口说明：获取卫星链种子节点
+    method : nw_reconnect
 
-    - params
-
-    ```
-    0：chainId //链id
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
+        "method":"nw_reconnect",
+        "minVersion":1.1,
+        "params":[
+            1234
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type | description |
+    | ----- | --------- | -------- | ---- | :---------: |
+    | 0     | chainId   | true     | int  |   链标识    |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
         }
     }
     ```
 
+  - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
 - 依赖服务
 
-   无
+  无
+
 
 #### 2.2.9 获取nodeGroup列表
 
@@ -523,28 +779,52 @@
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_getGroups
+    获取节点组信息
 
-      接口说明：获取节点组信息
+    method : nw_getGroups
 
-    - params
-
-    ```
-    0：startPage //起始页，填写为0时获取全部
-    1: recordNum //每页记录数量
-    ```
-
-    - returns 
+  - 请求示例
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
-             list:[{
+        "method":"nw_reconnect",
+        "minVersion":1.1,
+        "params":[
+            1,
+            10
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type | description |
+    | ----- | --------- | -------- | ---- | :---------: |
+    | 0     | startPage | true     | int  |  开始页数   |
+    | 1     | pageSize  | true     | int  | 每页记录数  |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+            list:[{
                 chainId：1212, //链id
                 magicNumber：324234,//魔法参数
                 totalCount：2323, //总连接数
@@ -552,14 +832,28 @@
                 outCount：33,  //主动连接数
                 isActive：1，//0未激活，1 已激活
                 isCrossChain:1 //0不是跨链网络，1跨链网络
-                },{}]
+                },{}
+                ]
         }
     }
     ```
 
+  - 返回字段说明
+
+    | parameter    | type | description              |
+    | ------------ | ---- | ------------------------ |
+    | chainId      | int  | 链id                     |
+    | magicNumber  | int  | 魔法参数                 |
+    | totalCount   | int  | 总连接数                 |
+    | inCount      | int  | 被动连接数               |
+    | outCount     | int  | 主动连接数               |
+    | isActive     | int  | 0未激活，1 已激活        |
+    | isCrossChain | int  | 0不是跨链网络，1跨链网络 |
+
 - 依赖服务
 
-   无
+​        无
+
 
 #### 2.2.10 获取指定nodeGroup下的连接信息
 
@@ -573,31 +867,45 @@
 
 - 接口定义
 
-  - 设置运行参数接口
+  - 接口说明
 
-    - method : nw_getNodes
+    获取节点信息
 
-      接口说明：获取节点信息
+    method : nw_getNodes
 
-    - params
+  - 请求参数说明
 
-    ```
-    0：chainId //链id
-    1：startPage //起始页，填写为0时获取全部
-    2: recordNum //每页记录数量
-    3: state //0所有的节点，1待连接的节点，2连接中的节点（待握手），3已连接的节点
-    ```
+    | index | parameter | required | type |    description     |
+    | ----- | --------- | -------- | ---- | :----------------: |
+    | 0     | chainId   | true     | int  |       网络id       |
+    | 1     | state     | true     | int  | 0所有链接，1已连接 |
+    | 2     | startPage | true     | int  |      开始页数      |
+    | 3     | pageSize  | true     | int  |     每页记录数     |
 
-    - returns 
+  - 返回示例
+
+    Failed
 
     ```
     {
-        "version":"1.0",
-        "code": 0,
-        "msg": "success",
-        "result": {
-              list:[{
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           list:[{
                     chainId：122,//链id
+                    nodeId:"20.20.30.10:9902"
                     magicNumber：134124,//魔法参数
                     version：2,//协议版本号
                     ip："200.25.36.41",//ip地址
@@ -605,14 +913,32 @@
                     state："已连接",
                     isOut："1", //0被动连接，1主动连接
                     time："6449878789", //最近连接时间
-    	     },{}]
+    	     },{}
+    	     ]
         }
     }
     ```
 
+  - 返回字段说明
+
+    | parameter   | type   | description          |
+    | ----------- | ------ | -------------------- |
+    | chainId     | int    | 链id                 |
+    | nodeId      | String | 节点id               |
+    | magicNumber | int    | 魔法参数             |
+    | version     | int    | 协议版本号           |
+    | ip          | String | ip地址               |
+    | port        | int    | 端口号               |
+    | state       | String | 连接状态             |
+    | isOut       | int    | 0被动连接，1主动连接 |
+    | time        | long   | 最近连接时间         |
+
+ 
+
 - 依赖服务
 
-   无
+  无
+
 
 ### 2.3 模块内部功能
 
@@ -624,7 +950,7 @@
 
 - 流程描述
 
-​        ![](.\image\network-module\start.png)
+​        ![](./image/network-module/start.png)
 
 
 
@@ -640,7 +966,7 @@
 
 - 流程描述
 
-![](.\image\network-module\shutdown.png)
+![](./image/network-module/shutdown.png)
 
 
 
@@ -664,7 +990,7 @@
 
 - 流程描述
 
-![](.\image\network-module\discoverPeer.png)
+![](./image/network-module/discoverPeer.png)
 
 
 
@@ -686,7 +1012,7 @@
 
 ​        client在与server完成tcp连接后，需要通过业务version协议握手，只有握手成功的连接才能进行业务转发工作。连接中状态在持续X分钟后无法跃迁到已连接，则主动断开连接。
 
-![](.\image\network-module\connection.png)
+![](./image/network-module/connection.png)
 
 
 
@@ -701,7 +1027,7 @@
 
 - 流程描述
 
-![](.\image\network-module\pingpong.png)
+![](./image/network-module/pingpong.png)
 
 
 
@@ -717,7 +1043,7 @@
 
   流程描述
 
-​      ![](.\image\network-module\connet-validate.png)
+​      ![](./image/network-module/connet-validate.png)
 
 
 
@@ -737,7 +1063,7 @@
 
     在client接收到version消息时，可以知道自己的IP地址信息。
 
-![](.\image\network-module\saveNodeIp.png)
+![](./image/network-module/saveNodeIp.png)
 
 
 
@@ -755,7 +1081,7 @@
 
   自我连接可能成功，也可能失败，如果成功则说明外网IP是可达的，便可以在建立连接时广播传递给网络中其他节点，如果不可达，则连接无法建立不用处理。
 
-![](.\image\network-module\connectSelf.png)
+![](./image/network-module/connectSelf.png)
 
 
 
@@ -770,7 +1096,7 @@
 
 - 流程描述
 
-![](.\image\network-module\connectSelf-recieve.png)
+![](./image/network-module/connectSelf-recieve.png)
 
 
 
@@ -790,15 +1116,15 @@
 
   如下图，我们卫星链网络与友链网络产生一个跨链连接，当卫星链中有个节点2连接上节点1时，是通过内部服务Port1来建立的连接，而节点1是可以将节点2 发送给 友链的节点A与节点B来进行连接，则此时发送给友链的信息中 应该是serverPort2，因此serverPort2需要再卫星链的内部交互中进行传递。我们将该部分数据定义在version协议中进行传递。
 
-​      ![](.\image\network-module\crossPortDeliver.png)
+​      ![](./image/network-module/crossPortDeliver.png)
 
 * 依赖服务
 
 
 
-## 四、事件说明
+## 三、事件说明
 
-### 4.1 发布的事件
+### 3.1 发布的事件
 
 [^说明]: 这里说明事件的topic，事件的格式协议（精确到字节），事件的发生情景。
 
@@ -806,7 +1132,7 @@
 
 
 
-#### 4.1.1 NodeGroup达到节点数量下限
+#### 3.1.1 NodeGroup达到节点数量下限
 
 说明：NodeGroup达到节点数量下限，发布该事件   
 
@@ -822,7 +1148,7 @@ data:{
 }
 ```
 
-#### 4.1.2 NodeGroup少于节点数量下限
+#### 3.1.2 NodeGroup少于节点数量下限
 
 说明：NodeGroup少于节点数量下限，发布该事件   
 
@@ -838,7 +1164,7 @@ data:{
 }
 ```
 
-#### 4.1.3 节点握手成功
+#### 3.1.3 节点握手成功
 
 说明：节点握手成功，发布该事件   
 
@@ -854,7 +1180,7 @@ data:{
 }
 ```
 
-#### 4.1.4 节点断开连接
+#### 3.1.4 节点断开连接
 
 说明：节点断开连接，发布该事件   
 
@@ -874,7 +1200,7 @@ data:{
 
 
 
-### 4.2 订阅的事件
+### 3.2 订阅的事件
 
 ​       暂无
 
@@ -883,9 +1209,9 @@ data:{
 *  
 
 
-## 五、协议
+## 四、协议
 
-### 5.1 网络通讯协议
+### 4.1 网络通讯协议
 
 [^说明]: 节点间通讯的具体协议，参考《网络模块》
 
@@ -935,35 +1261,35 @@ data:{
 
 
 
-### 5.2 交易协议
+### 4.2 交易协议
 
 ​         暂无
 
-## 六、模块配置
+## 五、模块配置
 
-//自有网络模块
 
+
+```
 [network]
 network.self.server.port=8003
+network.self.chainId=9861
 network.self.magic=68866996
 network.self.max.in=100
 network.self.max.out=10
-network.self.seed.ip=115.159.216.58:8003,115.159.69.140:8003,123.206.200.74:8003
-
-//跨链网络模块
-
-network.moon.server.port=8003
+network.self.seed.ip=127.0.0.1:8003
+#卫星链配置信息
+network.moon.node=true
+network.moon.server.port=8004
 network.moon.max.in=100
 network.moon.max.out=10
 network.moon.seed.ip=215.159.216.58:8003,215.159.69.140:8003,223.206.200.74:8003
+```
 
-
-
-## 七、Java特有的设计
+## 六、Java特有的设计
 
 [^说明]: 核心对象类定义,存储数据结构，......
 
-## 八、补充内容
+## 七、补充内容
 
 [^说明]: 上面未涉及的必须的内容
 
