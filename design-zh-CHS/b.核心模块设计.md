@@ -119,11 +119,10 @@ RPC 服务就是模块间的通讯接口，管理器的所有RPC 功能都由此
             {
                 "method": "nuls_nodes",
                 "version": 1
-            },
+            }
         ],
         "dependsModule":["network","asset"],
-        "port":10000,
-        // ...
+        "port":10000
     }]
   }
   ```
