@@ -196,8 +196,8 @@
 
 ```json
 {
- "jsonrpc": "1.0",
- "method": "topics",
+ "cmd": "topics",
+ "min_version": 1.0,
  "params":[]
 }
 ```

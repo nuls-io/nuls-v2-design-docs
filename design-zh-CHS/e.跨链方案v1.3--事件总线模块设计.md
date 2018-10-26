@@ -81,8 +81,8 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
-  "method": "subscribe",
+  "cmd": "subscribe",
+  "min_version": "1.0",
   "params":[
     "app.nuls.network.bandwidth",//topic 事件主题
     "moduleId" //moduleId订阅者模块id
@@ -93,7 +93,7 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
+  "version": "1.0",
   "code": 0,//操作码
   "msg": "reponse message.",//失败时的信息
   "result": {
@@ -109,8 +109,8 @@
 
 ```json
 {
-"jsonrpc": "1.0",
-"method": "unsubscribe",
+"cmd": "unsubscribe",
+"min_version": "1.0",
 "params":[
   "app.nuls.network.bandwidth", //topic 事件主题
   "moduleId" //moduleId订阅者模块id
@@ -122,7 +122,7 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
+  "version": "1.0",
   "code": 0, //操作码
   "msg": "reponse message.",//失败时的信息
   "result": {
@@ -139,8 +139,8 @@
 
 ```json
 {
- "jsonrpc": "1.0",
- "method": "send",
+ "cmd": "send",
+ "min_version": "1.0",
  "params":[
    "app.nuls.network.bandwidth",//topic 事件主题
    "moduleId", //moduleId订阅者模块id
@@ -153,7 +153,7 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
+  "version": "1.0",
   "code": 0, //操作码
   "msg": "reponse message.",//失败时的信息
   "result": {
@@ -167,8 +167,8 @@
 
 ```json
 {
- "jsonrpc": "1.0",
- "method": "dispatcher",
+ "cmd": "dispatcher",
+ "min_version": "1.0",
  "params":[
    {} //data 需要发送的事件，payload
  ]
@@ -179,7 +179,7 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
+  "version": "1.0",
   "code": 0, //一定要正确返回,不要需要告诉你业务逻辑是否出错，你只要接收到了就告诉我你成功接收到了即可。
   "msg": "reponse message.",//失败时的信息
   "result": {
@@ -196,8 +196,8 @@
 
 ```json
 {
- "jsonrpc": "1.0",
- "method": "topics",
+ "cmd": "topics",
+ "min_version": "1.0",
  "params":[]
 }
 ```
@@ -206,7 +206,7 @@
 
 ```json
 {
-  "jsonrpc": "1.0",
+  "version": "1.0",
   "code": 0, //一定要正确返回,不要需要告诉你业务逻辑是否出错，你只要接收到了就告诉我你成功接收到了即可。
   "msg": "reponse message.",//失败时的信息
   "result": {
