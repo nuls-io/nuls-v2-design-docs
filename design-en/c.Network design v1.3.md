@@ -123,6 +123,12 @@ The network module is the basic module of the entire system, which is used to ma
 
   ![](./image/network-module/recMessage2.png)
 
+* Message verification ：
+
+​        payload validate ：First 4 bytes of  sha256(sha256(payload))
+
+​        magicNumbe ：Determine if the nodegroups collection contains the magicNumber
+
 * External module network message receiving interface constraint
 
    - method : ***  //Same as the CMD instruction in the message header, constraining 12 bytes
