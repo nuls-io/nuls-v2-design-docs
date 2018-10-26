@@ -2,7 +2,7 @@
 
 [TOC]
 
-## 一、General description
+## 1、General description
 
 ### 1.1 Module overview
 
@@ -35,7 +35,7 @@ The network module is the basic module of the entire system, which is used to ma
 
 
 
-## 二、function design
+## 2、function design
 
 ### 2.1 Functional architecture diagram
 
@@ -1156,7 +1156,7 @@ broadcast to other nodes.
 
 ​       none
 
-  ## 三、Event description
+  ## 3、Event description
 
   ### 3.1 Published event
 
@@ -1244,7 +1244,7 @@ Description: The NodeGroup reaches the lower limit of the number of nodes and th
 
   - 
 
-  ## 四、protocol
+  ## 4、protocol
 
   ### 4.1 Network communication protocol
 
@@ -1299,7 +1299,7 @@ Used to reply getaddr, or announce the existence of itself to the network. After
 
   ​        none
 
-  ## 五、Module configuration
+  ## 5、Module configuration
 
 
 
@@ -1320,10 +1320,11 @@ Used to reply getaddr, or announce the existence of itself to the network. After
   
   ```
 
-  ## 六、Java-specific design
+  ## 6、Java-specific design
 
 [^remark]: Core object class definition, storing data structures，......
 
-  ## 七、 to add on
+  ## 7、 to add on
 
 [^remark]: Required content not covered above
+
