@@ -2,7 +2,7 @@ Chapter 1 Overall design (by google translate)
 
 [TOC]
 
-## 一、Business background
+## 1、Business background
 
 Blockchain is the operating system for decentralized applications. It needs cross-chain technology to connect the operating systems that run one by one, in order to form an ecological development, that is, the blockchain Internet.
 
@@ -15,7 +15,7 @@ NULS is a pure blockchain project that integrates the idea of blockchain to crea
 
 Based on the above, the NULS core team initiated the design of the new version of the architecture, and hoped that the partners in the community actively participated in the construction of NULS, contributing to the development of the blockchain industry, and contributing a bright future.
 
-## 二、Design goals
+## 2、Design goals
 
 - Define cross-chain standards to enable communication between different blockchains.
 - Build a "satellite chain" to achieve asset flow between different blockchains.
@@ -32,7 +32,7 @@ risk:
 
 The blockchain client has higher performance requirements. Each module in the new architecture is an independent process. The process communicates through the http protocol. In the case of no initial network setup, only some simple performance tests can be used. Estimating performance metrics is likely to fail to meet the requirements of a high-performance blockchain application. Solution: Set up a simple network in a short time to test the performance more accurately.
 
-## 三、Overall Description
+## 3、Overall Description
 
 ### 3.1Overall architecture
 
@@ -56,7 +56,7 @@ All blockchains only communicate with the satellite chain, the verification of t
   The satellite chain will have built-in community governance mechanisms, including system operating parameter modifications, protocol upgrades, malicious chain processing, community funding, and more.
 
 
-## 四、 Satellite chain design
+## 4、 Satellite chain design
 
 ###  4.1 Satellite chain architecture
 
@@ -89,7 +89,7 @@ In the future NULS ecosystem, there will be a NULS main network and several appl
 
 The chain factory is built on the NULS module, so when designing the NULS module, consider supporting multiple chains at the same time.
 
-##  五、Core process
+##  5、Core process
 
 ### 5.1 Cross-chain transaction processing flow
 
@@ -174,7 +174,7 @@ The chain factory is built on the NULS module, so when designing the NULS module
 
 10. Stored in the "Block Management" module together with the block header
 
-## 六、Brief description of the modules
+## 6、Brief description of the modules
 
 | module name          | description                                                  |
 | -------------------- | ------------------------------------------------------------ |
