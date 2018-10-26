@@ -126,6 +126,12 @@
 
   ![](./image/network-module/recMessage2.png)
 
+* 消息校验部分：
+
+​        payload校验
+
+​        magicNumber校验
+
 * 外部模块提供的接口参数约束
 
    - method : ***  //同消息头中的CMD指令，约束12字节
