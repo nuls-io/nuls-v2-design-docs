@@ -96,7 +96,7 @@ The chain factory is built on the NULS module, so when designing the NULS module
 1. The address a in the friend chain A initiates the transaction tx_a, and transfers the aCoin to the b address of the B chain.
 
 - The format of the b address is the address in the nuls format starting with ChainId_B. When the asset is transferred to the address, the address is not allowed to initiate a transaction on the A chain, ie the address of the other chain cannot initiate a transaction in the chain.
-- Generate a transaction for the satellite chain tx_a_trans based on the cross-chain protocol and sign the cross-chain transaction with the private key of b.
+- Generate a transaction for the satellite chain tx_a_trans based on the cross-chain protocol and sign the cross-chain transaction with the private key of a.
 
 2. tx_a is packed in the A chain, and after the n block is confirmed, the satellite chain is sent by the cross-chain module (independent of the basic module other than the A-chain function).
 
