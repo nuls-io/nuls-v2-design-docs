@@ -349,7 +349,7 @@ certain nodes (which can be 1 node) send messages.
     ```
     {
         "method":"nw_createNodeGroup",
-        "version":1.1,
+        "minVersion":1.1,
         "params":[
             1234,
             232342,
@@ -437,7 +437,7 @@ Relies on remote service interface data provided by the kernel module.
     ```
     {
         "method":"nw_createNodeGroup",
-        "version":1.1,
+        "minVersion":1.1,
         "params":[
             1234
         ]}
@@ -893,6 +893,22 @@ none
 
   ​        method : nw_getNodes
 
+  - Request example
+
+    ```
+    {
+        "method":"nw_reconnect",
+        "minVersion":1.1,
+        "params":[
+            1598,
+            0,
+            1,
+            50
+        ]
+    }
+    ```
+
+
    - Request parameter description
 
      | index | parameter | required | type |             description              |
@@ -959,6 +975,96 @@ none
 - Dependent service
 
   none
+
+#### 2.2.11 Update the information of the peer connection node
+
+  - Function Description：
+
+    The network connection has the height and hash value of the peer node when the 
+    handshake connection is made, and the height and hash value of the subsequent peer connection node are called and updated by the external module (block management module).
+
+  - Process description
+
+     1> Wait for  the block management interface after the node starts Initialization, and  then call the block management interface to get the latest block height  and hash value.
+
+      2> When the handshake is performed, the node related information is placed in the Verion information and sent to the peer.
+
+      3>  After the connection is established, the block management module will  call the interface to update the latest block height and hash value.  
+
+  - Interface definition
+
+    - Interface Description
+
+    ​      The block management module calls to update the height of the node and the hash value.
+
+    ​        method : nw_updateNodeInfo
+
+    - Request example
+
+      ```
+      {
+          "method":"nw_updateNodeInfo",
+          "minVersion":1.1,
+          "params":[
+             1598,
+              "10.20.30.20:8856",
+              10,
+              "0020ba3f3f637ef53d025d3a8972462c00e84d9ea1a960f207778150ffb9f2c173ff"
+          ]
+      }
+      ```
+
+    - Request parameter description
+
+    | index | parameter   | required | type   | description  |
+    | ----- | ----------- | -------- | ------ | :----------: |
+    | 0     | chainId     | true     | int    |    网络id    |
+    | 1     | nodeId      | true     | String |  网络节点id  |
+    | 2     | blockHeight | true     | long   |   区块高度   |
+    | 3     | blockHash   | true     | Sting  | 区块最新hash |
+
+
+
+    - Return example
+
+      Failed
+
+      ```
+      {
+         "minVersion": 1.2,
+          "code":1,
+          "msg" :"xxxxxxxxxxxxxxxxxx",
+          "result":{}
+      }
+      
+      
+      ```
+
+      Success
+
+      ```
+      {
+          "minVersion": 1.2,
+          "code":0,
+          "msg" :"xxxxxxxxxxxxxxxxxx",
+          "result":{
+          }
+      }
+      
+      ```
+
+    - Return field description
+
+      | parameter | type | description |
+      | --------- | ---- | ----------- |
+      |           |      |             |
+
+
+
+
+  - Dependent service
+
+    none
 
 ## 2.3 Module internal function
 
@@ -1252,13 +1358,15 @@ Description: The NodeGroup reaches the lower limit of the number of nodes and th
 
 Used to establish a connection (handshake)
 
-| Length | Fields      | Type     | Remark                                                       |
-| ------ | ----------- | -------- | ------------------------------------------------------------ |
-| 4      | version     | uint32   | Protocol version identifier used by the node                 |
-| 20     | addr_you    | byte[20] | The peer network address [IP+PORT1+PORT2] PORT2 is a cross-chain server port.                                                                               For example: [10.32.12.25 8003 9003] 16byte+2byte+2byte |
-| 20     | addr_me     | byte[20] | The self network address [IP+PORT1+PORT2] PORT2 is a cross-chain server port.                                                                               For example: [20.32.12.25 8003 9003] 16byte+2byte+2byte |
-| 6      | networkTime | uint48   | Network time                                                 |
-| ??     | extend      | VarByte  | extended field, no more than 10 bytes                        |
+| Length | Fields       | Type     | Remark                                                       |
+| ------ | ------------ | -------- | ------------------------------------------------------------ |
+| 4      | version      | uint32   | Protocol version identifier used by the node                 |
+| 20     | addr_you     | byte[20] | The peer network address [IP+PORT1+PORT2] PORT2 is a cross-chain server port.                                                                               For example: [10.32.12.25 8003 9003] 16byte+2byte+2byte |
+| 20     | addr_me      | byte[20] | The self network address [IP+PORT1+PORT2] PORT2 is a cross-chain server port.                                                                               For example: [20.32.12.25 8003 9003] 16byte+2byte+2byte |
+| 4      | block_height | uint32   | node latest block height                                     |
+| ？     | block_hash   | varInt   | node latest block hash                                       |
+| 6      | network_time | uint48   | Network time                                                 |
+| ??     | extend       | VarByte  | extended field, no more than 10 bytes                        |
 
   #### verack
 
