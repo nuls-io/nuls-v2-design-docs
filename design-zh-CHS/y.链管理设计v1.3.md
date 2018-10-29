@@ -215,13 +215,14 @@
       "params":[1234]
   }
   ```
+
 - 请求参数说明
 
   | index | parameter | required | type | description |
   | ----- | :-------- | :------- | :--- | ----------- |
   | 0     | chainId   | true     | int  | 链标识      |
 
-- 返回示例
+- 返回示例  
   Failed
 
   ```json
@@ -270,7 +271,8 @@
   }
     ```
 
-- 返回字段说明
+- 返回字段说明  
+
   | parameter          | type                  | description                                  |
   | ------------------ | --------------------- | -------------------------------------------- |
   | hash               | int                   | 链的哈希值                                   |
@@ -282,7 +284,10 @@
   | seeds              | jsonArray             | 【ip->种子节点ip地址】【port->种子节点端口】 |
   | supportInflowAsset | boolean               | 是否支持资产流入                             |
 
-  资产对象
+    
+
+  资产对象   
+
   | parameter   | type    | description                    |
   | ----------- | ------- | ------------------------------ |
   | assetId     | int     | 资产标识                       |
@@ -292,6 +297,7 @@
   | initTotal   | long    | 资产发行总量                   |
   | minUnit     | byte    | 最小单位（代表小数点后多少位） |
   | flag        | boolean | 资产是否可用                   |
+
 
 
 
