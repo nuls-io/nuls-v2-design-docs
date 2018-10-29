@@ -8,15 +8,11 @@
 
 #### 1.1.1 为什么要有《区块管理》模块
 
-[^说明]: 介绍模块的存在的原因
-
     区块链上所有数据都保存在区块中，其他模块对区块中数据进行验证、业务处理都要先获取区块。
     区块链程序初次启动时，需要同步主网的全量区块到本地，耗时长，且同步未完成时系统处于不可用状态，适合由单独模块完成该工作。
     所以为其他模块提供统一的区块数据服务是必要的，也能更好地把区块的增删改查同区块的具体业务进行解耦，用到区块的模块不必关心区块的获取细节。
 
 #### 1.1.2 《区块管理》要做什么
-
-[^说明]: 模块要做些什么事情，达到什么目的，目标是让非技术人员了解要做什么事情
 
     主链区块的同步、存储(DB)、查询、广播、转发、回滚、基础验证
     分叉区块的判断、存储(cache)
@@ -24,23 +20,18 @@
 
 #### 1.1.3 《区块管理》在系统中的定位
 
-[^说明]: 模块在系统中的定位，是什么角色，依赖哪些模块做哪些事情，可以被依赖用于做哪些事情
-
     区块管理是底层模块之一，以下分功能讨论模块依赖情况
     
     依赖
     
-    * 区块同步-依赖网络模块的"获取指定nodeGroup下的连接信息"接口，依赖工具模块的序列化工具
-    * 区块存储、回滚-依赖工具模块的数据库存储工具
-    * 区块广播、转发-依赖网络模块的广播消息接口
+    * 区块同步-依赖网络模块的通讯接口，依赖工具模块的序列化工具
+    * 区块存储、回滚-依赖工具模块的数据库存储工具、共识模块、交易管理模块
+    * 区块转发-依赖网络模块的广播消息接口
     
     被依赖
     
     * 整个系统可以发起交易-区块同步
-    * 交易管理模块：交易确认-区块查询
     * 共识模块：区块详细验证、打包-区块查询、区块保存、区块广播、区块回滚
-    * 账户模块：更新账户余额-区块查询
-    * 智能合约模块：处理合约相关交易-区块查询
 
 ### 1.2 架构图
 
@@ -52,34 +43,30 @@
 
 ### 2.1 功能架构图
 
-[^说明]: 说明模块的功能设计，可以有层级关系，可以通过图形的形式展示，并用文字进行说明。
-
 ![](image/block-module/block-functions.png)
 
-1、提供api，进行区块存储、查询、回滚的操作
-
-2、从网络上同步最新区块，进行初步验证，调用共识模块进行共识验证，调用交易模块进行双花验证，全部验证通过后保存到本地。
-
-3、同步模块运行状态到内核(所有模块都有)
+1. 提供api，进行区块存储、查询、回滚的操作
+2. 从网络上同步最新区块，进行初步验证、分叉验证，如果没有分叉，调用共识模块进行共识验证，调用交易模块进行双花验证，全部验证通过后保存到本地。
+3. 区块广播、转发消息的处理
+4. 分叉链维护、切换
+5. 分叉区块、孤儿区块的判断、存储
 
 ### 2.2 模块服务
-
-[^说明]: 这里说明该模块对外提供哪些服务，每个服务的功能说明、流程描述、接口定义、实现中依赖的外部服务
 
 #### 2.2.1 获取本地最新区块头
 
 * 接口说明
 
-    * 根据缓存的最新区块高度查询DB得到最新区块头HASH
-    * 根据HASH查询DB得到区块头byte数组
-    * 反序列化为区块头对象
+    1. 根据缓存的最新区块高度查询DB得到最新区块头HASH
+    2. 根据HASH查询DB得到区块头byte数组
+    3. 反序列化为区块头对象
 
 * 请求示例
 
     ```
     {
-      "method": "bl_bestBlockHeader",
-      "version":"1.1",
+      "cmd": "bl_bestBlockHeader",
+      "minVersion":"1.1",
       "params": []
     }
     ```
@@ -107,7 +94,6 @@
     {
         "version": 1.2,
         "code": 0,
-        "msg": "What happend",
         "result": {
             "hash": "xxxxxxx",
             "preHash": "xxxxxxx",
@@ -119,8 +105,7 @@
             "packingAddress": "1",
             "reward": 0,
             "fee": 0,
-            "confirmCount": 5315,
-            "extend": xxxxxxx,
+            "extend": xxxxxxx,HEX
             "scriptSig": "1"
         }
     }
@@ -133,14 +118,13 @@
 | hash      | String    | 区块HASH                                |
 | preHash   | String    | 上一区块HASH                              |
 | merkleHash   | String    | 区块MerkleHash                              |
-| height   | Integer    | 区块高度                              |
+| height   | Long | 区块高度                              |
 | size   | Integer    | 区块大小                              |
 | time   | Long    | 区块打包时间                              |
 | txCount   | Integer    | 交易数                              |
 | packingAddress   | String    | 打包地址                              |
-| reward   | Integer    | 共识奖励                              |
-| fee   | Integer    | 手续费                             |
-| confirmCount   | Integer    | 确认次数                              |
+| reward   | Long    | 共识奖励                              |
+| fee   | Long | 手续费                             |
 | extend   | String   | 扩展字段,HEX,包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot                              |
 | scriptSig   | String    | 区块签名                              |
 
@@ -148,18 +132,18 @@
 
 * 接口说明：
 
-    1.获取本地最新区块头
-    2.根据区块头高度查询DB得到交易HASH列表
-    3.根据HASH列表查询DB得到交易byte数组
-    4.反序列化为交易对象
-    5.组装成block对象
+    1. 获取本地最新区块头
+    2. 根据区块头高度查询DB得到交易HASH列表
+    3. 根据HASH列表查询DB得到交易byte数组
+    4. 反序列化为交易对象
+    5. 组装成block对象
 
 * 请求示例
 
     ```
     {
-      "method": "bl_bestBlock",
-      "version":"1.1",
+      "cmd": "bl_bestBlock",
+      "minVersion":"1.1",
       "params": []
     }
     ```
@@ -171,7 +155,7 @@
 * 返回示例 
 
     Failed
-    
+
       ```
       {
           "version": 1.2,
@@ -180,7 +164,7 @@
           "result":{}
       }
       ```
-      
+
     Success
 
     ```
@@ -189,19 +173,18 @@
         "code": 0,
         "result": {
         	"blockHeader": {
-                "hash": "1", //区块HASH
-                "preHash": "1", //上一区块HASH
-                "merkleHash": "1", //区块MerkleHash
-                "height": 1, //区块高度
-                "size": 1, //区块大小
-                "time": 1, //区块打包时间
-                "txCount": 1, //交易数
-                "packingAddress": "1", //打包地址
-                "reward": 0,//共识奖励
-                "fee": 0,//手续费
-                "confirmCount": 5315,//确认次数
-                "extend": "1", //扩展字段 HEX   包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot
-                "scriptSig": "1", //区块签名 HEX
+                "hash": "xxxxxxx",
+                "preHash": "xxxxxxx",
+                "merkleHash": "1",
+                "height": 1,
+                "size": 1,
+                "time": 1,
+                "txCount": 1,
+                "packingAddress": "1",
+                "reward": 0,
+                "fee": 0,
+                "extend": xxxxxxx,HEX
+                "scriptSig": "1"
         	}, //区块头
         	"transactions": [
         	    {
@@ -209,152 +192,177 @@
                     "hash": "1", //交易HASH
                     "remark": "1", //交易备注
                     "size": "1", //交易大小
-                    "status": "1", //交易确认状态
                     "time": "1", //交易时间
                     "type": "1", //交易类型
                     "transactionSignature": "1", //交易签名
-                    “fromAssetsChainId”：“”//资产发行链的id
-                    “fromAssetsId”：“”//资产id
-                    “fromAddress”：“”//转出账户地址
-                    “toAssetsChainId”：“”//资产发行链的id
-                    “toAssetsId”：“”//资产id
-                    “toAddress”：“”//转入账户地址
-                    “amount”：“”//转出金额
-                    “nonce”：“”//交易顺序号，递增
-                    "txData": {...}, //交易数据 jsonObj
+                    "coinData": {
+                        "from" : [
+                            {
+                                “fromAssetsChainId”：“”//资产发行链的id  
+                                “fromAssetsId”：“”//资产id
+                                “fromAddress”：“”//转出账户地址
+                                “amount”：“”//转出金额
+                                “nonce”：“”//交易顺序号，递增
+                            },{...}
+                        ]
+                        "to" : [
+                            {
+                                “toAssetsChainId”：“”//资产发行链的id  
+                                “toAssetsId”：“”//资产id
+                                “toAddress”：“”//转出账户地址
+                                “amount”：“”//转出金额
+                                “nonce”：“”//交易顺序号，递增
+                            },{...}
+                        ]
+                    }
+                    "txData": XXXX, //交易数据 HEX
         	    },
         	    {...}
         	], //交易列表
+        }
+    }
+    ```
+
+* 返回字段说明
+
+    略
+
+#### 2.2.3 根据高度获取区块头
+
+* 接口说明
+
+    1. 根据高度查询DB得到最新区块头HASH
+    2. 根据HASH查询DB得到区块头byte数组
+    3. 反序列化为区块头对象
+
+* 请求示例
+
+    ```
+    {
+      "cmd": "bl_getBlockHeaderByHeight",
+      "minVersion":"1.1",
+      "params": ["111"]
+    }
+    ```
+
+* 请求参数说明
+
+| index | parameter | required | type    | description |
+| ----- | --------- | -------- | ------- | :---------: |
+| 0     | height   | true     | Long  |   区块高度    |
+    
+* 返回示例
+
+    Failed
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {
+            "hash": "xxxxxxx",
+            "preHash": "xxxxxxx",
+            "merkleHash": "1",
+            "height": 1,
+            "size": 1,
+            "time": 1,
+            "txCount": 1,
+            "packingAddress": "1",
+            "reward": 0,
+            "fee": 0,
+            "extend": xxxxxxx,HEX
+            "scriptSig": "1"
         }
     }
     ```
     
 * 返回字段说明
-
+  
 | parameter | type      | description                                |
 | --------- | --------- | ------------------------------------------ |
-| blockHeader       | String    | xxxxxxxxxxx                                |
-| transactions       | Enum      | xxxxxxxxxxxxxxxxxx,1:amean,2:bmean,3:cmean |
-
-#### 2.2.3 根据高度获取区块头
-
-* 功能说明：
-
-  略
-
-* 流程描述
-
-```
-  1.根据高度查询DB得到最新区块头HASH
-  2.根据HASH查询DB得到区块头byte数组
-  3.反序列化为区块头对象
-```
-
-* 接口定义
-
-  * 根据高度获取区块头接口
-
-  * method : bl_getBlockHeaderByHeight
-
-    接口说明： 略
-
-    * params
-
-    ```
-    {
-      "jsonrpc": "1.0",
-      "method": "bl_getBlockHeaderByHeight",
-      "params": ["111"] //高度
-    }
-    ```
-
-    * returns 
-
-    ```
-    {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
-        "result": {
-        	"hash": "1", //区块HASH
-        	"preHash": "1", //上一区块HASH
-        	"merkleHash": "1", //区块MerkleHash
-        	"height": 1, //区块高度
-        	"size": 1, //区块大小
-        	"time": 1, //区块打包时间
-        	"txCount": 1, //交易数
-        	"packingAddress": "1", //打包地址
-            "reward": 0,//共识奖励
-            "fee": 0,//手续费
-            "confirmCount": 5315,//确认次数
-        	"extend": "1", //扩展字段 HEX   包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot
-        	"scriptSig": "1", //区块签名 HEX
-        }
-    }
-    ```
-    
-* 依赖服务
-
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
-  工具模块的数据库存储工具、序列化工具
+| hash      | String    | 区块HASH                                |
+| preHash   | String    | 上一区块HASH                              |
+| merkleHash   | String    | 区块MerkleHash                              |
+| height   | Long | 区块高度                              |
+| size   | Integer    | 区块大小                              |
+| time   | Long    | 区块打包时间                              |
+| txCount   | Integer    | 交易数                              |
+| packingAddress   | String    | 打包地址                              |
+| reward   | Long    | 共识奖励                              |
+| fee   | Long | 手续费                             |
+| extend   | String   | 扩展字段,HEX,包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot                              |
+| scriptSig   | String    | 区块签名                              |
 
 #### 2.2.4 根据高度获取区块
 
-* 功能说明：
+* 接口说明：
 
-  略
+    1. 根据高度获取区块头
+    2. 根据区块头高度查询DB得到交易HASH列表
+    3. 根据HASH列表查询DB得到交易byte数组
+    4. 反序列化为交易对象
+    5. 组装成block对象
 
-* 流程描述
-
-```
-    1.根据高度获取区块头
-    2.根据区块头高度查询DB得到交易HASH列表
-    3.根据HASH列表查询DB得到交易byte数组
-    4.反序列化为交易对象
-    5.组装成block对象
-```
-
-* 接口定义
-
-  * 获取本地区块接口
-
-  * method : bl_getBlockByHeight
-
-    接口说明： 略
-
-    * params
+* 请求示例
 
     ```
     {
-      "jsonrpc": "1.0",
-      "method": "bl_getBlockByHeight",
-      "params": [”111“] //高度
+      "cmd": "bl_getBlockByHeight",
+      "minVersion":"1.1",
+      "params": [“111”]
     }
     ```
 
-    * returns 
+* 请求参数说明
+
+| index | parameter | required | type    | description |
+| ----- | --------- | -------- | ------- | :---------: |
+| 0     | height   | true     | Long  |   区块高度    |
+
+* 返回示例 
+
+    Failed
+
+      ```
+      {
+          "version": 1.2,
+          "code":1,
+          "msg" :"xxxxxxxxxxxxxxxxxx",
+          "result":{}
+      }
+      ```
+
+    Success
 
     ```
     {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
+        "version": 1.2,
+        "code": 0,
         "result": {
         	"blockHeader": {
-                "hash": "1", //区块HASH
-                "preHash": "1", //上一区块HASH
-                "merkleHash": "1", //区块MerkleHash
-                "height": 1, //区块高度
-                "size": 1, //区块大小
-                "time": 1, //区块打包时间
-                "txCount": 1, //交易数
-                "packingAddress": "1", //打包地址
-                "reward": 0,//共识奖励
-                "fee": 0,//手续费
-                "confirmCount": 5315,//确认次数
-                "extend": "1", //扩展字段 HEX   包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot
-                "scriptSig": "1", //区块签名 HEX
+                "hash": "xxxxxxx",
+                "preHash": "xxxxxxx",
+                "merkleHash": "1",
+                "height": 1,
+                "size": 1,
+                "time": 1,
+                "txCount": 1,
+                "packingAddress": "1",
+                "reward": 0,
+                "fee": 0,
+                "extend": xxxxxxx,HEX
+                "scriptSig": "1"
         	}, //区块头
         	"transactions": [
         	    {
@@ -362,150 +370,176 @@
                     "hash": "1", //交易HASH
                     "remark": "1", //交易备注
                     "size": "1", //交易大小
-                    "status": "1", //交易确认状态
                     "time": "1", //交易时间
                     "type": "1", //交易类型
                     "transactionSignature": "1", //交易签名
-                    “fromAssetsChainId”：“”//资产发行链的id
-                    “fromAssetsId”：“”//资产id
-                    “fromAddress”：“”//转出账户地址
-                    “toAssetsChainId”：“”//资产发行链的id
-                    “toAssetsId”：“”//资产id
-                    “toAddress”：“”//转入账户地址
-                    “amount”：“”//转出金额
-                    “nonce”：“”//交易顺序号，递增
-                    "txData": {...}, //交易数据 jsonObj
+                    "coinData": {
+                        "from" : [
+                            {
+                                “fromAssetsChainId”：“”//资产发行链的id  
+                                “fromAssetsId”：“”//资产id
+                                “fromAddress”：“”//转出账户地址
+                                “amount”：“”//转出金额
+                                “nonce”：“”//交易顺序号，递增
+                            },{...}
+                        ]
+                        "to" : [
+                            {
+                                “toAssetsChainId”：“”//资产发行链的id  
+                                “toAssetsId”：“”//资产id
+                                “toAddress”：“”//转出账户地址
+                                “amount”：“”//转出金额
+                                “nonce”：“”//交易顺序号，递增
+                            },{...}
+                        ]
+                    }
+                    "txData": XXXX, //交易数据 HEX
         	    },
         	    {...}
         	], //交易列表
         }
     }
     ```
-    
-* 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
-  工具模块的数据库存储工具、序列化工具
+* 返回字段说明
+
+    略
 
 #### 2.2.5 根据HASH获取区块头
 
-* 功能说明：
+* 接口说明
 
-  略
+    1. 根据HASH查询DB得到区块头byte数组
+    2. 反序列化为区块头对象
 
-* 流程描述
-
-```
-  1.根据HASH查询DB得到区块头byte数组
-  2.反序列化为区块头对象
-```
-
-* 接口定义
-
-  * 根据HASH获取本地区块头接口
-
-  * method : bl_getBlockHeaderByHash
-
-    接口说明： 略
-
-    * params
+* 请求示例
 
     ```
     {
-      "jsonrpc": "1.0",
-      "method": "bl_getBlockHeaderByHash",
-      "params": [”aaa“] //hash
+      "cmd": "bl_getBlockHeaderByHash",
+      "minVersion":"1.1",
+      "params": ["aaa"]
     }
     ```
 
-    * returns 
+* 请求参数说明
 
+| index | parameter | required | type    | description |
+| ----- | --------- | -------- | ------- | :---------: |
+| 0     | hash   | true     | String  |   区块hash    |
+    
+* 返回示例
+
+    Failed
+    
     ```
     {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
         "result": {
-        	"hash": "1", //区块HASH
-        	"preHash": "1", //上一区块HASH
-        	"merkleHash": "1", //区块MerkleHash
-        	"height": 1, //区块高度
-        	"size": 1, //区块大小
-        	"time": 1, //区块打包时间
-        	"txCount": 1, //交易数
-        	"packingAddress": "1", //打包地址
-            "reward": 0,//共识奖励
-            "fee": 0,//手续费
-            "confirmCount": 5315,//确认次数
-        	"extend": "1", //扩展字段 HEX   包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot
-        	"scriptSig": "1", //区块签名 HEX
+            "hash": "xxxxxxx",
+            "preHash": "xxxxxxx",
+            "merkleHash": "1",
+            "height": 1,
+            "size": 1,
+            "time": 1,
+            "txCount": 1,
+            "packingAddress": "1",
+            "reward": 0,
+            "fee": 0,
+            "extend": xxxxxxx,HEX
+            "scriptSig": "1"
         }
     }
     ```
     
-* 依赖服务
-
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
+* 返回字段说明
   
-  工具模块的数据库存储工具、序列化工具
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| hash      | String    | 区块HASH                                |
+| preHash   | String    | 上一区块HASH                              |
+| merkleHash   | String    | 区块MerkleHash                              |
+| height   | Long | 区块高度                              |
+| size   | Integer    | 区块大小                              |
+| time   | Long    | 区块打包时间                              |
+| txCount   | Integer    | 交易数                              |
+| packingAddress   | String    | 打包地址                              |
+| reward   | Long    | 共识奖励                              |
+| fee   | Long | 手续费                             |
+| extend   | String   | 扩展字段,HEX,包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot                              |
+| scriptSig   | String    | 区块签名                              |
 
 #### 2.2.6 根据HASH获取区块
 
-* 功能说明：
+* 接口说明：
 
-  略
+    1. 根据hash获取区块头
+    2. 根据区块头高度查询DB得到交易HASH列表
+    3. 根据HASH列表查询DB得到交易byte数组
+    4. 反序列化为交易对象
+    5. 组装成block对象
 
-* 流程描述
-
-```
-    1.根据HASH获取区块头
-    2.根据区块头高度查询DB得到交易HASH列表
-    3.根据HASH列表查询DB得到交易byte数组
-    4.反序列化为交易对象
-    5.组装成block对象
-```
-
-* 接口定义
-
-  * 根据HASH获取区块接口
-
-  * method : bl_getBlockByHash
-
-    接口说明： 略
-
-    * params
+* 请求示例
 
     ```
     {
-      "jsonrpc": "1.0",
-      "method": "bl_getBlockByHash",
-      "params": [”aaa“] //hash
+      "cmd": "bl_getBlockByHash",
+      "minVersion":"1.1",
+      "params": [“aaa”]
     }
     ```
 
-    * returns 
+* 请求参数说明
+
+| index | parameter | required | type    | description |
+| ----- | --------- | -------- | ------- | :---------: |
+| 0     | hash   | true     | String  |   区块hash    |
+
+* 返回示例 
+
+    Failed
+
+      ```
+      {
+          "version": 1.2,
+          "code":1,
+          "msg" :"xxxxxxxxxxxxxxxxxx",
+          "result":{}
+      }
+      ```
+
+    Success
 
     ```
     {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
+        "version": 1.2,
+        "code": 0,
         "result": {
         	"blockHeader": {
-                "hash": "1", //区块HASH
-                "preHash": "1", //上一区块HASH
-                "merkleHash": "1", //区块MerkleHash
-                "height": 1, //区块高度
-                "size": 1, //区块大小
-                "time": 1, //区块打包时间
-                "txCount": 1, //交易数
-                "packingAddress": "1", //打包地址
-                "reward": 0,//共识奖励
-                "fee": 0,//手续费
-                "confirmCount": 5315,//确认次数
-                "extend": "1", //扩展字段 HEX   包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot
-                "scriptSig": "1", //区块签名 HEX
+                "hash": "xxxxxxx",
+                "preHash": "xxxxxxx",
+                "merkleHash": "1",
+                "height": 1,
+                "size": 1,
+                "time": 1,
+                "txCount": 1,
+                "packingAddress": "1",
+                "reward": 0,
+                "fee": 0,
+                "extend": xxxxxxx,HEX
+                "scriptSig": "1"
         	}, //区块头
         	"transactions": [
         	    {
@@ -513,144 +547,347 @@
                     "hash": "1", //交易HASH
                     "remark": "1", //交易备注
                     "size": "1", //交易大小
-                    "status": "1", //交易确认状态
                     "time": "1", //交易时间
                     "type": "1", //交易类型
                     "transactionSignature": "1", //交易签名
-                    “fromAssetsChainId”：“”//资产发行链的id
-                    “fromAssetsId”：“”//资产id
-                    “fromAddress”：“”//转出账户地址
-                    “toAssetsChainId”：“”//资产发行链的id
-                    “toAssetsId”：“”//资产id
-                    “toAddress”：“”//转入账户地址
-                    “amount”：“”//转出金额
-                    “nonce”：“”//交易顺序号，递增
-                    "txData": {...}, //交易数据 jsonObj
+                    "coinData": {
+                        "from" : [
+                            {
+                                “fromAssetsChainId”：“”//资产发行链的id  
+                                “fromAssetsId”：“”//资产id
+                                “fromAddress”：“”//转出账户地址
+                                “amount”：“”//转出金额
+                                “nonce”：“”//交易顺序号，递增
+                            },{...}
+                        ]
+                        "to" : [
+                            {
+                                “toAssetsChainId”：“”//资产发行链的id  
+                                “toAssetsId”：“”//资产id
+                                “toAddress”：“”//转出账户地址
+                                “amount”：“”//转出金额
+                                “nonce”：“”//交易顺序号，递增
+                            },{...}
+                        ]
+                    }
+                    "txData": XXXX, //交易数据 HEX
         	    },
         	    {...}
         	], //交易列表
         }
     }
     ```
-    
-* 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
-  工具模块的数据库存储工具、序列化工具
+* 返回字段说明
 
-#### 2.2.7 保存区块
+    略
 
-* 功能说明：
+#### 2.2.7 获取当前同步区块状态
 
-  略
+* 接口说明
 
-* 流程描述
+    同步区块为完成是，禁止发起交易
 
-```
-    1.根据hash获取未保存区块
-    2.取出交易列表，遍历列表中交易
-          调用交易管理模块的commit交易接口(主要处理不同交易例如红牌、黄牌的业务逻辑)
-          调用账本模块的commit交易接口(主要处理账户余额)
-          成功后保存交易到DB
-    3.保存区块头
-    4.调用智能合约模块处理智能合约相关交易
-    5.广播区块
-```
-
-* 接口定义
-
-  * 保存区块接口
-
-  * method : bl_addBlock
-
-    接口说明： 略
-
-    * params
+* 请求示例
 
     ```
     {
-      "jsonrpc": "1.0",
-      "method": "bl_addBlock",
-      "params": [”aaa“] //hash
+      "cmd": "bl_getSynchronizeInfo",
+      "minVersion":"1.1",
+      "params": []
     }
     ```
 
-    * returns 
+* 请求参数说明
 
+    略
+    
+* 返回示例
+
+    Failed
+    
     ```
     {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
         "code": 0,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
+        "result": {"sync": "true"}
+    }
+    ```
+    
+* 返回字段说明
+  
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| sync      | String    | 区块同步是否完成                                |
+
+#### 2.2.8 获取某高度区间内区块头
+
+* 接口说明
+
+    1. 令queryHash=endHash
+    2. 根据queryHash查询DB得到区块头byte数组
+    3. 反序列化为区块头对象blockHeader，添加到List中作为返回值
+    4. 如果blockHeader.hash!=startHash，令queryHash=blockHeader.preHash，startHash，重复第2步
+    5. 返回List
+
+* 请求示例
+
+    ```
+    {
+      "cmd": "bl_getBlockHeaderBetweenHeights",
+      "minVersion":"1.1",
+      "params": ["111","111"]
+    }
+    ```
+
+* 请求参数说明
+
+| index | parameter | required | type    | description |
+| ----- | --------- | -------- | ------- | :---------: |
+| 0     | startHeight   | true     | Long  |   起始高度    |
+| 0     | endHeight   | true     | Long  |   结束高度    |
+    
+* 返回示例
+
+    Failed
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
         "result": {
+            “list” : [
+                {
+               "hash": "xxxxxxx",
+               "preHash": "xxxxxxx",
+               "merkleHash": "1",
+               "height": 1,
+               "size": 1,
+               "time": 1,
+               "txCount": 1,
+               "packingAddress": "1",
+               "reward": 0,
+               "fee": 0,
+               "extend": xxxxxxx,HEX
+               "scriptSig": "1"
+               }
+            ]
+
         }
     }
     ```
     
-* 依赖服务
-
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
+* 返回字段说明
   
-  工具模块的数据库存储工具，网络模块的RPC工具
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| hash      | String    | 区块HASH                                |
+| preHash   | String    | 上一区块HASH                              |
+| merkleHash   | String    | 区块MerkleHash                              |
+| height   | Long | 区块高度                              |
+| size   | Integer    | 区块大小                              |
+| time   | Long    | 区块打包时间                              |
+| txCount   | Integer    | 交易数                              |
+| packingAddress   | String    | 打包地址                              |
+| reward   | Long    | 共识奖励                              |
+| fee   | Long | 手续费                             |
+| extend   | String   | 扩展字段,HEX,包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot                              |
+| scriptSig   | String    | 区块签名                              |
 
-#### 2.2.8 回滚区块
+#### 2.2.9 获取某高度区间内区块
 
-* 功能说明：
 
-  略
+* 接口说明
 
-* 流程描述
+    1. 令queryHash=endHash
+    2. 根据queryHash查询DB得到区块byte数组
+    3. 反序列化为区块对象block，添加到List中作为返回值
+    4. 如果block.hash!=startHash，令queryHash=block.preHash，startHash，重复第2步
+    5. 返回List
 
-```
-    1.根据hash获取区块
-    2.取出交易列表，遍历列表中交易
-          调用交易管理模块的rollback交易接口(主要处理不同交易例如红牌、黄牌的业务逻辑)
-          调用账本模块的rollback交易接口(主要处理账户余额)
-          成功后根据txHash删除DB中交易
-    3.根据hash删除区块头
-    4.调用智能合约模块回滚智能合约相关交易
-```
-
-* 接口定义
-
-  * 回滚区块接口
-
-  * method : bl_rollBlock
-
-    接口说明： 略
-
-    * params
+* 请求示例
 
     ```
     {
-      "jsonrpc": "1.0",
-      "method": "bl_rollBlock",
-      "params": [”aaa“] //hash
+      "cmd": "bl_getBlockBetweenHeights",
+      "minVersion":"1.1",
+      "params": ["111","111"]
     }
     ```
 
-    * returns 
+* 请求参数说明
 
+| index | parameter | required | type    | description |
+| ----- | --------- | -------- | ------- | :---------: |
+| 0     | startHeight   | true     | Long  |   起始高度    |
+| 0     | endHeight   | true     | Long  |   结束高度    |
+    
+* 返回示例
+
+    Failed
+    
     ```
     {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
         "result": {
+            “list” : [
+                {
+                    "blockHeader": {
+                        "hash": "xxxxxxx",
+                        "preHash": "xxxxxxx",
+                        "merkleHash": "1",
+                        "height": 1,
+                        "size": 1,
+                        "time": 1,
+                        "txCount": 1,
+                        "packingAddress": "1",
+                        "reward": 0,
+                        "fee": 0,
+                        "extend": xxxxxxx,HEX
+                        "scriptSig": "1"
+                    }, //区块头
+                    "transactions": [
+                        {
+                            "height": "1", //区块高度
+                            "hash": "1", //交易HASH
+                            "remark": "1", //交易备注
+                            "size": "1", //交易大小
+                            "time": "1", //交易时间
+                            "type": "1", //交易类型
+                            "transactionSignature": "1", //交易签名
+                            "coinData": {
+                                "from" : [
+                                    {
+                                        “fromAssetsChainId”：“”//资产发行链的id  
+                                        “fromAssetsId”：“”//资产id
+                                        “fromAddress”：“”//转出账户地址
+                                        “amount”：“”//转出金额
+                                        “nonce”：“”//交易顺序号，递增
+                                    },{...}
+                                ]
+                                "to" : [
+                                    {
+                                        “toAssetsChainId”：“”//资产发行链的id  
+                                        “toAssetsId”：“”//资产id
+                                        “toAddress”：“”//转出账户地址
+                                        “amount”：“”//转出金额
+                                        “nonce”：“”//交易顺序号，递增
+                                    },{...}
+                                ]
+                            }
+                            "txData": XXXX, //交易数据 HEX
+                        },
+                        {...}
+                    ], //交易列表
+               }
+            ]
+
         }
     }
     ```
     
-* 依赖服务
-
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
+* 返回字段说明
   
-  工具模块的数据库存储工具，网络模块的RPC工具
+    略
+
+#### 2.2.10 设置节点最新高度、最新Hash
+
+* 接口说明
+
+    略
+
+* 请求示例
+
+    ```
+    {
+      "cmd": "bl_setNodesInfo",
+      "minVersion":"1.1",
+      "params": [
+        {
+           chainId：122,//链id
+           nodeId:"20.20.30.10:9902"
+           magicNumber：134124,//魔法参数
+           version：2,//协议版本号
+           blockHeight：6000,   //区块高度
+           blockHash："0020ba3f3f637ef53d025d",  //区块Hash值
+           ip："200.25.36.41",//ip地址
+           port：54,//
+           state："已连接",
+           isOut："1", //0被动连接，1主动连接
+           time："6449878789", //最近连接时间
+        },{}
+      ]
+    }
+    ```
+
+* 请求参数说明
+
+    略
+    
+* 返回示例
+
+    Failed
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {"sync": "true"}
+    }
+    ```
+    
+* 返回字段说明
+  
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| sync      | String    | 区块信息同步是否完成                                |
 
 ### 2.3 模块内部功能
-
-[^说明]: 这里说明该模块内部有哪些功能，每个功能的说明、流程描述、实现中依赖的外部服务，参考上面外部服务格式
 
 #### 2.3.1 模块启动
 
@@ -666,15 +903,15 @@
 - 2.注册区块模块消息、消息处理器
 - 3.注册区块模块服务接口
 - 4.注册区块模块事件
-- 5.启动同步区块线程
+- 5.启动同步区块线程、区块监控线程、分叉链处理线程
 
 * 依赖服务
 
   [^说明]: 文字描述依赖了哪些服务，做什么事情
   
-  工具模块的数据库存储工具
+  工具模块、内核模块
 
-### 2.3.2 区块存储
+#### 2.3.2 区块存储
 
 * 功能说明：
 
@@ -689,7 +926,7 @@
           交易：(放在交易管理模块)
               key(区块高度)-value(交易hash列表)             transaction-index
               key(交易hash)-value(完整的交易)              transaction
-    ```
+   ```
    * 分叉链存储
    ```
         ChainContainer(分叉链)
@@ -731,7 +968,7 @@
                                 private long packEndTime;
                             private MeetingRound preRound;
                             private MeetingMember myMember;
-    ```
+   ```
 
 * 流程描述
 
@@ -799,15 +1036,14 @@
   判断分叉链与主链是否需要进行切换
 
 * 流程描述
-        
-  - 检查共识模块状态，等到共识模块为运行RUNNING状态时继续往下执行
+  ​      
   - 检查是否有孤儿链能链接上主链或分叉链，如果有则链接
   - 取出最长的一条分叉链与主链长度对比判断是否需要切换主链
-  - 如果分叉链长度比主链长度长3个区块以上则需要切换主链
-  - 找到主链与最长分叉链的分叉点
-  - 验证分叉链中的区块，如果验证通过继续往下执行
-  - 回滚主链区块
-  - 切换分叉链为主链
+      - 如果分叉链长度比主链长度长3（配置）个区块以上则需要切换主链
+      - 找到主链与最长分叉链的分叉点
+      - 验证分叉链中的区块，如果验证通过继续往下执行
+      - 回滚主链区块
+      - 切换分叉链为主链
 
 ![](./image/consensus-module/consensus-flow-3.png)
 
@@ -826,7 +1062,7 @@
 
 * 流程描述
 
-    - 定义一条主链(MasterChain)，一个分叉链集合(forkChains)和一个孤儿链集合(orphanChains)
+    - 定义一条主链(MasterChain)，一个分叉链集合(forkChains)
     - 定义待验证区块为Block
     - 定义主链高度MG，待验证区块高度BG
     - 定义主链最新区块HASH为MH，待验证区块HASH为BH，待验证区块PREHASH为BPH
@@ -842,7 +1078,9 @@
     - 3.MG==BG-1，MH==BPH，说明区块连续，保存到主链
     - 4.MG==BG-1，MH!=BPH，说明网络分叉，处理同第2步
     - 5.MG<BG-1，说明网络分叉，处理同第2步
-    - 6.MG>BG，MH==BH，丢弃
+    - 6.MG>BG，说明网络分叉，处理同第2步
+    
+    高度差1000以内缓存到磁盘，磁盘空间做大小限制，超出高度则丢弃，缓存空间满则按加入缓存时间顺序清理分叉链
 
   ![](./image/consensus-module/consensus-flow-4.png)
 
@@ -864,7 +1102,8 @@
 
   - 启动监控定时任务，每分钟执行一次
   - 取本地最新区块头
-  - 验证网络模块是否需要重启（如果本地最新区块3分钟都没有更新过则需要重启网络模块？网络模块清空可用节点，并重新获取？）
+  - 验证网络模块是否需要重启（如果本地最新区块3分钟都没有更新过则需要网络模块断开并随机重连）
+  - 待完善
 
 * 依赖服务
 
@@ -876,13 +1115,14 @@
 
 * 功能说明：
 
-  1.根据HASH获取区块
-  2.组装ForwardSmallBlockMessage,参考协议模块
-  3.调用网络模块发送广播
+    略
 
 * 流程描述
 
-    
+1. 使用blockHash组装ForwardSmallBlockMessage，发送给目标节点
+2. 目标节点收到ForwardSmallBlockMessage后，取出hash判断是否重复，如果不重复，使用hash组装GetSmallBlockMessage发给源节点
+3. 源节点收到GetSmallBlockMessage后，取出hash，查询SmallBlock并组装SmallBlockMessage，发给目标节点
+4. 后续交互流程参考广播区块
 
 * 依赖服务
 
@@ -898,46 +1138,14 @@
 
 * 流程描述
 
-```
-    1.根据HASH获取BlockHeader,TxList,组装成SmallBlock，
-    2.将一个SmallBlock放入内存中，若不主动删除，则在缓存存满或者存在时间超过1000秒时，自动清理
-    3.本地缓存blockHash，用于过滤重复下载
-    4.组装SmallBlockMessage，调用RPC模块发送消息给目标节点
-    5.目标节点收到消息后根据txHashList,再发GetTxGroupRequest给源节点
-    6.源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
-    7.至此所有区块数据已经发送给目标节点。
-```
-
-* 接口定义
-
-  * 广播区块接口
-
-  * method : bl_broadcastBlock
-
-    接口说明： 略
-
-    * params
-
-    ```
-    {
-      "jsonrpc": "1.0",
-      "method": "bl_broadcastBlock",
-      "params": [”aaa“] //hash
-    }
-    ```
-
-    * returns 
-
-    ```
-    {
-        "code": -1,
-        "msg": "What happend",
-        "jsonrpc":"1.0",
-        "result": {
-        }
-    }
-    ```
-    
+1. 根据HASH获取BlockHeader,TxList,组装成SmallBlock，
+2. 将一个SmallBlock放入内存中，若不主动删除，则在缓存存满或者存在时间超过1000秒时，自动清理
+3. 本地缓存blockHash，用于过滤重复下载
+4. 组装SmallBlockMessage，调用RPC模块发送消息给目标节点
+5. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装GetTxGroupRequest发给源节点
+6. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
+7. 至此所有区块数据已经发送给目标节点。
+  
 * 依赖服务
 
   [^说明]: 文字描述依赖了哪些服务，做什么事情
@@ -946,27 +1154,45 @@
 
 ## 四、事件说明
 
-[^说明]: 业务流程中尽量避免使用事件的方式通信
-
 ### 4.1 发布的事件
 
-[^说明]: 这里说明事件的topic，事件的格式协议（精确到字节），事件的发生情景。
+#### 4.1.1 保存区块
 
-    无
+说明：每保存一个区块，发布该事件
+
+ event_topic : "evt_bl_saveBlock",
+
+```
+data:{
+    chainId
+    height
+    hash
+}
+```
+
+#### 4.1.2 回滚区块
+
+说明：每回滚一个区块，发布该事件   
+
+ event_topic : "evt_bl_rollbackBlock",
+
+```
+data:{
+    chainId
+    height
+    hash
+}
+```
 
 ### 4.2 订阅的事件
 
-[^说明]: 这里说明订阅哪些事件，订阅的原因，事件发生后的处理逻辑
-
-* 打包生成新区块事件
+    略
 
 ## 五、协议
 
 ### 5.1 网络通讯协议
 
-[^说明]: 节点间通讯的具体协议，参考《网络模块》
-
-参考《网络模块》
+    略
 
 ### 5.2 交易协议
 
@@ -982,12 +1208,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | hashLength        | VarInt    | 数组长度           |
 | ?     | hash        | byte[]    | hash           |
@@ -1007,7 +1227,7 @@
 
 #### 5.2.2 获取小区块消息GetSmallBlockMessage
 
-* 交易说明：用途
+* 交易说明：用于“转发区块”功能
 
 * 交易类型（short）
 
@@ -1017,12 +1237,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | hashLength      | VarInt    | 数组长度           |
 | ?     | hash            | byte[]    | hash           |
@@ -1042,7 +1256,7 @@
 
 #### 5.2.3 区块广播消息SmallBlockMessage
 
-* 交易说明：广播区块时使用
+* 交易说明：用于“转发区块”、“广播区块”功能
 
 * 交易类型（short）
 
@@ -1052,12 +1266,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | preHashLength   | VarInt    | preHash数组长度           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1075,7 +1283,7 @@
 | ?     | signBytesLength| VarInt    | 签名数组长度           |
 | ?     | signBytes      | byte[]    | 签名           |
 | ?     | txHashListLength| VarInt    | 交易hash列表数组长度           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |  
+| 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | txHashLength| VarInt    | 交易hash数组长度           |
 | ?     | txHash      | byte[]    | 交易hash           |
 
@@ -1097,7 +1305,7 @@
 
 #### 5.2.4 根据高度获取区块消息GetBlocksByHeightMessage
 
-* 交易说明：同步区块时发送给网络上可用节点，用来下载区块
+* 交易说明：用于“同步区块”功能
 
 * 交易类型（short）
 
@@ -1107,12 +1315,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 32     | startHeight  | uint32      | 起始高度           |
 | 32     | endHeight  | uint32      | 结束高度           |
 
@@ -1127,44 +1329,7 @@
 
 * 其他说明
 
-#### 5.2.5 根据hash获取区块消息GetBlocksByHashMessage
-
-* 交易说明：用途
-
-* 交易类型（short）
-
-  5
-
-* 交易的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | startHashLength   | VarInt    | startHash数组长度           |
-| ?     | startHash         | byte[]    | startHash           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | endHashLength| VarInt    | endHash数组长度           |
-| ?     | endHash      | byte[]    | endHash           |
-
-* 交易的验证
-
-    略
-
-* 交易的处理逻辑
-
-  ```
-  1、
-  ```
-
-* 其他说明
-
-#### 5.2.6 获取区块消息GetBlockMessage
+#### 5.2.5 获取区块消息GetBlockMessage
 
 * 交易说明：用途
 
@@ -1176,12 +1341,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1198,78 +1357,7 @@
 
 * 其他说明
 
-#### 5.2.7 获取区块hash列表的消息GetBlocksHashMessage
-
-* 交易说明：用途
-
-* 交易类型（short）
-
-  12
-
-* 交易的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
-| 32     | startHeight  | uint32      | 起始高度           |
-| 32     | endHeight  | uint32      | 结束高度           |
-
-* 交易的验证
-
-    略
-
-* 交易的处理逻辑
-
-  ```
-  1、
-  ```
-
-* 其他说明
-
-#### 5.2.8 区块hash列表响应消息BlocksHashMessage
-
-* 交易说明：用途
-
-* 交易类型（short）
-
-  13
-
-* 交易的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | HashLength   | VarInt    | 请求Hash数组长度           |
-| ?     | Hash         | byte[]    | 请求Hash           |
-| ?     | txHashListLength| VarInt    | 响应hash列表数组长度           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |  
-| ?     | txHashLength| VarInt    | 响应hash数组长度           |
-| ?     | txHash      | byte[]    | 响应hash           |
-
-* 交易的验证
-
-    略
-
-* 交易的处理逻辑
-
-  ```
-  1、
-  ```
-
-* 其他说明
-
-#### 5.2.9 完整的区块消息BlockMessage
+#### 5.2.6 完整的区块消息BlockMessage
 
 * 交易说明：承载区块完整数据的信息
 
@@ -1281,12 +1369,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | preHashLength   | VarInt    | preHash数组长度           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1332,7 +1414,7 @@
 
 * 其他说明
 
-#### 5.2.10 未找到数据消息NotFoundMessage
+#### 5.2.7 未找到数据消息NotFoundMessage
 
 * 交易说明：当请求的数据不存在时，返回该消息。
 
@@ -1344,12 +1426,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | msgType        | byte    | 未找到的数据类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
@@ -1367,7 +1443,7 @@
 
 * 其他说明
 
-#### 5.2.11 响应消息ReactMessage
+#### 5.2.8 响应消息ReactMessage
 
 * 交易说明：用于异步请求，标志目标节点收到请求，正在处理。
 
@@ -1379,12 +1455,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1401,7 +1471,7 @@
 
 * 其他说明
 
-#### 5.2.12 请求完成消息CompleteMessage
+#### 5.2.9 请求完成消息CompleteMessage
 
 * 交易说明：用于异步请求，标志目标节点处理请求结束。
 
@@ -1413,12 +1483,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1436,7 +1500,7 @@
 
 * 其他说明
 
-#### 5.2.13 获取交易列表的消息GetTxGroupRequest
+#### 5.2.10 获取交易列表的消息GetTxGroupRequest
 
 * 交易说明：接收到其他节点发送的区块广播时，如果交易列表中有交易还没有存在本地DB，则组装该消息，发给源节点获取交易
 
@@ -1448,12 +1512,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | ?     | ArrayLength   | VarInt    | Hash列表长度           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
@@ -1471,7 +1529,7 @@
 
 * 其他说明
 
-#### 5.2.14 交易列表的消息TxGroupMessage
+#### 5.2.11 交易列表的消息TxGroupMessage
 
 * 交易说明：接收到其他节点发送的GetTxGroupRequest后，则组装该消息，发给源节点
 
@@ -1483,12 +1541,6 @@
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | magicNumber    | uint32    | 魔法参数，用于隔离网段 |
-| 32     | length         | uint32    | 消息体大小           |
-| 1      | xor            | byte      | 校验位，用于消息体的奇偶校验           |
-| 1      | arithmetic     | byte      | 加密算法标识           |
-| 16     | moduleId       | uint16    | 模块id           |
-| 16     | msgType        | uint16    | 消息类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | requestHashLength   | VarInt    | requestHash数组长度           |
 | ?     | requestHash         | byte[]    | requestHash           |
@@ -1529,11 +1581,22 @@
 [^说明]: 本模块必须要有的配置项
 
 ```
-[tx-manager]
-server.ip:0.0.0.0   //本机ip，若不配置则默认使用0.0.0.0
-server.port:8080    //若未配置，则随机选择端口
+#common
+server.ip=0.0.0.0   //服务ip，若不配置则默认使用127.0.0.1
+server.port=8080    //服务端口，若未配置，则随机选择端口
 whitelist=0.0.0.0   //白名单
 blacklist=0.0.0.0   //黑名单
+
+#sync
+
+#rollback
+
+#forkChain
+heightRange=1000    //缓存到分叉链的高度区间
+cacheSize=50m       //分叉链缓存大小
+forkCount=3         //当分叉链比主链高于多少高度时，进行切换
+
+resetTime=180       //持续多长时间区块高度没有更新时，就重新获取可用节点
 ```
 
 ## 七、Java特有的设计
@@ -1600,5 +1663,3 @@ blacklist=0.0.0.0   //黑名单
 > | txData             | T     | 交易数据   |
 
 ## 八、补充内容
-
-[^说明]: 上面未涉及的必须的内容
