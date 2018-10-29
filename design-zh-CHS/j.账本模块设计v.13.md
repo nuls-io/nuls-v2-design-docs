@@ -79,13 +79,14 @@
 
 | 字段      |      是否可选  | 数据类型 |  描述信息 |
 |----------|:-------------:|--------:|--------:|
+| chainId |  Y | String |链ID |
 | assetId |  Y | String |资产ID |
 
 ```json
 {
   "cmd": "getAsset",
   "minVersion": "1.0",
-  "params":["assetId"]
+  "params":["chainId","assetId"]
 }
 ```
 ##### 返回值说明 (response)
@@ -116,10 +117,10 @@
 | balance.total |  BigInteger | 总资产余额 total = available+freeze  |
 
 
-#### 3.1.2 资产管理
+#### 3.1.2 查询资产列表
 > cmd: getAssets
 
-##### 参数说明 (request body)
+##### 参数说明 (request)
 
 ```json
 {
@@ -128,7 +129,7 @@
   "params":[]
 }
 ```
-##### 返回值说明 (response content)
+##### 返回值说明 (response)
 
 ```json
 {
@@ -170,7 +171,7 @@
 #### 3.1.3 查询用户余额
 > cmd: getBalance
 
-##### 参数说明 (request body)
+##### 参数说明 (request)
 
 | 字段      |      是否可选  | 数据类型 |  描述信息 |
 |----------|:-------------:|--------:|--------:|
@@ -189,7 +190,7 @@
   ]
 }
 ```
-##### 返回值说明 (response content)
+##### 返回值说明 (response)
 
 ```json
 {
@@ -217,7 +218,7 @@
 #### 3.1.4 getNonce
 > cmd: getNonce
 
-##### 参数说明 (request body)
+##### 参数说明 (request)
 
 | 字段      |      是否可选  | 数据类型 |  描述信息 |
 |----------|:-------------:|--------:|--------:|
@@ -237,7 +238,7 @@
 }
 ```
 
-##### 返回值说明：(response content)
+##### 返回值说明：(response)
 
 ```json
 {
