@@ -66,9 +66,11 @@
 - 功能接口管理(rpc)
   - 提供给其他模块使用的rpc接口
 ### 2.4 账本流程
-### 2.4.1 交易验证流程
+### 2.4.1 交易流程
 
 ![eth-transaction-flow.png](image/ledger/eth-transaction-flow.png)
+
+### 2.4.2 交易流程
 
 ![trx-validate-flow.png](image/ledger/trx-validate-flow.png)
 
