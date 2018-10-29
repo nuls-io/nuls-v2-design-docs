@@ -231,7 +231,7 @@
 
 ```json
 {
-"cmd": "getNonce",
+"cmd": "getCoinData",
 "minVersion": "1.0",
 "params":[
   "chainId",
