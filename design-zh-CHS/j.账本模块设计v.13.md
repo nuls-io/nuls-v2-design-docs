@@ -96,12 +96,12 @@
   "code": 0,
   "msg": "response message.",
   "result":{
-    "chainId": "mainChainId", //链Id
-    "asset_id": "xxxxxx",//资产ID
+    "chainId": "mainChainId",
+    "asset_id": "xxxxxx",
     "balance" : {
-      "available": 10000000000,//10NULS
-      "freeze": 200000000,//冻结余额 locked
-      "total": 12000000000 //总共金额
+      "available": 10000000000,
+      "freeze": 200000000,
+      "total": 12000000000
     }
   }
 }
