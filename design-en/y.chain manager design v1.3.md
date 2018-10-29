@@ -1,12 +1,14 @@
-# Chain management module design document
+# 链管理模块设计文档
 
 [TOC]
 
-## 1. Overall description
+## Chapter 1：Overall description
 
 ### 1.1 Summary
 
 #### 1.1.1 Why need chain management module?
+
+[^说明]: 介绍模块的存在的原因
 
 * NULS2.0 supports multi chain and cross chain transactions, so a module is needed to manage chain information.
 
@@ -18,6 +20,8 @@
 
 
 #### 1.1.2 What should chain management do?
+
+[^说明]: 模块要做些什么事情，达到什么目的，目标是让非技术人员了解要做什么事情
 
 All maintenance operations for chain (friend chain) should be in the chain management module.
 
@@ -31,6 +35,8 @@ All maintenance operations for chain (friend chain) should be in the chain manag
 
 #### 1.1.3 Positioning of chain management in system
 
+[^说明]: 模块在系统中的定位，是什么角色，依赖哪些模块做哪些事情，可以被依赖用于做哪些事情
+
 In the NULS 2.0 ecosystem chain system, "chain management" belongs to the satellite chain and friend chain has a different module, satellite chain provides all the interfaces, in the friend chain is only contains  query chain interface.
 
 
@@ -40,13 +46,19 @@ Chain Management is a general module in the system. It not only calls the interf
 
 ### 1.2 Architecture diagram
 
+[^说明]: 图形说明模块的层次结构、组件关系，并通过文字进行说明
 
 
-## 2. Function design
 
-### 2.1 Functional architecture diagram
+## Chapter 2: Function design
 
-### 2.2 Module service
+### 2.1 功能架构图
+
+[^说明]: 说明模块的功能设计，可以有层级关系，可以通过图形的形式展示，并用文字进行说明。
+
+### 2.2 模块服务
+
+[^说明]: 这里说明该模块对外提供哪些服务，每个服务的功能说明、流程描述、接口定义、实现中依赖的外部服务
 
 #### 2.2.1 Chain registration and storage
 
@@ -63,9 +75,11 @@ Chain Management is a general module in the system. It not only calls the interf
 
 ### 2.3 Module internal function
 
+[^说明]: 这里说明该模块内部有哪些功能，每个功能的说明、流程描述、实现中依赖的外部服务，参考上面外部服务格式
 
 
-## 3. Interface design
+
+## Chapter 3: Interface design
 
 ### 3.1 Module interface
 
@@ -521,7 +535,7 @@ Chain Management is a general module in the system. It not only calls the interf
 
 
 
-## 4. Event description 
+## Chapter 4: Event description 
 
 [^说明]: 业务流程中尽量避免使用事件的方式通信
 
@@ -533,7 +547,9 @@ Chain Management is a general module in the system. It not only calls the interf
 
 
 
-#### Explanation: when chain registration is successful, publish the event.   
+#### 4.1.1  Event description 
+
+Explanation: when chain registration is successful, publish the event.   
 
  event_topic : "chain_register",
 
@@ -573,7 +589,7 @@ Chain Management is a general module in the system. It not only calls the interf
 
 
 
- ####  Explanation: when a chain destroy is successful, publish the event.    
+ Explanation: when a chain destroy is successful, publish the event.    
 
  event_topic : "chain_destroy",
 
@@ -613,7 +629,7 @@ Chain Management is a general module in the system. It not only calls the interf
 
 
 
-#### Explanation: when a asset register is successful, publish the event.   
+Explanation: when a asset register is successful, publish the event.   
 
  event_topic : "asset_register",
 
@@ -634,7 +650,7 @@ Chain Management is a general module in the system. It not only calls the interf
 
 
 
-#### Explanation: when a asset destroy is successful, publish the event.  
+Explanation: when a asset destroy is successful, publish the event.  
 
  event_topic : "asset_destroy",
 
@@ -656,9 +672,11 @@ Chain Management is a general module in the system. It not only calls the interf
 
 
 
-## 5. protocol
+## Chapter 5: protocol
 
 ### 5.1  Network communication protocol 
+
+[^说明]: 节点间通讯的具体协议，参考《网络模块》
 
 #### N/A
 
@@ -690,7 +708,7 @@ Compared with general transactions, there are only differences between types and
 
       initTotal：//varint         4 bytes
 
-      minUnit://byte     1 byte
+      minUnit://byte,代表小数点后多少位，     1 byte
       
       flag： Determine whether assets can be circulated.     1 byte
 	
@@ -852,9 +870,15 @@ Otherwise, stop the asset transaction after the n block, unlock the mortgage, an
 
 
 
-## 6.  Module configuration 
+## Chapter 6:  Module configuration 
 
-## 7.  Java unique design 
+[^说明]: 本模块必须要有的配置项
 
-## 8.  Supplementary content 
+## Chapter 7:  Java unique design 
+
+[^说明]: 核心对象类定义,存储数据结构，......
+
+## Chapter 8:  Supplementary content 
+
+[^说明]: 上面未涉及的必须的内容
 
