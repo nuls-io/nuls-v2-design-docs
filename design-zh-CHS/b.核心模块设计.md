@@ -35,7 +35,7 @@ Kernel 作为一个中心，用于子模块的相互发现。同时，提供 CMD
 
 > 注意：子模块间的RPC 调用不经过 kernel，可直接互访执行 CMD 请求获得结果。
 
-![](./image/kernel/structure.png)
+![structure](./image/kernel/structure.png)
 
 ## 二、功能设计
 
@@ -48,7 +48,7 @@ Kernel 作为一个中心，用于子模块的相互发现。同时，提供 CMD
 状态生命周期管理则负责启动子模块。存储子模块的状态与配置信息。当子模块的依赖条件发生变化时，主动通知。
 RPC 服务就是模块间的通讯接口，管理器的所有RPC 功能都由此处导出。
 
-![](./image/kernel/OOD.png)
+![OOD](./image/kernel/OOD.png)
 
 ### 2.2 模块服务
 
@@ -60,660 +60,643 @@ RPC 服务就是模块间的通讯接口，管理器的所有RPC 功能都由此
 
 #### 2.3.1 配置参数管理
 
-    每个模块独立存储配置信息，核心模块会缓存一份当前所有子模块的配置信息表。
+每个模块独立存储配置信息，核心模块会缓存一份当前所有子模块的配置信息表。
 
-    通过核心模块修改子模块信息，核心模块通知子模块执行成功后才会修改本地缓存。
+通过核心模块修改子模块信息，核心模块通知子模块执行成功后才会修改本地缓存。
 
-    当子模块主动修改了自定义配置信息，则会主动发出一个 status 请求，更新核心管理器中的缓存。
+当子模块主动修改了自定义配置信息，则会主动发出一个 status 请求，更新核心管理器中的缓存。
 
 #### 2.3.2 依赖管理
 
-    子模块启动后，通过 version 命令传递了自己的依赖模块列表。
-    核心模块通过 status 命令请求子模块时，参数 available 表达子模块的依赖是否已满足。
-    当 available 为 true 时，子模块应启动自己的业务处理。
-    当收到 available 为 false 时，子模块应当停止业务处理。等待 available 标志重新为 true。
+子模块启动后，通过 version 命令传递了自己的依赖模块列表。
+核心模块通过 status 命令请求子模块时，参数 available 表达子模块的依赖是否已满足。
+当 available 为 true 时，子模块应启动自己的业务处理。
+当收到 available 为 false 时，子模块应当停止业务处理。等待 available 标志重新为 true。
 
 #### 2.3.3 自动更新
 
-    [*] 待定
+[*] 待定
 
 #### 2.3.4 启动参数
 
-    启动子模块进程时，会通过命令行参数传递一些必备的参数给子模块。
+启动子模块进程时，会通过命令行参数传递一些必备的参数给子模块。
 
-  | properties       | description                                              |
-  | ---------------- | :------------------------------------------------------- |
-  | --kernel-addr    | 核心模块工作的 IP 地址与端口。忽略 IP 地址则代表本地网络 |
-  | --data-folder    | 可恢复数据存储根目录。                                   |
-  | --profile-folder | 用户数据存储根目录                                       |
+| properties       | description                                              |
+| ---------------- | :------------------------------------------------------- |
+| --kernel-addr    | 核心模块工作的 IP 地址与端口。忽略 IP 地址则代表本地网络 |
+| --data-folder    | 可恢复数据存储根目录。                                   |
+| --profile-folder | 用户数据存储根目录                                       |
 
-   **--data-folder 与 --profile-folder 的细节**
-  > --data-folder 中存储的数据被删除后可以从链上恢复。主要存储链上数据。
-  > --profile-folder 中存储不可恢复的用户数据，如用户的地址私钥。
-  > 子模块在使用 data 与 profile 目录时，都需要创建一个子目录，将自己的数据存放在子目录中。
+> **data-folder 与 profile-folder 的细节**
+> --data-folder 中存储的数据被删除后可以从链上恢复。主要存储链上数据。
+> --profile-folder 中存储不可恢复的用户数据，如用户的地址私钥。
+> 子模块在使用 data 与 profile 目录时，都需要创建一个子目录，将自己的数据存放在子目录中。
 
 ### 2.4 核心模块RPC 命令表
 
-##### version
+#### version
 
-* 接口说明
+- 接口说明
 
-  子模块启动后，主动请求 kernel 模块，上报自己的版本信息、可提供的 CMD 表、依赖模块、RPC 工作端口等信息。
+子模块启动后，主动请求 kernel 模块，上报自己的版本信息、可提供的 CMD 表、依赖模块、RPC 工作端口等信息。
 
-* 请求示例
+- 请求示例
 
-  ```json
-  {
-    "cmd":"version",
-    "params": 
-        [{
-        "version":"请求者自己的版本号",
-        "author": "作者",
-        "url":"首页",
-        
-        "rpcList":[
-            {
-                "method": "nuls_accounts",
-                "version": 1
-            },
-            {
-                "method": "nuls_nodes",
-                "version": 1
-            },
-        ],
-        "dependsModule":["network","asset"],
-        "port":10000,
-        // ...
-    }]
-  }
-  ```
+```json
+{
+"cmd":"version",
+"params": [{
+    "version":"请求者自己的版本号",
+    "author": "作者",
+    "url":"首页",
+    "rpcList":[
+        {
+            "method": "nuls_accounts",
+            "version": 1
+        },
+        {
+            "method": "nuls_nodes",
+            "version": 1
+        }
+    ],
+    "dependsModule":["network","asset"],
+    "port":10000
+}]
+}
+```
 
-* 请求参数说明
+- 请求参数说明
 
-  | index | parameter | required | type  | description |
-  | :---: | :-------: | :------: | :---: | :---------- |
-  | 0     | version   | true     | map   | 子模块信息 |
+| index | parameter | required | type  | description |
+| :---: | :-------: | :------: | :---: | :---------- |
+| 0     | version   | true     | map   | 子模块信息 |
 
-	version
-  
-  | properties    | required | type          | description              |
-  | :------------ | -------- | :------------ | :----------------------- |
-  | version       | true     | String        | 子模块版本号             |
-  | rpcList       | true     | array[{}]     | 子模块披露的所有命令集合 |
-  | dependsModule | true     | array[String] | 依赖的子模块列表         |
-  | port          | true     | short         | 子模块 RPC 工作端口      |
+version
 
-* 返回示例
+| properties    | required | type          | description              |
+| :------------ | -------- | :------------ | :----------------------- |
+| version       | true     | String        | 子模块版本号             |
+| rpcList       | true     | array[{}]     | 子模块披露的所有命令集合 |
+| dependsModule | true     | array[String] | 依赖的子模块列表         |
+| port          | true     | short         | 子模块 RPC 工作端口      |
 
-  Success
+- 返回示例
 
-  ```
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
+Success
 
-* 返回字段说明
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
 
-  执行失败返回 code 非0。
+- 返回字段说明
 
-##### status
+执行失败返回 code 非0。
 
-* 接口说明
+#### status
 
-  查询子模块当前运行状态。
+- 接口说明
 
-* 请求示例
+查询子模块当前运行状态。
 
-  ```json
-    {
-        "cmd": "status",
-        "params": []
-    }
-  ```
+- 请求示例
 
-* 请求参数说明
+```json
+{
+    "cmd": "status",
+    "params": []
+}
+```
 
-    无
+- 请求参数说明
 
-* 返回示例
+无
 
-  ```json
-    {
-        "code": 0,
-        "version": 1.0,
-        "result": {
-            "Module_A": {
-                "status" : "",
-                "rpcList":[],
-                "dependsModule":[],
-                "addr":"192.168.1.8",
-                "port": 8100
-            },
-            "Module_B": {
-                "status" : "",
-                "rpcList":[],
-                "dependsModule":[],
-                "addr":"192.168.2.56",
-                "port": 8200
-            }
+- 返回示例
+
+```json
+{
+    "code": 0,
+    "version": 1.0,
+    "result": {
+        "Module_A": {
+            "status" : "",
+            "rpcList":[],
+            "dependsModule":[],
+            "addr":"192.168.1.8",
+            "port": 8100
+        },
+        "Module_B": {
+            "status" : "",
+            "rpcList":[],
+            "dependsModule":[],
+            "addr":"192.168.2.56",
+            "port": 8200
         }
     }
-  ```
+}
+```
 
-* 返回字段说明
+- 返回字段说明
 
-    返回模块名为 key 的 map。map 中包含各模块的信息。
+返回模块名为 key 的 map。map 中包含各模块的信息。
 
-  | parameter     | type          | description                                                                            |
-  | ------------- | ------------- | -------------------------------------------------------------------------------------- |
-  | status        | String        | 该模块当前状态：unknown 未知， ready 已连接， service 工作，shutdown 已通知停止服务。 |
-  | rpcList       | Enum          | 该模块提供的服务表                                                                     |
-  | dependsModule | array[String] | 依赖的模块名字列表                                                                     |
-  | addr          | ip            | 子模块的 IP                                                                            |
-  | port          | short         | 子模块的RPC工作端口                                                                    |
+| parameter     | type          | description                                                                            |
+| ------------- | ------------- | -------------------------------------------------------------------------------------- |
+| status        | String        | 该模块当前状态：unknown 未知， ready 已连接， service 工作，shutdown 已通知停止服务。 |
+| rpcList       | Enum          | 该模块提供的服务表                                                                     |
+| dependsModule | array[String] | 依赖的模块名字列表                                                                     |
+| addr          | ip            | 子模块的 IP                                                                            |
+| port          | short         | 子模块的RPC工作端口                                                                    |
 
+#### shutdown
 
-##### shutdown
+- 接口说明
 
-* 接口说明
+关闭 kernel 与所有运行的子模块。
 
-  关闭 kernel 与所有运行的子模块。
+- 请求示例
 
-* 请求示例
+```json
+{
+    "method":"shutdown",
+    "params":[]
+}
+```
 
-  ```json
-  {
-      "method":"shutdown",
-      "params":[]
-  }
-  ```
+- 请求参数说明
 
-* 请求参数说明
+无
 
-    无 
+- 返回示例
 
-* 返回示例
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
+- 返回字段说明
 
-* 返回字段说明
+请求成功返回 0，否则返回失败错误码。
 
-    请求成功返回 0，否则返回失败错误码。
+#### restart
 
-##### restart
+- 接口说明
 
-* 接口说明
+重启 kernel 与所有运行的子模块。
 
-   重启 kernel 与所有运行的子模块。
+- 请求示例
 
-* 请求示例
+```json
+{
+    "method":"restart",
+    "params":[]
+}
+```
 
-  ```json
-  {
-      "method":"restart",
-      "params":[]
-  }
-  ```
+- 请求参数说明
 
-* 请求参数说明
+无
 
-    无 
+- 返回示例
 
-* 返回示例
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
+- 返回字段说明
 
-* 返回字段说明
+请求成功返回 0，否则返回失败错误码。
 
-    请求成功返回 0，否则返回失败错误码。
+#### terminate
 
+- 接口说明
 
-##### terminate
+立即退出 kernel 与所有运行的子模块。所有未完成操作都将丢弃。
 
-* 接口说明
+- 请求示例
 
-   立即退出 kernel 与所有运行的子模块。所有未完成操作都将丢弃。
+```json
+{
+    "method":"terminate",
+    "params":[]
+}
+```
 
-* 请求示例
+- 请求参数说明
 
-  ```json
-  {
-      "method":"terminate",
-      "params":[]
-  }
-  ```
+无
 
-* 请求参数说明
+- 返回示例
 
-    无 
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
 
-* 返回示例
+- 返回字段说明
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
+请求成功返回 0，否则返回失败错误码。
 
-* 返回字段说明
+#### proxy
 
-    请求成功返回 0，否则返回失败错误码。
+- 接口说明
 
+通过 kernel 代理，去请求正在运行模块暴露的方法。
 
-##### proxy
+- 请求示例
 
-* 接口说明
+```json
+{
+    "method":"proxy",
+    "version":"1.1",
+    "params":[
+        "nuls_accounts",
+        {
+            "name":"wangkun",
+            "nickname":"uncle",
+            "features":"handsome"
+        }
+    ]
+}
+```
 
-   通过 kernel 代理，去请求正在运行模块暴露的方法。
+- 请求参数说明
 
-* 请求示例
-
-  ```json
-  {
-      "method":"proxy",
-      "version":"1.1",
-      "params":[
-          "nuls_accounts",
-          {
-              "name":"wangkun",
-              "nickname":"uncle",
-              "features":"handsome"
-          }
-      ]
-  }
-  ```
-
-* 请求参数说明
-
-  | index | parameter    | required | type   | description        |
-  | ----- | ------------ | -------- | ------ | :----------------: |
-  | 0     | targetMethod | true     | String | 目标命令           |
-  | 1     | methodParams | true     | map    | 目标命令的请求参数 |
+| index | parameter    | required | type   | description        |
+| ----- | ------------ | -------- | ------ | :----------------: |
+| 0     | targetMethod | true     | String | 目标命令           |
+| 1     | methodParams | true     | map    | 目标命令的请求参数 |
 
 > methodParams 字段的参数会被 kernel 执行时作为最终请求的 params 实际参数。
 
-* 返回字段说明
-  返回结果由目标方法决定。如果目标方法不存在，则返回相应错误码。
+- 返回字段说明
 
+返回结果由目标方法决定。如果目标方法不存在，则返回相应错误码。
 
-##### conf_get
+#### conf_get
 
-* 接口说明
+- 接口说明
 
-  获取 kernel 当前生效的配置。当 params 为空时， 返回所有生效配置。否则，只返回存在的指定配置信息。
+获取 kernel 当前生效的配置。当 params 为空时， 返回所有生效配置。否则，只返回存在的指定配置信息。
 
-* 请求示例
+- 请求示例
 
-  ```json
-  {
-      "method":"conf_get",
-      "params":["Key1","Key2"]
-  }
-  ```
+```json
+{
+    "method":"conf_get",
+    "params":["Key1","Key2"]
+}
+```
 
-* 请求参数说明
+- 请求参数说明
 
-   - 空。查询kernel 所有的可配置信息。
-   - str。 查询指定的配置信息。对于不存在的配置，则忽略。
+- 空。查询kernel 所有的可配置信息。
+- str。 查询指定的配置信息。对于不存在的配置，则忽略。
 
-* 返回示例
+- 返回示例
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-    "result":{
-        "Key1": "value1",
-        "Key2": "value2"
-      }
-  }
-  ```
+```json
+{
+"code":0,
+"version": 1.2,
+"result":{
+    "Key1": "value1",
+    "Key2": "value2"
+    }
+}
+```
 
-* 返回字段说明
+- 返回字段说明
 
-  配置项键值对。具体意义参考自定义参数表。
+配置项键值对。具体意义参考自定义参数表。
 
+#### conf_set
 
-##### conf_set
+- 接口说明
 
-* 接口说明
+修改 kernel 配置参数。
 
-  修改 kernel 配置参数。
+- 请求示例
 
-* 请求示例
+```json
+{
+    "method":"conf_set",
+    "version":"1.1",
+    "params":[{
+        "Key1": "newValue",
+        "Key2": "newValue",
+    }]
+}
+```
 
-  ```json
-  {
-      "method":"conf_set",
-      "version":"1.1",
-      "params":[{
-          "Key1": "newValue",
-          "Key2": "newValue",
-        }]
-  }
-  ```
+- 请求参数说明
 
-* 请求参数说明
+| index | parameter | required | type | description    |
+| ----- | --------- | -------- | ---- | :------------: |
+| 0     | configure | true     | map  | 新的配置参数表 |
 
-  | index | parameter | required | type | description    |
-  | ----- | --------- | -------- | ---- | :------------: |
-  | 0     | configure | true     | map  | 新的配置参数表 |
+> configure: 要设置新值的键值对。
 
-    > configure: 要设置新值的键值对。
+- 返回示例
 
-    
+```json
+{
+"code":0,
+"version": 1.2
+}
+```
 
-* 返回示例
+- 返回字段说明
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2
-  }
-  ```
+修改成功返回0，否则返回错误码。
 
-* 返回字段说明
+#### mod_status
 
-  修改成功返回0，否则返回错误码。
+- 接口说明
 
+查询指定模块的状态信息。
 
-##### mod_status
+- 请求示例
 
-* 接口说明
+```json
+{
+    "method":"mod_status",
+    "version":"1.1",
+    "params":[ "Module_A","Module_B" ]
+}
+```
 
-  查询指定模块的状态信息。
+- 请求参数说明
 
-* 请求示例
+- 空。 查询所有子模块的状态信息
+- String。 查询指定模块名的状态信息
 
-  ```json
-  {
-      "method":"mod_status",
-      "version":"1.1",
-      "params":[ "Module_A","Module_B" ]
-  }
-  ```
+- 返回示例
 
-* 请求参数说明
-
-    - 空。 查询所有子模块的状态信息
-    - String。 查询指定模块名的状态信息
-
-* 返回示例
-
-  ```json
-   {
-        "code": 0,
-        "version": 1.0,
-        "result": {
-            "Module_A": {
-                "status" : "",
-                "rpcList":[],
-                "dependsModule":[],
-                "addr":"192.168.1.8",
-                "port": 8100
-            },
-            "Module_B": {
-                "status" : "",
-                "rpcList":[],
-                "dependsModule":[],
-                "addr":"192.168.2.56",
-                "port": 8200
-            }
+```json
+{
+    "code": 0,
+    "version": 1.0,
+    "result": {
+        "Module_A": {
+            "status" : "",
+            "rpcList":[],
+            "dependsModule":[],
+            "addr":"192.168.1.8",
+            "port": 8100
+        },
+        "Module_B": {
+            "status" : "",
+            "rpcList":[],
+            "dependsModule":[],
+            "addr":"192.168.2.56",
+            "port": 8200
         }
     }
-  ```
+}
+```
 
-* 返回字段说明
-  
-    返回模块名为 key 的 map。map 中包含各模块的信息。
+- 返回字段说明
 
-  | parameter     | type          | description                                                                            |
-  | ------------- | ------------- | -------------------------------------------------------------------------------------- |
-  | status        | String        | 该模块当前状态：unknown 未知， ready 已连接， service 工作，shutdown 已通知停止服务。 |
-  | rpcList       | Enum          | 该模块提供的服务表                                                                     |
-  | dependsModule | array[String] | 依赖的模块名字列表                                                                     |
-  | addr          | ip            | 子模块的 IP                                                                            |
-  | port          | short         | 子模块的RPC工作端口                                                                    |
+返回模块名为 key 的 map。map 中包含各模块的信息。
 
+| parameter     | type          | description                                                                            |
+| ------------- | ------------- | -------------------------------------------------------------------------------------- |
+| status        | String        | 该模块当前状态：unknown 未知， ready 已连接， service 工作，shutdown 已通知停止服务。 |
+| rpcList       | Enum          | 该模块提供的服务表                                                                     |
+| dependsModule | array[String] | 依赖的模块名字列表                                                                     |
+| addr          | ip            | 子模块的 IP                                                                            |
+| port          | short         | 子模块的RPC工作端口                                                                    |
 
-##### mod_conf_get
+#### mod_conf_get
 
-* 接口说明
+- 接口说明
 
-  查询模块提供的配置信息。
+查询模块提供的配置信息。
 
-* 请求示例
+- 请求示例
 
-  ```json
-  {
-      "method":"mod_conf_get",
-      "version":"1.1",
-      "params":["mod_name","key1","key2"]
-  }
-  ```
+```json
+{
+    "method":"mod_conf_get",
+    "version":"1.1",
+    "params":["mod_name","key1","key2"]
+}
+```
 
-* 请求参数说明
+- 请求参数说明
 
-  | index | parameter  | required | type   | description |
-  | ----- | ---------- | -------- | ------ | :---------: |
-  | 0     | moduleName | true     | String | 模块标识    |
-  | 1     | key        | false    | String | 配置 Key    |
+| index | parameter  | required | type   | description |
+| ----- | ---------- | -------- | ------ | :---------: |
+| 0     | moduleName | true     | String | 模块标识    |
+| 1     | key        | false    | String | 配置 Key    |
 
-  > 模块标识后可选声明0个或 N 个配置 Key。
-  > 只传递模块标识，则查询所有指定模块的配置信息。
-  > 如果指定了 key，则只查询指定 Key 的当前配置。如果 Key 不存在则忽略。
+> 模块标识后可选声明0个或 N 个配置 Key。
+> 只传递模块标识，则查询所有指定模块的配置信息。
+> 如果指定了 key，则只查询指定 Key 的当前配置。如果 Key 不存在则忽略。
 
-* 返回示例
+- 返回示例
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-    "result":{
-        "Key1":"value",
-        "Key2":"value",
-      }
-  }
-  ```
+```json
+{
+"code":0,
+"version": 1.2,
+"result":{
+    "Key1":"value",
+    "Key2":"value",
+    }
+}
+```
 
-* 返回字段说明
+- 返回字段说明
 
-  > 返回查询的指定模块配置信息。具体 key 含义请参考模块手册。
+> 返回查询的指定模块配置信息。具体 key 含义请参考模块手册。
 
+#### mod_conf_set
 
-##### mod_conf_set
+- 接口说明
 
-* 接口说明
+设置指定模块配置信息。
 
-  设置指定模块配置信息。
+- 请求示例
 
-* 请求示例
-
-  ```json
-  {
-      "method":"mod_conf_set",
-      "version":"1.1",
-      "params":[
-          "ModuleName",
-          {
-              "name":"wangkun",
-              "nickname":"uncle",
-              "features":"handsome"
-          }
-      ]
-  }
-  ```
-
-* 请求参数说明
-
-  | index | parameter  | required | type   | description    |
-  | ----- | ---------- | -------- | ------ | :------------: |
-  | 0     | moduleName | true     | String | 模块标识       |
-  | 1     | configure  | true     | map    | 设置信息键值对 |
-
-	> configure 为要更新的键 与对应的新值。 
-
-* 返回示例
-
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
-
-* 返回字段说明
-
-  > 执行成功返回0，否则返回失败错误码。
-
-
-##### mod_update
-
-* 接口说明
-
-  检查模块更新信息。
-
-* 请求示例
-
-  ```json
-  {
-      "method":"mod_update",
-      "version":"1.1",
-      "params":["Module-A","Module-B"]
-  }
-  ```
-
-* 请求参数说明
-
-    > params 为空，则检查所有子模块的更新信息。
-    > params 为模块标识列表，则检查参数中指定的模块更新信息。    
-
-* 返回示例
-
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-    "result":{
-        "Module-A": {
-            "currentVersion": "",
-            "latestVersion": "",
-            "list": {
-                "1.3.1" : {
-                    "releaseDate": "",
-                    "url": "",
-                },
-                "1.3.0" : "",
-            }
-        },
-        "Module-B": {
-
+```json
+{
+    "method":"mod_conf_set",
+    "version":"1.1",
+    "params":[
+        "ModuleName",
+        {
+            "name":"wangkun",
+            "nickname":"uncle",
+            "features":"handsome"
         }
-      }
-  }
-  ```
+    ]
+}
+```
 
-* 返回字段说明
+- 请求参数说明
 
-    > 返回以模块标识符为 key 的 map。值为指定模块的版本信息
+| index | parameter  | required | type   | description    |
+| ----- | ---------- | -------- | ------ | :------------: |
+| 0     | moduleName | true     | String | 模块标识       |
+| 1     | configure  | true     | map    | 设置信息键值对 |
 
-  | parameter      | type   | description                               |
-  | -------------- | ------ | ----------------------------------------- |
-  | currentVersion | String | 当前版本                                  |
-  | latestVersion  | String | 最新版本                                  |
-  | list           | map    | 更新信息：key 为版本号，Value 为 更新信息 |
+> configure 为要更新的键 与对应的新值。
 
-  模块更新信息
+- 返回示例
 
-  | parameter   | type   | description |
-  | ----------- | ------ | ----------- |
-  | releaseDate | String | 发布时间    |
-  | url         | String | 下载地址    |
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
 
+- 返回字段说明
 
-##### mod_upgrade
+> 执行成功返回0，否则返回失败错误码。
 
-* 接口说明
+#### mod_update
 
-  更新模块到最新版。
+- 接口说明
 
-* 请求示例
+检查模块更新信息。
 
-  ```json
-  {
-      "method":"mod_upgrade",
-      "version":"1.1",
-      "params":["Module-A","Module-B"]
-  }
-  ```
+- 请求示例
 
-* 请求参数说明
+```json
+{
+    "method":"mod_update",
+    "version":"1.1",
+    "params":["Module-A","Module-B"]
+}
+```
 
-    > params 为空，更新所有可更新模块到最新版。
-    > params 为模块标识，则仅更新指定的模块到最新版。
+- 请求参数说明
 
-* 返回示例
+> params 为空，则检查所有子模块的更新信息。
+> params 为模块标识列表，则检查参数中指定的模块更新信息。
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
+- 返回示例
 
-* 返回字段说明
+```json
+{
+"code":0,
+"version": 1.2,
+"result":{
+    "Module-A": {
+        "currentVersion": "",
+        "latestVersion": "",
+        "list": {
+            "1.3.1" : {
+                "releaseDate": "",
+                "url": "",
+            },
+            "1.3.0" : "",
+        }
+    },
+    "Module-B": {
 
-  > 请求执行成功返回0，否则返回失败错误码。
+    }
+    }
+}
+```
 
+- 返回字段说明
 
-##### mod_restart
+> 返回以模块标识符为 key 的 map。值为指定模块的版本信息
 
-* 接口说明
+| parameter      | type   | description                               |
+| -------------- | ------ | ----------------------------------------- |
+| currentVersion | String | 当前版本                                  |
+| latestVersion  | String | 最新版本                                  |
+| list           | map    | 更新信息：key 为版本号，Value 为 更新信息 |
 
-  重启某个指定模块。
+模块更新信息
 
-* 请求示例
+| parameter   | type   | description |
+| ----------- | ------ | ----------- |
+| releaseDate | String | 发布时间    |
+| url         | String | 下载地址    |
 
-  ```json
-  {
-      "method":"mod_restart",
-      "version":"1.1",
-      "params":["Module-A","Module-B"]
-  }
-  ```
+#### mod_upgrade
 
-* 请求参数说明
+- 接口说明
 
-    > params
+更新模块到最新版。
 
-  | index | parameter  | required | type   | description                      |
-  | ----- | ---------- | -------- | ------ | :------------------------------: |
-  | 0     | moduleName | true     | String | 模块标识，至少存在一个模块标识。 |
+- 请求示例
 
+```json
+{
+    "method":"mod_upgrade",
+    "version":"1.1",
+    "params":["Module-A","Module-B"]
+}
+```
 
-* 返回示例
+- 请求参数说明
 
-  ```json
-  {
-    "code":0,
-    "version": 1.2,
-  }
-  ```
+> params 为空，更新所有可更新模块到最新版。
+> params 为模块标识，则仅更新指定的模块到最新版。
 
-* 返回字段说明
+- 返回示例
 
-  > 执行成功返回0，否则返回失败错误码。
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
 
+- 返回字段说明
+
+> 请求执行成功返回0，否则返回失败错误码。
+
+#### mod_restart
+
+- 接口说明
+
+重启某个指定模块。
+
+- 请求示例
+
+```json
+{
+    "method":"mod_restart",
+    "version":"1.1",
+    "params":["Module-A","Module-B"]
+}
+```
+
+- 请求参数说明
+
+> params
+
+| index | parameter  | required | type   | description                      |
+| ----- | ---------- | -------- | ------ | :------------------------------: |
+| 0     | moduleName | true     | String | 模块标识，至少存在一个模块标识。 |
+
+- 返回示例
+
+```json
+{
+"code":0,
+"version": 1.2,
+}
+```
+
+- 返回字段说明
+
+> 执行成功返回0，否则返回失败错误码。
