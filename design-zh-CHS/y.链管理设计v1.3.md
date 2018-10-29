@@ -350,7 +350,7 @@
   | 6     | txConfirmBlockNum       | true     | int                   | 交易确认块数             |
   | 7     | supportInflowAsset      | true     | boolean               | 是否支持资产流入         |
 
-- 返回示例
+- 返回示例  
   Failed
 
   ```json
@@ -400,7 +400,7 @@
   | ----- | :-------- | :------- | :--- | ----------- |
   | 0     | chainId   | true     | int  | 链标识      |
 
-- 返回示例
+- 返回示例  
   Failed
 
   ```json
@@ -454,7 +454,7 @@
   | 0     | pageNumber | true     | int  | 页数        |
   | 1     | pageSize   | true     | int  | 每页数量    |
 
-- 返回示例
+- 返回示例  
   Failed
 
   ```json
@@ -582,7 +582,7 @@
   | 1     | addressType | true     | int                | 资产中的地址类型 |
   | 2     | asset       | true     | object【资产对象】 | 新增的资产       |
 
-- 返回示例
+- 返回示例  
   Failed
 
   ```json
@@ -636,7 +636,7 @@
   | 0     | chainId   | true     | int  | 链标识      |
   | 1     | assetId   | true     | int  | 资产标识    |
 
-- 返回示例
+- 返回示例  
   Failed
 
   ```json
