@@ -188,7 +188,7 @@
   "minVersion": "1.0",
   "params":[
     "chainId",
-    "assetsId",
+    "assetId",
     "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
   ]
 }
@@ -218,8 +218,8 @@
 | balance.freeze |  BigInteger | 冻结余额 |
 | balance.total |  BigInteger | 总资产余额 total = available+freeze  |
 
-#### 3.1.4 getNonce
-> cmd: getNonce
+#### 3.1.4 获取账户coinData
+> cmd: getCoinData
 
 ##### 参数说明 (request)
 
@@ -235,7 +235,7 @@
 "minVersion": "1.0",
 "params":[
   "chainId",
-  "assetsId",
+  "assetId",
   "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
   ]
 }
@@ -249,6 +249,7 @@
   "code": 0,
   "msg": "response message.",
   "result": {
+    "available": 10000000000,
     "nonce": 40
   }
 }
@@ -256,17 +257,149 @@
 
 | 字段   |      数据类型      |  描述信息 |
 |----------|:-------------:|------:|
+| available |  BigInteger | 用户可用余额 |
 | nonce |  BigInteger | 有一个交易的计数为40，这意味着从0到39nonce的交易已经被确认。下一个交易的nonce将是40。 |
 
 #### 3.1.5 查询用户交易记录
 
+> cmd: getAccountTxs
 
+##### 参数说明 (request)
 
-#### 3.1.5 组装交易
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| chainId |  Y | String |链ID |
+| assetId |  Y | String |资产ID |
+| address |  Y | String |要查询余额的地址 |
 
-#### 3.1.5 验证交易
+```json
+{
+"cmd": "getAccountTxs",
+"minVersion": "1.0",
+"params":[
+  "chainId",
+  "assetId",
+  "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
+  ]
+}
+```
 
-#### 3.1.5 交易提交
+##### 返回值说明：(response)
+
+```json
+{
+  "version": "1.0",
+  "code": 0,
+  "msg": "response message.",
+  "result": {
+      "pageNumber": 1,
+      "pageSize": 10,
+      "total": 31,
+      "pages": 4,
+      "list": [
+        {
+          "txHash": "0020938ee82b1b1328f4ecddfbab5ecb69cc2f2bc21b03d95b0e384b635bc2419b84",
+          "blockHeight": 31244,
+          "time": 1540800070000,
+          "txType": 1,
+          "status": 1,
+          "info": "+0.02259725",
+          "contractAddress": null,
+          "symbol": null
+        },
+        {
+          "txHash": "0020e812f4dc15f03ba95d7d6d7d995ac64e518552dc0d1dccc97c3a85eb691d9f20",
+          "blockHeight": 31244,
+          "time": 1540800060043,
+          "txType": 101,
+          "status": 1,
+          "info": "-0.026",
+          "contractAddress": null,
+          "symbol": null
+        }
+      ]
+  }
+}
+```
+
+| 字段   |      数据类型      |  描述信息 |
+|----------|:-------------:|------:|
+| txHash |  String | 交易hash |
+| blockHeight |  BigInteger | 区块高度 |
+| time |  Long | 交易时间 |
+| txType |  int | 交易类型 |
+| status |  int | 交易类型 0：unconfirm，1:confirmed |
+| contractAddress |  String | 合约地址|
+
+#### 3.1.6 保存未确认交易
+> cmd: saveTx
+
+##### 参数说明 (request)
+
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| chainId |  Y | String | 链ID |
+| txHash |  Y | String | 交易hash |
+| txHexData |  Y | String | 交易数据HEX格式 |
+
+```json
+{
+"cmd": "saveTx",
+"minVersion": "1.0",
+"params":[
+  "chainId",
+  "txHash",
+  "txHexData"
+  ]
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+  "version": "1.0",
+  "code": 0,
+  "msg": "response message.",
+  "result": {
+      
+  }
+}
+```
+
+#### 3.1.7 删除未确认交易
+> cmd: deleteTx
+
+##### 参数说明 (request)
+
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| chainId |  Y | String | 链ID |
+| txHash |  Y | String | 交易hash |
+
+```json
+{
+"cmd": "deleteTx",
+"minVersion": "1.0",
+"params":[
+  "chainId",
+  "txHash"
+  ]
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+  "version": "1.0",
+  "code": 0,
+  "msg": "response message.",
+  "result": {
+      "txHash":"txHash"
+  }
+}
+```
 
 
 ## 四、事件说明
