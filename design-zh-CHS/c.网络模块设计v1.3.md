@@ -930,6 +930,9 @@
                   nodeId:"20.20.30.10:9902"
                   magicNumber：134124,//魔法参数
                   version：2,//协议版本号
+                  blockHeight：6000,   //区块高度
+                  blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                       ea1a960f207778150ffb9f2c173ff",  //区块Hash值
                   ip："200.25.36.41",//ip地址
                   port：54,//
                   state："已连接",
@@ -944,10 +947,6 @@
 
 
 
-
-
-
-
   - 返回字段说明
 
 
@@ -958,6 +957,8 @@
 | nodeId      | String | 节点id               |
 | magicNumber | int    | 魔法参数             |
 | version     | int    | 协议版本号           |
+| blockHeight | long   | 最新区块高度         |
+| blockHash   | String | 最新区块hash         |
 | ip          | String | ip地址               |
 | port        | int    | 端口号               |
 | state       | String | 连接状态             |
@@ -970,7 +971,101 @@
 
 无
 
-#### 2.2.11 更新peer连接节点的信息（高度&Hash）
+
+
+#### 2.2.11  获取指定链网络概要信息
+
+- 功能说明：
+
+  获取指定chainId的网络信息。
+
+- 流程描述
+
+   无
+
+- 接口定义
+
+  - 接口说明
+
+    获取链网络信息
+
+    method : nw_getGroupByChainId
+
+  - 请求示例
+
+    ```
+    {
+        "method":"nw_getGroupByChainId",
+        "minVersion":1.1,
+        "params":[
+            103
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type | description |
+    | ----- | --------- | -------- | ---- | :---------: |
+    | 0     | chainId   | true     | int  |    链Id     |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+            list:[{
+                chainId：1212, //链id
+                magicNumber：324234,//魔法参数
+                totalCount：2323, //总连接数
+                inCount：22,   //被动连接数
+                outCount：33,  //主动连接数
+                blockHeight：6000,   //网络最高区块高度
+                blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                         ea1a960f207778150ffb9f2c173ff",  //最大高度区块Hash值
+                isActive：1，//0未激活，1 已激活
+                isCrossChain:1 //0不是跨链网络，1跨链网络
+                },{}
+                ]
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter    | type   | description              |
+    | ------------ | ------ | ------------------------ |
+    | chainId      | int    | 链id                     |
+    | magicNumber  | int    | 魔法参数                 |
+    | totalCount   | int    | 总连接数                 |
+    | inCount      | int    | 被动连接数               |
+    | outCount     | int    | 主动连接数               |
+    | blockHeight  | long   | 网络最高区块高度         |
+    | blockHash    | String | 最大高度区块Hash值       |
+    | isActive     | int    | 0未激活，1 已激活        |
+    | isCrossChain | int    | 0不是跨链网络，1跨链网络 |
+
+- 依赖服务
+
+​        无
+
+
+
+#### 2.2.12 更新peer连接节点的信息（高度&Hash）
 
   - 功能说明：
 
@@ -983,8 +1078,6 @@
       2>握手时将节点相关信息放入Verion信息中发送到peer端。
 
       3>建立连接后，区块管理模块会调用该接口进行最新区块高度与hash值的更新。
-
-      
 
   - 接口定义
 
@@ -1009,49 +1102,47 @@
       }
       ```
 
-
     - 请求参数说明
 
     | index | parameter   | required | type   | description  |
     | ----- | ----------- | -------- | ------ | :----------: |
     | 0     | chainId     | true     | int    |    网络id    |
     | 1     | nodeId      | true     | String |  网络节点id  |
-    | 2     | blockHeight | true     | long   |   区块高度   |
-    | 3     | blockHash   | true     | Sting  | 区块最新hash |
+    | 2     | blockHeight | true     | long   |   开始页数   |
+    | 3     | blockHash   | true     | String | 区块最新hash |
 
+    - 返回示例
 
+    Failed
 
-      - 返回示例
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    
+    ```
 
-        Failed
+    Success
 
-        ```
-        {
-           "minVersion": 1.2,
-            "code":1,
-            "msg" :"xxxxxxxxxxxxxxxxxx",
-            "result":{}
+    ```
+    {
+     "version": 1.2,
+     "code":0,
+     "msg" :"xxxxxxxxxxxxxxxxxx",
+     "result":{
+       
         }
-        
-        ```
+    }
+    
+    ```
+    - 返回字段说明
 
-        Success
-
-        ```
-        {
-            "minVersion": 1.2,
-            "code":0,
-            "msg" :"xxxxxxxxxxxxxxxxxx",
-            "result":{
-            }
-        }
-        ```
-
-      - 返回字段说明
-
-        | parameter | type | description |
-        | --------- | ---- | ----------- |
-        |           |      |             |
+| parameter | type | description |
+| --------- | ---- | ----------- |
+|           |      |             |
 
 - 依赖服务
 
@@ -1071,11 +1162,21 @@
 
 ​        ![](./image/network-module/start.png)
 
+​       1>本地进行配置数据加载，数据库节点组及节点信息数据加载。
 
+​       2>监听区块管理模块的状态进入初始化完成，接口可调用，则调用获取最新本地节点的区块高度与Hash值。
+
+​       3>初始化完成，进入peer节点连接。
+
+​       4>网络模块在启动连接稳定后，通知区块管理模块  网络 最大区块高度与hash值。区块管理模块提供接口供           网络模块调用。
+
+ 网络模块启动连接稳定的判定条件：x秒内 无新的握手连接产生，x秒内无高度的增长。x=10
+
+​      5>网络稳定后代表该网络处于可工作状态，各个chain的业务状态以事件方式发布给其他模块。
 
 - 依赖服务
 
-  无
+  依赖 核心模块，区块管理模块
 
 #### 2.3.2 模块关闭
 
