@@ -338,7 +338,7 @@
     ```
     {
         "method":"nw_createNodeGroup",
-        "version":1.1,
+        "minVersion":1.1,
         "params":[
             1234,
             232342,
@@ -429,7 +429,7 @@
     ```
     {
         "method":"nw_createNodeGroup",
-        "version":1.1,
+        "minVersion":1.1,
         "params":[
             1234
         ]}
@@ -710,7 +710,7 @@
 
   接收指令后，对指定的nodeGroup下的所有peer进行断连接后，重新连接网络。
 
-  （是否要删除nodeGroup下peer节点，并重新去发现peer？）
+  （是否要删除nodeGroup下peer节点，并重新去发现peer）
 
 - 接口定义
 
@@ -879,16 +879,239 @@
 
     method : nw_getNodes
 
+  - 请求示例
+
+  ```
+  {
+      "method":"nw_reconnect",
+      "minVersion":1.1,
+      "params":[
+          1598,
+          0,
+          1,
+          50
+      ]
+  }
+  ```
+
   - 请求参数说明
 
-    | index | parameter | required | type |    description     |
-    | ----- | --------- | -------- | ---- | :----------------: |
-    | 0     | chainId   | true     | int  |       网络id       |
-    | 1     | state     | true     | int  | 0所有链接，1已连接 |
-    | 2     | startPage | true     | int  |      开始页数      |
-    | 3     | pageSize  | true     | int  |     每页记录数     |
+  | index | parameter | required | type |    description     |
+  | ----- | --------- | -------- | ---- | :----------------: |
+  | 0     | chainId   | true     | int  |       网络id       |
+  | 1     | state     | true     | int  | 0所有链接，1已连接 |
+  | 2     | startPage | true     | int  |      开始页数      |
+  | 3     | pageSize  | true     | int  |     每页记录数     |
 
   - 返回示例
+
+  Failed
+
+  ```
+  {
+     "minVersion": 1.2,
+      "code":1,
+      "msg" :"xxxxxxxxxxxxxxxxxx",
+      "result":{}
+  }
+  
+  ```
+
+  Success
+
+  ```
+  {
+   "minVersion": 1.2,
+   "code":0,
+   "msg" :"xxxxxxxxxxxxxxxxxx",
+   "result":{
+         list:[{
+                  chainId：122,//链id
+                  nodeId:"20.20.30.10:9902"
+                  magicNumber：134124,//魔法参数
+                  version：2,//协议版本号
+                  blockHeight：6000,   //区块高度
+                  blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                       ea1a960f207778150ffb9f2c173ff",  //区块Hash值
+                  ip："200.25.36.41",//ip地址
+                  port：54,//
+                  state："已连接",
+                  isOut："1", //0被动连接，1主动连接
+                  time："6449878789", //最近连接时间
+  	     },{}
+  	     ]
+      }
+  }
+  
+  ```
+
+
+
+  - 返回字段说明
+
+
+
+| parameter   | type   | description          |
+| ----------- | ------ | -------------------- |
+| chainId     | int    | 链id                 |
+| nodeId      | String | 节点id               |
+| magicNumber | int    | 魔法参数             |
+| version     | int    | 协议版本号           |
+| blockHeight | long   | 最新区块高度         |
+| blockHash   | String | 最新区块hash         |
+| ip          | String | ip地址               |
+| port        | int    | 端口号               |
+| state       | String | 连接状态             |
+| isOut       | int    | 0被动连接，1主动连接 |
+| time        | long   | 最近连接时间         |
+
+ 
+
+- 依赖服务
+
+无
+
+
+
+#### 2.2.11  获取指定链网络概要信息
+
+- 功能说明：
+
+  获取指定chainId的网络信息。
+
+- 流程描述
+
+   无
+
+- 接口定义
+
+  - 接口说明
+
+    获取链网络信息
+
+    method : nw_getGroupByChainId
+
+  - 请求示例
+
+    ```
+    {
+        "method":"nw_getGroupByChainId",
+        "minVersion":1.1,
+        "params":[
+            103
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type | description |
+    | ----- | --------- | -------- | ---- | :---------: |
+    | 0     | chainId   | true     | int  |    链Id     |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+            list:[{
+                chainId：1212, //链id
+                magicNumber：324234,//魔法参数
+                totalCount：2323, //总连接数
+                inCount：22,   //被动连接数
+                outCount：33,  //主动连接数
+                blockHeight：6000,   //网络最高区块高度
+                blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                         ea1a960f207778150ffb9f2c173ff",  //最大高度区块Hash值
+                isActive：1，//0未激活，1 已激活
+                isCrossChain:1 //0不是跨链网络，1跨链网络
+                },{}
+                ]
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter    | type   | description              |
+    | ------------ | ------ | ------------------------ |
+    | chainId      | int    | 链id                     |
+    | magicNumber  | int    | 魔法参数                 |
+    | totalCount   | int    | 总连接数                 |
+    | inCount      | int    | 被动连接数               |
+    | outCount     | int    | 主动连接数               |
+    | blockHeight  | long   | 网络最高区块高度         |
+    | blockHash    | String | 最大高度区块Hash值       |
+    | isActive     | int    | 0未激活，1 已激活        |
+    | isCrossChain | int    | 0不是跨链网络，1跨链网络 |
+
+- 依赖服务
+
+​        无
+
+
+
+#### 2.2.12 更新peer连接节点的信息（高度&Hash）
+
+  - 功能说明：
+
+    网络连接，在进行握手连接时带有peer节点的高度与Hash值，后续的peer连接节点的高度与Hash值由外部模块（区块管理模块）进行调用更新。
+
+  - 流程描述
+
+      1>节点启动时等待 区块管理接口 初始化完成，然后调用区块管理接口获取最新区块高度及hash值。
+
+      2>握手时将节点相关信息放入Verion信息中发送到peer端。
+
+      3>建立连接后，区块管理模块会调用该接口进行最新区块高度与hash值的更新。
+
+  - 接口定义
+
+    - 接口说明
+
+      区块管理模块 调用进行节点的高度与Hash值的更新。
+
+      method : nw_updateNodeInfo
+
+    - 请求示例
+
+      ```
+      {
+          "method":"nw_reconnect",
+          "minVersion":1.1,
+          "params":[
+              1598,
+              "10.20.30.20:8856",
+              10,
+              "0020ba3f3f637ef53d025d3a8972462c00e84d9ea1a960f207778150ffb9f2c173ff"
+          ]
+      }
+      ```
+
+    - 请求参数说明
+
+    | index | parameter   | required | type   | description  |
+    | ----- | ----------- | -------- | ------ | :----------: |
+    | 0     | chainId     | true     | int    |    网络id    |
+    | 1     | nodeId      | true     | String |  网络节点id  |
+    | 2     | blockHeight | true     | long   |   开始页数   |
+    | 3     | blockHash   | true     | String | 区块最新hash |
+
+    - 返回示例
 
     Failed
 
@@ -907,43 +1130,24 @@
     ```
     {
      "version": 1.2,
-        "code":0,
-        "result":{
-           list:[{
-                    chainId：122,//链id
-                    nodeId:"20.20.30.10:9902"
-                    magicNumber：134124,//魔法参数
-                    version：2,//协议版本号
-                    ip："200.25.36.41",//ip地址
-                    port：54,//
-                    state："已连接",
-                    isOut："1", //0被动连接，1主动连接
-                    time："6449878789", //最近连接时间
-    	     },{}
-    	     ]
+     "code":0,
+     "msg" :"xxxxxxxxxxxxxxxxxx",
+     "result":{
+       
         }
     }
+    
     ```
+    - 返回字段说明
 
-  - 返回字段说明
-
-    | parameter   | type   | description          |
-    | ----------- | ------ | -------------------- |
-    | chainId     | int    | 链id                 |
-    | nodeId      | String | 节点id               |
-    | magicNumber | int    | 魔法参数             |
-    | version     | int    | 协议版本号           |
-    | ip          | String | ip地址               |
-    | port        | int    | 端口号               |
-    | state       | String | 连接状态             |
-    | isOut       | int    | 0被动连接，1主动连接 |
-    | time        | long   | 最近连接时间         |
-
- 
+| parameter | type | description |
+| --------- | ---- | ----------- |
+|           |      |             |
 
 - 依赖服务
 
-  无
+​    无
+
 
 
 ### 2.3 模块内部功能
@@ -958,11 +1162,21 @@
 
 ​        ![](./image/network-module/start.png)
 
+​       1>本地进行配置数据加载，数据库节点组及节点信息数据加载。
 
+​       2>监听区块管理模块的状态进入初始化完成，接口可调用，则调用获取最新本地节点的区块高度与Hash值。
+
+​       3>初始化完成，进入peer节点连接。
+
+​       4>网络模块在启动连接稳定后，通知区块管理模块  网络 最大区块高度与hash值。区块管理模块提供接口供           网络模块调用。
+
+ 网络模块启动连接稳定的判定条件：x秒内 无新的握手连接产生，x秒内无高度的增长。x=10
+
+​      5>网络稳定后代表该网络处于可工作状态，各个chain的业务状态以事件方式发布给其他模块。
 
 - 依赖服务
 
-  无
+  依赖 核心模块，区块管理模块
 
 #### 2.3.2 模块关闭
 
@@ -1017,6 +1231,14 @@
 - 流程描述
 
 ​        client在与server完成tcp连接后，需要通过业务version协议握手，只有握手成功的连接才能进行业务转发工作。连接中状态在持续X分钟后无法跃迁到已连接，则主动断开连接。
+
+流程中发送version协议（参看协议的version结构体）：
+
+1>协议携带了节点的信息，包含：协议的版本信息，本端口的最高区块高度，区块hash值，
+
+​       对方节点的外网IP，端口，及跨链服务端口，以及本节点的外网IP，端口，及跨链服务端口。
+
+2>只有通过version协议，才能建立业务连接，否则等待X=1分钟后将断开连接。
 
 ![](./image/network-module/connection.png)
 
@@ -1225,13 +1447,17 @@ data:{
 
 用于建立连接(握手)
 
-| Length | Fields      | Type     | Remark                                                       |
-| ------ | ----------- | -------- | ------------------------------------------------------------ |
-| 4      | version     | uint32   | 节点使用的协议版本标识                                       |
-| 20     | addr_you    | byte[20] | 对方网络地址【IP+PORT1+PORT2】PORT2为跨链server端口   如：[10.32.12.25  8003  9003]  16byte+2byte+2byte |
-| 20     | addr_me     | byte[20] | 本节点网络地址【IP+PORT1+PORT2】PORT2为跨链server端口   如：[20.32.12.25 7003 6003]    16byte+2byte+2byte |
-| 6      | networkTime | uint48   | 网络时间                                                     |
-| ??     | extend      | VarByte  | 扩展字段，不超过10个字节？                                   |
+| Length | Fields       | Type     | Remark                                                       |
+| ------ | ------------ | -------- | ------------------------------------------------------------ |
+| 4      | version      | uint32   | 节点使用的协议版本标识                                       |
+| 20     | addr_you     | byte[20] | 对方网络地址【IP+PORT1+PORT2】PORT2为跨链server端口   如：[10.32.12.25  8003  9003]  16byte+2byte+2byte |
+| 20     | addr_me      | byte[20] | 本节点网络地址【IP+PORT1+PORT2】PORT2为跨链server端口   如：[20.32.12.25 7003 6003]    16byte+2byte+2byte |
+| 4      | block_height | uint32   | 节点高度                                                     |
+| ？     | block_hash   | varInt   | 区块hash                                                     |
+| 6      | network_time | uint48   | 网络时间                                                     |
+| ??     | extend       | VarByte  | 扩展字段，不超过10个字节？                                   |
+
+
 
 #### verack
 

@@ -152,7 +152,7 @@
   ```
   {
       "cmd":"ac_createAccount",
-      "version":1.0,
+      "minVersion":1.0,
       "params":[
           1234,
           10,
@@ -233,7 +233,7 @@
     ```
     {
         "cmd":"ac_createOfflineAccount",
-        "version":1.0,
+        "minVersion":1.0,
         "params":[
             1234,
             10,
@@ -303,7 +303,7 @@
       ```
       {
         "cmd": "createMultiAccount",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               ["pubKey1","pubKey2"],
@@ -392,7 +392,7 @@
     ```
     {
       "cmd": "ac_removeAccount",
-      "version":1.0,
+      "minVersion":1.0,
       "params": [
             1234,
             "AAax8wqxALqjyhrL8Wv1tQiqswAshAnX",
@@ -476,7 +476,7 @@
     ```
     {
       "cmd": "ac_importAccountByPriKey",
-      "version":1.0,
+      "minVersion":1.0,
       "params": [
             1234,
             "00c22ad91a170fc49df53b79791f702879eb0604235787eee2c303463bf6e41111",
@@ -558,10 +558,10 @@
       ```
       {
         "cmd": "ac_importAccountByPriKey",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
-              "",
+              "HEX",
               "123456",
               true
           ]
@@ -570,12 +570,12 @@
 
     - 请求参数说明
 
-      | index | parameter | required | type        | description        |
-      | ----- | --------- | -------- | ----------- | ------------------ |
-      | 0     | chainId   | true     | Integer     | 链ID               |
-      | 1     | keyStore  | true     | InputStream | 导入的keyStore文件 |
-      | 2     | password  | false    | String      | 账户密码           |
-      | 3     | overwrite | true     | Boolean     | 账户存在时是否覆盖 |
+      | index | parameter | required | type        | description            |
+      | ----- | --------- | -------- | ----------- | ---------------------- |
+      | 0     | chainId   | true     | Integer     | 链ID                   |
+      | 1     | keyStore  | true     | InputStream | 导入的keyStore HEX编码 |
+      | 2     | password  | false    | String      | 账户密码               |
+      | 3     | overwrite | true     | Boolean     | 账户存在时是否覆盖     |
 
     - 返回示例
 
@@ -633,7 +633,7 @@
     ```
     {
       "cmd": "ac_importMultiSigAccount",
-      "version":1.0,
+      "minVersion":1.0,
       "params": [
             1234,
             "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -704,7 +704,7 @@
       ```
       {
         "cmd": "ac_importMultiSigAccount",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -771,7 +771,7 @@
       ```
       {
         "cmd": "ac_exportAccountKeyStore",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -835,7 +835,7 @@
       ```
       {
           "cmd":"ac_getAccountList",
-          "version":1.0,
+          "minVersion":1.0,
           "params":[
               1234
           ]
@@ -900,7 +900,7 @@
       ```
       {
         "cmd": "ac_getAccountByAddress",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -968,7 +968,7 @@
       ```
       {
         "cmd": "ac_getAddressList",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               0,
@@ -1028,7 +1028,7 @@
       ```
       {
         "cmd": "ac_getAddressList",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "abc"
@@ -1089,7 +1089,7 @@
       ```
       {
         "cmd": "ac_getPriKeyByAddress",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1151,7 +1151,7 @@
       ```
       {
         "cmd": "ac_getAllPriKey",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "123456"
@@ -1210,7 +1210,7 @@
       ```
       {
         "cmd": "ac_setPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1272,7 +1272,7 @@
       ```
       {
         "cmd": "ac_setOfflineAccountPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1340,7 +1340,7 @@
       ```
       {
         "cmd": "ac_updatePassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1402,7 +1402,7 @@
       ```
       {
         "cmd": "ac_updateOfflineAccountPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1467,7 +1467,7 @@
       ```
       {
         "cmd": "ac_validationPassword",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1512,11 +1512,9 @@
 - 流程描述
 
 
-    ```
     1、验证账户是否存在
     2、验证账户是否加密
     3、返回验证结果
-    ```
 - ac_isEncrypted接口
 
     - 接口说明
@@ -1528,7 +1526,7 @@
       ```
       {
         "cmd": "ac_isEncrypted",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -1591,7 +1589,7 @@
       ```
       {
         "cmd": "ac_setAlias",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1657,7 +1655,7 @@
       ```
       {
         "cmd": "ac_getAliasFee",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1719,7 +1717,7 @@
       ```
       {
         "cmd": "ac_getAliasByAddress",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -1776,7 +1774,7 @@
       ```
       {
         "cmd": "ac_isAliasUsable",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "abc"
@@ -1834,7 +1832,7 @@
       ```
       {
         "cmd": "ac_setRemark",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST"
@@ -1900,7 +1898,7 @@
       ```
       {
         "cmd": "ac_setMutilSigAlias",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -1973,7 +1971,7 @@
       ```
       {
         "cmd": "ac_setMutilSigAlias",
-        "version":1.0,
+        "minVersion":1.0,
         "params": [
               1234,
               "DCQMUi1q9TefkXUcaysAuvFjj4NbTEST",
@@ -2161,8 +2159,8 @@ server.port:8080    //提供服务的端口
 
 | `字段名称` | ` type` | `说明`   |
 | ---------- | ------- | -------- |
- | address    | byte[]  | 账户地址 |
- | alias      | String  | 账户别名 |
+| address    | byte[]  | 账户地址 |
+| alias      | String  | 账户别名 |
 
 - MultiSigAccount对象设计
 

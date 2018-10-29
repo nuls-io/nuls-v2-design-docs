@@ -2,7 +2,7 @@ Chapter 1 Overall design (by google translate)
 
 [TOC]
 
-## 一、Business background
+## 1、Business background
 
 Blockchain is the operating system for decentralized applications. It needs cross-chain technology to connect the operating systems that run one by one, in order to form an ecological development, that is, the blockchain Internet.
 
@@ -11,11 +11,11 @@ One: rich NULS modules
 The new architecture allows NULS modules to run independently, combining a basic blockchain operation framework through a standard base module interface. The NULS module does not limit any developers, supports all programming languages that can provide http services, and strives to get the most out of every blockchain technician without setting any threshold. On this basis, more possibilities are extended.
 
 Second: building a technical community for NULS
-NULS is a pure blockchain project that integrates the idea of blockchain to create a blockchain community of development, freedom, and evolution. Therefore, the vitality of NULS depends on the degree of development of the community, especially the degree of construction of the technical community. Therefore, NULS takes advantage of the new architecture design, simultaneously attaches great importance to and develops the technology community, allowing the technical community and the core development team to “distribute” from the beginning; to attract all regions of the world with open technology and ideal forward-looking. Added in the development of blockchain.
+NULS is a pure blockchain project that integrates the idea of blockchain to create a blockchain community of open, freedom, and evolution. Therefore, the vitality of NULS depends on the degree of development of the community, especially the degree of construction of the technical community. Therefore, NULS takes advantage of the new architecture design, simultaneously attaches great importance to and develops the technology community, allowing the technical community and the core development team to “distribute” from the beginning; to attract all regions of the world with open technology and ideal forward-looking. Added in the development of blockchain.
 
 Based on the above, the NULS core team initiated the design of the new version of the architecture, and hoped that the partners in the community actively participated in the construction of NULS, contributing to the development of the blockchain industry, and contributing a bright future.
 
-## 二、Design goals
+## 2、Design goals
 
 - Define cross-chain standards to enable communication between different blockchains.
 - Build a "satellite chain" to achieve asset flow between different blockchains.
@@ -32,7 +32,7 @@ risk:
 
 The blockchain client has higher performance requirements. Each module in the new architecture is an independent process. The process communicates through the http protocol. In the case of no initial network setup, only some simple performance tests can be used. Estimating performance metrics is likely to fail to meet the requirements of a high-performance blockchain application. Solution: Set up a simple network in a short time to test the performance more accurately.
 
-## 三、Overall Description
+## 3、Overall Description
 
 ### 3.1Overall architecture
 
@@ -56,7 +56,7 @@ All blockchains only communicate with the satellite chain, the verification of t
   The satellite chain will have built-in community governance mechanisms, including system operating parameter modifications, protocol upgrades, malicious chain processing, community funding, and more.
 
 
-## 四、 Satellite chain design
+## 4、 Satellite chain design
 
 ###  4.1 Satellite chain architecture
 
@@ -89,14 +89,14 @@ In the future NULS ecosystem, there will be a NULS main network and several appl
 
 The chain factory is built on the NULS module, so when designing the NULS module, consider supporting multiple chains at the same time.
 
-##  五、Core process
+##  5、Core process
 
 ### 5.1 Cross-chain transaction processing flow
 
 1. The address a in the friend chain A initiates the transaction tx_a, and transfers the aCoin to the b address of the B chain.
 
 - The format of the b address is the address in the nuls format starting with ChainId_B. When the asset is transferred to the address, the address is not allowed to initiate a transaction on the A chain, ie the address of the other chain cannot initiate a transaction in the chain.
-- Generate a transaction for the satellite chain tx_a_trans based on the cross-chain protocol and sign the cross-chain transaction with the private key of b.
+- Generate a transaction for the satellite chain tx_a_trans based on the cross-chain protocol and sign the cross-chain transaction with the private key of a.
 
 2. tx_a is packed in the A chain, and after the n block is confirmed, the satellite chain is sent by the cross-chain module (independent of the basic module other than the A-chain function).
 
@@ -174,17 +174,17 @@ The chain factory is built on the NULS module, so when designing the NULS module
 
 10. Stored in the "Block Management" module together with the block header
 
-## 六、Brief description of the modules
+## 6、Brief description of the modules
 
 | module name          | description                                                  |
 | -------------------- | ------------------------------------------------------------ |
 | kernel               | Kernel module, responsible for module management, service management, configuration management functions, is the core of the system |
 | account              | Account module, responsible for storing and maintaining local account information |
-| block                | Block management: used to maintain blockchain data           |
-| chain                | Chain Management: Chain information for managing all access cross-chain protocols |
+| block                | Block management: used to maintain blockchain data, receive block, fork processing, verification block, storage block header |
+| chain                | Chain Management: Friend chain information for managing all access cross-chain protocols |
 | consensus            | Consensus module: used to run POC consensus mechanism        |
-| ledger               | Ledgermodule: record transaction information, account balance model |
-| transaction          | Transaction management module: transaction collection, verification, submission of consensus block packaging, transaction processing |
+| ledger               | Ledger module:Record local account transaction information summary, record all account balance models |
+| transaction          | Transaction management module: collection, verification, submission of consensus packaging, transaction processing, transaction storage, query |
 | network              | Network module: connection management, node management, message reception and transmission |
 | smart-contract       | Smart Contract Module: Provides all the features of a smart contract engine |
 | community-governance | Community Governance Module: Implementation of Governance Program on Chain |
