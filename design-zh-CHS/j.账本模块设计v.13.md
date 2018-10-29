@@ -67,6 +67,9 @@
   - 提供给其他模块使用的rpc接口
 ### 2.4 账本流程
 ### 2.4.1 交易验证流程
+
+![eth-transaction-flow.png](image/ledger/eth-transaction-flow.png)
+
 ![trx-validate-flow.png](image/ledger/trx-validate-flow.png)
 
 ## 三、接口设计
@@ -254,6 +257,10 @@
 | 字段   |      数据类型      |  描述信息 |
 |----------|:-------------:|------:|
 | nonce |  BigInteger | 有一个交易的计数为40，这意味着从0到39nonce的交易已经被确认。下一个交易的nonce将是40。 |
+
+#### 3.1.5 查询用户交易记录
+
+
 
 #### 3.1.5 组装交易
 
