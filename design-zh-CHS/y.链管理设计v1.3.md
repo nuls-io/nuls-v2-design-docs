@@ -547,9 +547,7 @@
 
 
 
-#### 4.1.1 运行参数修改成功事件
-
-说明：当链注册成功时，发布该事件   
+#### 说明：当链注册成功时，发布该事件   
 
  event_topic : "chain_register",
 
@@ -589,7 +587,7 @@
 
 
 
-说明：当一条链注销成功时，发布该事件   
+#### 说明：当一条链注销成功时，发布该事件   
 
  event_topic : "chain_destroy",
 
@@ -629,7 +627,7 @@
 
 
 
-说明：当资产注册成功时，发布该事件   
+#### 说明：当资产注册成功时，发布该事件   
 
  event_topic : "asset_register",
 
@@ -650,7 +648,7 @@
 
 
 
-说明：当资产注销成功时，发布该事件   
+#### 说明：当资产注销成功时，发布该事件   
 
  event_topic : "asset_destroy",
 
@@ -763,7 +761,7 @@ type序列化2个字节
 
 ​	txConfirmBlockNum    占用8个字节
 
-​	isInflowAsset 占用1个字节
+​	supportInflowAsset 占用1个字节
 
 }
 
