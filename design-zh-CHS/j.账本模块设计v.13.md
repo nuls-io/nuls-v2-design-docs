@@ -72,19 +72,120 @@
 ## 三、接口设计
 
 ### 3.1 模块接口
-#### 3.1.1 查询用户余额
+#### 3.1.1 根据资产id获取资产信息
+> cmd: getAsset
+
+##### 参数说明 (request)
+
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| assetId |  Y | String |资产ID |
+
+```json
+{
+  "cmd": "getAsset",
+  "minVersion": "1.0",
+  "params":["assetId"]
+}
+```
+##### 返回值说明 (response)
+
+```json
+{
+  "version": "1.0",
+  "code": 0,
+  "msg": "response message.",
+  "result":{
+    "chainId": "mainChainId", //链Id
+    "asset_id": "xxxxxx",//资产ID
+    "balance" : {
+      "available": 10000000000,//10NULS
+      "freeze": 200000000,//冻结余额 locked
+      "total": 12000000000 //总共金额
+    }
+  }
+}
+```
+
+| 字段   |      数据类型      |  描述信息 |
+|----------|:-------------:|------:|
+| chainId |  String | 链ID |
+| asset_id |  String | 资产ID |
+| balance.available |  BigInteger | 可用余额 |
+| balance.freeze |  BigInteger | 冻结余额 |
+| balance.total |  BigInteger | 总资产余额 total = available+freeze  |
+
+
+#### 3.1.2 资产管理
+> cmd: getAssets
+
+##### 参数说明 (request body)
+
+```json
+{
+  "cmd": "getAssets",
+  "minVersion": "1.0",
+  "params":[]
+}
+```
+##### 返回值说明 (response content)
+
+```json
+{
+  "version": "1.0",
+  "code": 0,
+  "msg": "response message.",
+  "result": [
+      {  
+        "chainId": "mainChainId",
+        "asset_id": "xxxxxx",
+        "balance" : {
+          "available": 10000000000,
+          "freeze": 200000000,
+          "total": 12000000000
+        }
+      },
+      {  
+        "chainId": "friendChainId",
+        "asset_id": "xxxxxxyyyyyy",
+        "balance" : {
+          "available": 10000000000,
+          "freeze": 200000000,
+          "total": 12000000000
+        }
+    }
+  ]
+}
+```
+
+| 字段   |      数据类型      |  描述信息 |
+|----------|:-------------:|------:|
+| chainId |  String | 链ID |
+| asset_id |  String | 资产ID |
+| balance.available |  BigInteger | 可用余额 |
+| balance.freeze |  BigInteger | 冻结余额 |
+| balance.total |  BigInteger | 总资产余额 total = available+freeze  |
+
+
+#### 3.1.3 查询用户余额
 > cmd: getBalance
 
 ##### 参数说明 (request body)
+
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| chainId |  Y | String |链ID |
+| assetId |  Y | String |资产ID |
+| address |  Y | String |要查询余额的地址 |
 
 ```json
 {
   "cmd": "getBalance",
   "minVersion": "1.0",
   "params":[
-    "chainId",//链Id
-    "assetsId",//资产id
-    "0x407d73d8a49eeb85d32cf465507dd71d507100c1"//要查询余额的地址
+    "chainId",
+    "assetsId",
+    "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
   ]
 }
 ```
@@ -94,25 +195,44 @@
 {
   "version": "1.0",
   "code": 0,
-  "msg": "response message.",//失败时的信息
+  "msg": "response message.",
   "result": {
-    "balance": "100000000" //1NULS=10^8Na
+  "balance" : {
+       "available": 10000000000,
+       "freeze": 200000000,
+       "total": 12000000000
+     }
   }
 }
 ```
 
-#### 3.1.2 getNonce
+> 说明: 1NULS=10^8Na
+
+| 字段   |      数据类型      |  描述信息 |
+|----------|:-------------:|------:|
+| balance.available |  BigInteger | 可用余额 |
+| balance.freeze |  BigInteger | 冻结余额 |
+| balance.total |  BigInteger | 总资产余额 total = available+freeze  |
+
+#### 3.1.4 getNonce
 > cmd: getNonce
 
 ##### 参数说明 (request body)
+
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| chainId |  Y | String |链ID |
+| assetId |  Y | String |资产ID |
+| address |  Y | String |要查询余额的地址 |
 
 ```json
 {
 "cmd": "getNonce",
 "minVersion": "1.0",
 "params":[
-  "app.nuls.network.bandwidth", //topic 事件主题
-  "moduleId" //moduleId订阅者模块id
+  "chainId",
+  "assetsId",
+  "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
   ]
 }
 ```
@@ -122,12 +242,24 @@
 ```json
 {
   "version": "1.0",
-  "code": 0, //操作码
-  "msg": "reponse message.",//失败时的信息
+  "code": 0,
+  "msg": "response message.",
   "result": {
+    "nonce": 40
   }
 }
 ```
+
+| 字段   |      数据类型      |  描述信息 |
+|----------|:-------------:|------:|
+| nonce |  BigInteger | 有一个交易的计数为40，这意味着从0到39nonce的交易已经被确认。下一个交易的nonce将是40。 |
+
+#### 3.1.5 组装交易
+
+#### 3.1.5 验证交易
+
+#### 3.1.5 交易提交
+
 
 ## 四、事件说明
 
