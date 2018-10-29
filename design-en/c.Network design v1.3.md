@@ -906,68 +906,167 @@ none
             50
         ]
     }
+    
     ```
 
+  - Request parameter description
 
-   - Request parameter description
+  | index | parameter | required | type |             description              |
+  | ----- | --------- | -------- | ---- | :----------------------------------: |
+  | 0     | chainId   | true     | int  |               chainId                |
+  | 1     | state     | true     | int  | 0 all connected, 1 working connected |
+  | 2     | startPage | true     | int  |            page of starts            |
+  | 3     | pageSize  | true     | int  |      Number of records per page      |
 
-     | index | parameter | required | type |             description              |
-     | ----- | --------- | -------- | ---- | :----------------------------------: |
-     | 0     | chainId   | true     | int  |               chainId                |
-     | 1     | state     | true     | int  | 0 all connected, 1 working connected |
-     | 2     | startPage | true     | int  |            page of starts            |
-     | 3     | pageSize  | true     | int  |      Number of records per page      |
+  - Return example
 
-   - Return example
+  Failed
 
-     Failed
+  ```
+  {
+     "version": 1.2,
+      "code":1,
+      "msg" :"xxxxxxxxxxxxxxxxxx",
+      "result":{}
+  }
+  
+  
+  
+  ```
 
-     ```
-     {
-        "version": 1.2,
-         "code":1,
-         "msg" :"xxxxxxxxxxxxxxxxxx",
-         "result":{}
-     }
-     
-     ```
+  Success
 
-     Success
+  ```
+   {
+   "version": 1.2,
+      "code":0,
+      "result":{
+         list:[{
+                  chainId：122,
+                  nodeId:"20.20.30.10:9902"
+                  magicNumber：134124,
+                  version：2,
+                  blockHeight：6000,   //区块高度
+                  blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                       ea1a960f207778150ffb9f2c173ff",  //区块Hash值
+                  ip："200.25.36.41",
+                  port：54, 
+                  state："已连接",
+                  isOut："1", 
+                  time："6449878789", 
+  	     },{}
+  	     ]
+      }
+  }
+  
+  ```
 
-     ```
-      {
-      "version": 1.2,
-         "code":0,
-         "result":{
-            list:[{
-                     chainId：122,
-                     nodeId:"20.20.30.10:9902"
-                     magicNumber：134124,
-                     version：2,
-                     ip："200.25.36.41",
-                     port：54, 
-                     state："已连接",
-                     isOut："1", 
-                     time："6449878789", 
-     	     },{}
-     	     ]
-         }
-     }
-     ```
+  - Return field description
 
-   - Return field description
+  | parameter   | type   | description                               |
+  | ----------- | ------ | ----------------------------------------- |
+  | chainId     | int    | chainId                                   |
+  | nodeId      | String | nodeId                                    |
+  | magicNumber | int    | magicNumber                               |
+  | version     | int    | protocol version                          |
+  | blockHeight | long   | latest block height                       |
+  | blockHash   | String | latest block hash                         |
+  | ip          | String | peer Ip address                           |
+  | port        | int    | Server port                               |
+  | state       | String | connect state                             |
+  | isOut       | int    | 0 passive connection, 1 active connection |
+  | time        | long   | Recent connection time                    |
 
-     | parameter   | type   | description                               |
-     | ----------- | ------ | ----------------------------------------- |
-     | chainId     | int    | chainId                                   |
-     | nodeId      | String | nodeId                                    |
-     | magicNumber | int    | magicNumber                               |
-     | version     | int    | protocol version                          |
-     | ip          | String | peer Ip address                           |
-     | port        | int    | Server port                               |
-     | state       | String | connect state                             |
-     | isOut       | int    | 0 passive connection, 1 active connection |
-     | time        | long   | Recent connection time                    |
+
+
+- Dependent service
+
+  none
+
+#### 2.2.11 Get the specified chain network profile information
+
+- Function Description：
+
+  Gets the network information of the specified chainId.
+
+- Process description
+
+  none
+
+- Interface definition
+
+  - Interface Description
+
+  ​      Gets the network information of the specified chainId.
+
+  ​        method : nw_getNodes
+
+  - Request example
+
+    ```
+    {
+        "method":"nw_getGroupByChainId",
+        "minVersion":1.1,
+        "params":[
+            103
+        ]}
+    ```
+
+     - Request parameter description
+
+  | index | parameter | required | type | description |
+  | ----- | --------- | -------- | ---- | :---------: |
+  | 0     | chainId   | true     | int  |   chainId   |
+
+     - Return example
+
+  Failed
+
+  ```
+  {
+     "version": 1.2,
+      "code":1,
+      "msg" :"xxxxxxxxxxxxxxxxxx",
+      "result":{}
+  }
+  
+  ```
+
+  Success
+
+  ```
+  {
+   "version": 1.2,
+      "code":0,
+      "result":{
+       
+              chainId：1212, 
+              magicNumber：324234,
+              totalCount：2323, 
+              inCount：22,  
+              outCount：33, 
+              blockHeight：6000,   
+              blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                       ea1a960f207778150ffb9f2c173ff", 
+              isActive：1，
+              isCrossChain:1 
+      }
+  }
+  
+  ```
+
+     - Return field description
+
+  | parameter    | type   | description                                           |
+  | ------------ | ------ | ----------------------------------------------------- |
+  | chainId      | int    | chainId                                               |
+  | magicNumber  | int    | magicNumber                                           |
+  | blockHeight  | long   | latest block height                                   |
+  | blockHash    | String | latest block hash                                     |
+  | isActive     | int    | 0 is not activated, 1 is activated                    |
+  | isCrossChain | int    | 0 is not a cross-chain network, 1 cross-chain network |
+  | outCount     | int    | active connection count                               |
+  | inCount      | int    | passive connection count                              |
 
 
 
@@ -976,7 +1075,7 @@ none
 
   none
 
-#### 2.2.11 Update the information of the peer connection node
+#### 2.2.12 Update the information of the peer connection node
 
   - Function Description：
 
@@ -1023,20 +1122,19 @@ none
     | 2     | blockHeight | true     | long   |   区块高度   |
     | 3     | blockHash   | true     | Sting  | 区块最新hash |
 
+    ​     
 
-
-    - Return example
+    - 返回示例
 
       Failed
 
       ```
       {
-         "minVersion": 1.2,
+         "version": 1.2,
           "code":1,
           "msg" :"xxxxxxxxxxxxxxxxxx",
           "result":{}
       }
-      
       
       ```
 
@@ -1044,23 +1142,22 @@ none
 
       ```
       {
-          "minVersion": 1.2,
-          "code":0,
-          "msg" :"xxxxxxxxxxxxxxxxxx",
-          "result":{
+       "version": 1.2,
+       "code":0,
+       "msg" :"xxxxxxxxxxxxxxxxxx",
+       "result":{
+         
           }
       }
       
+      
       ```
 
-    - Return field description
+    - 返回字段说明
 
-      | parameter | type | description |
-      | --------- | ---- | ----------- |
-      |           |      |             |
-
-
-
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
 
   - Dependent service
 
@@ -1079,7 +1176,21 @@ none
 
   ​        ![](./image/network-module/start.png)
 
+1> load local configuration data, database node group and node information data loading.
 
+
+2 > When the status of the listening block management module is initialized and the interface is callable, the call obtains the block height and Hash value of the latest local node.
+
+
+3> initialization completes and enters peer node connection.
+
+
+4 > The network module notifies the block management module of the maximum block height and hash value after the connection is stable. The block management module provides interfaces for network module calls.
+
+
+The criteria for the stability of network module start-up connection are: no new handshake connection occurs in X seconds, and no height increase in X seconds. X=10
+
+5 > After network stabilization, the network is in a working state, and the business state of each chain is released to other modules in an event manner.
 
   - Dependent service
 
