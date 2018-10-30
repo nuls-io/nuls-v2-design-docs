@@ -35,8 +35,6 @@
 
 ### 1.2 架构图
 
-[^说明]: 图形说明模块的层次结构、组件关系，并通过文字进行说明
-
 ![](./image/block-module/block-module.png)
 
 ## 二、功能设计
@@ -912,7 +910,7 @@
   
 | parameter | type      | description                                |
 | --------- | --------- | ------------------------------------------ |
-| sync      | String    | 区块信息同步是否完成                                |
+| sync      | String    | 区块信息同步是否完成                          |
 
 ### 2.3 模块内部功能
 
@@ -951,8 +949,6 @@
               key(区块高度)-value(区块头hash)              block-header-index
               key(区块头hash)-value(完整的区块头)           block-header
           交易：(放在交易管理模块)
-              key(区块高度)-value(交易hash列表)             transaction-index
-              key(交易hash)-value(完整的交易)              transaction
    ```
    * 分叉链存储
    ```
@@ -1021,7 +1017,6 @@
     
     * 获取网络上可用节点列表
     
-    ![](image/block-module/block-synchronization2.png)
     ```
         1. 遍历节点，统计两个MAP，假定每个节点的(最新HASH+最新高度)是key
         2. 一个以key为主键统计次数
@@ -1071,6 +1066,7 @@
     ```
     
     * 从节点下载某高度区间内的区块
+    
     ![](./image/block-module/block-synchronization3.png)
 
 * 依赖服务
@@ -1121,7 +1117,7 @@
       - 回滚主链区块
       - 切换分叉链为主链
 
-![](./image/consensus-module/consensus-flow-3.png)
+![](./image/block-module/block-fork-chain.png)
 
 * 依赖服务
 
@@ -1157,7 +1153,7 @@
     
     高度差1000以内缓存到磁盘，磁盘空间做大小限制，超出高度则丢弃，缓存空间满则按加入缓存时间顺序清理分叉链
 
-  ![](./image/consensus-module/consensus-flow-4.png)
+  ![](./image/block-module/block-fork.png)
 
 * 依赖服务
 
@@ -1173,7 +1169,7 @@
 
 * 流程描述
 
-![](./image/consensus-module/consensus-flow-6.png)
+![](./image/consensus-module/block-monitoring.png)
 
   - 启动监控定时任务，每分钟执行一次
   - 取本地最新区块头
@@ -1227,11 +1223,11 @@
   
   工具模块的数据库存储工具
 
-## 四、事件说明
+## 三、事件说明
 
-### 4.1 发布的事件
+### 3.1 发布的事件
 
-#### 4.1.1 保存区块
+#### 3.1.1 保存区块
 
 说明：每保存一个区块，发布该事件
 
@@ -1245,7 +1241,7 @@ data:{
 }
 ```
 
-#### 4.1.2 回滚区块
+#### 3.1.2 回滚区块
 
 说明：每回滚一个区块，发布该事件   
 
@@ -1259,27 +1255,27 @@ data:{
 }
 ```
 
-### 4.2 订阅的事件
+### 3.2 订阅的事件
 
     略
 
-## 五、协议
+## 四、协议
 
-### 5.1 网络通讯协议
+### 4.1 网络通讯协议
 
     略
 
-### 5.2 交易协议
+### 4.2 消息协议
 
-#### 5.2.1 转发区块消息ForwardSmallBlockMessage
+#### 4.2.1 转发区块消息ForwardSmallBlockMessage
 
-* 交易说明：用于“转发区块”功能
+* 消息说明：用于“转发区块”功能
 
-* 交易类型（short）
+* 消息类型（short）
 
   18
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1287,26 +1283,24 @@ data:{
 | ?     | hashLength        | VarInt    | 数组长度           |
 | ?     | hash        | byte[]    | hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 判断hash是否重复
 2. 如果没有重复，用hash组装GetSmallBlockMessage，并发送给源节点
 
-* 其他说明
+#### 4.2.2 获取小区块消息GetSmallBlockMessage
 
-#### 5.2.2 获取小区块消息GetSmallBlockMessage
+* 消息说明：用于“转发区块”功能
 
-* 交易说明：用于“转发区块”功能
-
-* 交易类型（short）
+* 消息类型（short）
 
   19
 
-* 交易的格式（txData） 
+* 消息的格式（txData） 
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1314,26 +1308,24 @@ data:{
 | ?     | hashLength      | VarInt    | 数组长度           |
 | ?     | hash            | byte[]    | hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 根据hash获取SmallBlock对象
 2. 组装SmallBlockMessage，并发送给源节点
 
-* 其他说明
+#### 4.2.3 区块广播消息SmallBlockMessage
 
-#### 5.2.3 区块广播消息SmallBlockMessage
+* 消息说明：用于“转发区块”、“广播区块”功能
 
-* 交易说明：用于“转发区块”、“广播区块”功能
-
-* 交易类型（short）
+* 消息类型（short）
 
   11
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1358,11 +1350,11 @@ data:{
 | ?     | txHashLength| VarInt    | 交易hash数组长度           |
 | ?     | txHash      | byte[]    | 交易hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 判断区块时间戳是否大于(当前时间+10s)，如果大于这个时间，则判定为恶意提前出块，忽略该消息
 2. 根据区块hash判断消息是否重复，如果重复，则忽略该消息(这里要求维护一个set,储存收到的区块hash)
@@ -1370,45 +1362,41 @@ data:{
 4. 验证区块头，验证失败，则忽略该消息
 5. 取txHashList，判断那些tx本地没有，组装GetTxGroupMessage，发给源节点
 
-* 其他说明
+#### 4.2.4 根据高度获取区块消息GetBlocksByHeightMessage
 
-#### 5.2.4 根据高度获取区块消息GetBlocksByHeightMessage
+* 消息说明：用于“同步区块”功能
 
-* 交易说明：用于“同步区块”功能
-
-* 交易类型（short）
+* 消息类型（short）
 
   6
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
 | 32     | startHeight  | uint32      | 起始高度           |
 | 32     | endHeight  | uint32      | 结束高度           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 高度参数验证
 2. 返回响应消息ReactMessage
 3. 从endHeight开始查找Block,组装BlockMessage，发给目标节点
 4. 查找到startHeight为止，组装CompleteMessage，发给目标节点
 
-* 其他说明
+#### 4.2.5 获取区块消息GetBlockMessage
 
-#### 5.2.5 获取区块消息GetBlockMessage
+* 消息说明：用于“区块同步”
 
-* 交易说明：用于“区块同步”
-
-* 交易类型（short）
+* 消息类型（short）
 
   3
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1416,27 +1404,25 @@ data:{
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 返回响应消息ReactMessage
 2. 根据hash查找Block,组装BlockMessage，发给目标节点
 3. 组装CompleteMessage，发给目标节点
 
-* 其他说明
+#### 4.2.6 完整的区块消息BlockMessage
 
-#### 5.2.6 完整的区块消息BlockMessage
+* 消息说明：用于“区块同步”
 
-* 交易说明：用于“区块同步”
-
-* 交易类型（short）
+* 消息类型（short）
 
   4
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1473,26 +1459,24 @@ data:{
 | ?     | txSignLength| VarInt    | 交易签名数组长度           |
 | ?     | txSign      | byte[]    | 交易签名           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 放入缓存队列
 2. 回调Future.complete，完成异步请求
 
-* 其他说明
+#### 4.2.7 未找到数据消息NotFoundMessage
 
-#### 5.2.7 未找到数据消息NotFoundMessage
+* 消息说明：通用消息，用于异步请求，标志目标节点未找到对应信息。
 
-* 交易说明：通用消息，用于异步请求，标志目标节点未找到对应信息。
-
-* 交易类型（short）
+* 消息类型（short）
 
   1
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1501,25 +1485,23 @@ data:{
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
     略
 
-* 其他说明
+#### 4.2.8 响应消息ReactMessage
 
-#### 5.2.8 响应消息ReactMessage
+* 消息说明：通用消息，用于异步请求，标志目标节点收到请求，正在处理。
 
-* 交易说明：通用消息，用于异步请求，标志目标节点收到请求，正在处理。
-
-* 交易类型（short）
+* 消息类型（short）
 
   16
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1527,25 +1509,23 @@ data:{
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
     略
 
-* 其他说明
+#### 4.2.9 请求完成消息CompleteMessage
 
-#### 5.2.9 请求完成消息CompleteMessage
+* 消息说明：通用消息，用于异步请求，标志异步请求处理结束。
 
-* 交易说明：通用消息，用于异步请求，标志异步请求处理结束。
-
-* 交易类型（short）
+* 消息类型（short）
 
   15
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1554,25 +1534,23 @@ data:{
 | ?     | Hash         | byte[]    | Hash           |
 | 1     | success  | byte      | 成功标志           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
     略
 
-* 其他说明
+#### 4.2.10 获取交易列表的消息GetTxGroupRequest
 
-#### 5.2.10 获取交易列表的消息GetTxGroupRequest
+* 消息说明：用于“转发区块”
 
-* 交易说明：用于“转发区块”
-
-* 交易类型（short）
+* 消息类型（short）
 
   9
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1581,25 +1559,23 @@ data:{
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
 1. 目标节点收到该消息后，取出hashList，遍历hashList，根据txHash获取Tx，组装TxGroupMessage，发给源节点
 
-* 其他说明
+#### 4.2.11 交易列表的消息TxGroupMessage
 
-#### 5.2.11 交易列表的消息TxGroupMessage
+* 消息说明：用于“转发区块”
 
-* 交易说明：用于“转发区块”
-
-* 交易类型（short）
+* 消息类型（short）
 
   10
 
-* 交易的格式（txData）
+* 消息的格式（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1623,17 +1599,15 @@ data:{
 | ?     | txSignLength| VarInt    | 交易签名数组长度           |
 | ?     | txSign      | byte[]    | 交易签名           |
 
-* 交易的验证
+* 消息的验证
 
     略
 
-* 交易的处理逻辑
+* 消息的处理逻辑
 
     略
 
-* 其他说明
-
-## 六、模块配置
+## 五、模块配置
 
 [^说明]: 本模块必须要有的配置项
 
@@ -1661,7 +1635,7 @@ forkCount=3         //当分叉链比主链高于多少高度时，进行切换
 resetTime=180       //持续多长时间区块高度没有更新时，就重新获取可用节点
 ```
 
-## 七、Java特有的设计
+## 六、Java特有的设计
 
 - Block对象设计
 > | `字段名称`          | `字段类型` | `说明`     |
@@ -1686,7 +1660,6 @@ resetTime=180       //持续多长时间区块高度没有更新时，就重新�
 > | size             | short     | 区块大小   |
 > | time             | long     | 区块打包时间   |
 > | txCount             | short     | 交易数   |
-> | stateRoot             | String     | 状态根(智能合约)   |
 > | packingAddress             | String     | 打包地址   |
 > | extend             | byte[]     | 扩展字段   |
 > | blockSignature             | BlockSignature     | 区块签名   |
@@ -1697,34 +1670,4 @@ resetTime=180       //持续多长时间区块高度没有更新时，就重新�
 > | signData             | String     | 区块签名   |
 > | publicKey | byte[]     | 公钥 |
 
-- Transaction对象设计
-> | `字段名称`          | `字段类型` | `说明`     |
-> | ------------------- | ---------- | ---------- |
-> | chainId             | long     | 链ID   |
-> | blockHeight             | int     | 区块高度   |
-> | hash             | String     | 交易HASH   |
-> | remark             | String     | 交易备注   |
-> | size             | int     | 交易大小   |
-> | status             | short     | 交易确认状态   |
-> | time             | long     | 交易时间   |
-> | type             | byte     | 交易类型   |
-> | coinData             | CoinData     | 交易数据   |
-> | transactionSignature             | byte[]     | 交易签名   |
-> | txData             | T     | 交易数据   |
-
-- CoinData对象设计
-> | `字段名称`        | `字段类型`  | `说明`     |
-> | -----------------| ---------- | ---------- |
-> | from             | List<Coin>     | 输入   |
-> | to               | List<Coin>     | 输出   |
-
-- Coin对象设计
-> | `字段名称`          | `字段类型` | `说明`     |
-> | ------------------- | ---------- | ---------- |
-> | assetsChainId             | int     | 资产发行链的id   |
-> | assetsId             | int     | 资产id   |
-> | address             | String     | 账户地址   |
-> | amount             | long     | 金额   |
-> | nonce             | long     | 交易顺序号，递增   |
-
-## 八、补充内容
+## 七、补充内容
