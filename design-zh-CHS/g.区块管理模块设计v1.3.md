@@ -55,7 +55,7 @@
 
 * 接口说明
 
-    1. 根据缓存的最新区块高度查询DB得到最新区块头HASH
+    1. 根据链ID、缓存的最新区块高度查询DB得到最新区块头HASH
     2. 根据HASH查询DB得到区块头byte数组
     3. 反序列化为区块头对象
 
@@ -134,11 +134,10 @@
 
 * 接口说明：
 
-    1. 获取本地最新区块头
+    1. 根据链ID获取本地最新区块头
     2. 根据区块头高度查询DB得到交易HASH列表
-    3. 根据HASH列表查询DB得到交易byte数组
-    4. 反序列化为交易对象
-    5. 组装成block对象
+    3. 根据HASH列表从交易管理模块获取交易数据
+    4. 组装成block对象
 
 * 请求示例
 
@@ -217,14 +216,14 @@
                                 “toAssetsId”：“”//资产id
                                 “toAddress”：“”//转出账户地址
                                 “amount”：“”//转出金额
-                                “nonce”：“”//交易顺序号，递增
+                                “locktime”：“”
                             },{...}
                         ]
                     }
                     "txData": XXXX, //交易数据 HEX
         	    },
         	    {...}
-        	], //交易列表
+        	] //交易列表
         }
     }
     ```
@@ -237,7 +236,7 @@
 
 * 接口说明
 
-    1. 根据高度查询DB得到最新区块头HASH
+    1. 根据链ID、高度查询DB得到最新区块头HASH
     2. 根据HASH查询DB得到区块头byte数组
     3. 反序列化为区块头对象
 
@@ -317,11 +316,10 @@
 
 * 接口说明：
 
-    1. 根据高度获取区块头
+    1. 根据链ID、高度获取区块头
     2. 根据区块头高度查询DB得到交易HASH列表
-    3. 根据HASH列表查询DB得到交易byte数组
-    4. 反序列化为交易对象
-    5. 组装成block对象
+    3. 根据HASH列表从交易管理模块获取交易数据
+    4. 组装成block对象
 
 * 请求示例
 
@@ -421,7 +419,7 @@
 
 * 接口说明
 
-    1. 根据HASH查询DB得到区块头byte数组
+    1. 根据链ID、HASH查询DB得到区块头byte数组
     2. 反序列化为区块头对象
 
 * 请求示例
@@ -500,11 +498,10 @@
 
 * 接口说明：
 
-    1. 根据hash获取区块头
+    1. 根据链ID、hash获取区块头
     2. 根据区块头高度查询DB得到交易HASH列表
-    3. 根据HASH列表查询DB得到交易byte数组
-    4. 反序列化为交易对象
-    5. 组装成block对象
+    3. 根据HASH列表从交易管理模块获取交易数据
+    4. 组装成block对象
 
 * 请求示例
 
@@ -604,7 +601,7 @@
 
 * 接口说明
 
-    同步区块为完成是，禁止发起交易
+    某个ChainID上的区块同步完成时，更新缓存的同步状态标识。同步区块未完成时，禁止发起交易
 
 * 请求示例
 
@@ -641,7 +638,7 @@
     {
         "version": 1.2,
         "code": 0,
-        "result": {"sync": "true"}
+        "result": {"chainId": "888", "sync": "true"}
     }
     ```
     
@@ -649,6 +646,7 @@
   
 | parameter | type      | description                                |
 | --------- | --------- | ------------------------------------------ |
+| chainId   | String    | 链ID                                |
 | sync      | String    | 区块同步是否完成                                |
 
 #### 2.2.8 获取某高度区间内区块头
@@ -656,9 +654,9 @@
 * 接口说明
 
     1. 令queryHash=endHash
-    2. 根据queryHash查询DB得到区块头byte数组
+    2. 根据链ID、queryHash查询DB得到区块头byte数组
     3. 反序列化为区块头对象blockHeader，添加到List中作为返回值
-    4. 如果blockHeader.hash!=startHash，令queryHash=blockHeader.preHash，startHash，重复第2步
+    4. 如果blockHeader.hash!=startHash，令queryHash=blockHeader.preHash，重复第2步
     5. 返回List
 
 * 请求示例
@@ -744,7 +742,7 @@
 * 接口说明
 
     1. 令queryHash=endHash
-    2. 根据queryHash查询DB得到区块byte数组
+    2. 根据链ID、queryHash查询DB得到区块byte数组
     3. 反序列化为区块对象block，添加到List中作为返回值
     4. 如果block.hash!=startHash，令queryHash=block.preHash，startHash，重复第2步
     5. 返回List
@@ -912,6 +910,105 @@
 | --------- | --------- | ------------------------------------------ |
 | sync      | String    | 区块信息同步是否完成                          |
 
+#### 2.2.11 接受节点最新打包区块
+
+* 接口说明
+
+    本地节点共识模块打包后，调用此接口保存区块数据，不做验证
+
+* 请求示例
+
+    ```
+    {
+      "cmd": "bl_receivePackingBlock",
+      "minVersion":"1.1",
+      "params": [
+        "blockHeader": {
+            "chainId": "888",
+            "hash": "xxxxxxx",
+            "preHash": "xxxxxxx",
+            "merkleHash": "1",
+            "height": 1,
+            "size": 1,
+            "time": 1,
+            "txCount": 1,
+            "packingAddress": "1",
+            "reward": 0,
+            "fee": 0,
+            "extend": xxxxxxx,HEX
+            "scriptSig": "1"
+        }, //区块头
+        "transactions": [
+            {
+                "chainId": "888", //链Id
+                "height": "1", //区块高度
+                "hash": "1", //交易HASH
+                "remark": "1", //交易备注
+                "size": "1", //交易大小
+                "time": "1", //交易时间
+                "type": "1", //交易类型
+                "transactionSignature": "1", //交易签名
+                "coinData": {
+                    "from" : [
+                        {
+                            “fromAssetsChainId”：“”//资产发行链的id  
+                            “fromAssetsId”：“”//资产id
+                            “fromAddress”：“”//转出账户地址
+                            “amount”：“”//转出金额
+                            “nonce”：“”//交易顺序号，递增
+                        },{...}
+                    ]
+                    "to" : [
+                        {
+                            “toAssetsChainId”：“”//资产发行链的id  
+                            “toAssetsId”：“”//资产id
+                            “toAddress”：“”//转出账户地址
+                            “amount”：“”//转出金额
+                            “locktime”：“”
+                        },{...}
+                    ]
+                }
+                "txData": XXXX, //交易数据 HEX
+            },
+            {...}
+        ] //交易列表
+      ]
+    }
+    ```
+
+* 请求参数说明
+
+    略
+    
+* 返回示例
+
+    Failed
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+    
+    Success
+    
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {"sync": "true"}
+    }
+    ```
+    
+* 返回字段说明
+  
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| sync      | String    | 区块是否保存成功                          |
+
 ### 2.3 模块内部功能
 
 #### 2.3.1 模块启动
@@ -944,6 +1041,7 @@
     
    * 主链存储
    ```
+        不同的链存在不同的表，表名加chainID后缀
         一个完整的区块由区块头和交易组成，区块头与交易分别进行存储。
           区块头：(放在区块管理模块)
               key(区块高度)-value(区块头hash)              block-header-index
@@ -952,6 +1050,7 @@
    ```
    * 分叉链存储
    ```
+        不同的分叉链集合存在不同的表，表名加chainID后缀
         ChainContainer(分叉链)
             private Chain chain;
                     private String id;
@@ -999,8 +1098,6 @@
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块的数据库存储工具
 
 #### 2.3.2 区块同步
@@ -1071,8 +1168,6 @@
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块的数据库存储工具、RPC工具
 
 #### 2.3.3 区块基础验证
@@ -1090,42 +1185,12 @@
     * 区块头验证
     
     ![](./image/block-module/block-basic-validation1.png)
-    
-    * 梅克尔hash验证
-    
-    ![](./image/block-module/block-basic-validation2.png)
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块的数据库存储工具
 
-#### 2.3.4 分叉链管理
-
-* 功能说明：
-
-  判断分叉链与主链是否需要进行切换
-
-* 流程描述
-  ​      
-  - 检查是否有孤儿链能链接上主链或分叉链，如果有则链接
-  - 取出最长的一条分叉链与主链长度对比判断是否需要切换主链
-      - 如果分叉链长度比主链长度长3（配置）个区块以上则需要切换主链
-      - 找到主链与最长分叉链的分叉点
-      - 验证分叉链中的区块，如果验证通过继续往下执行
-      - 回滚主链区块
-      - 切换分叉链为主链
-
-![](./image/block-module/block-fork-chain.png)
-
-* 依赖服务
-
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
-  工具模块的数据库存储工具
-
-#### 2.3.5 分叉块管理
+#### 2.3.4 分叉块验证
 
 * 功能说明：
 
@@ -1157,32 +1222,31 @@
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块的数据库存储工具
 
-#### 2.3.6 区块监控
+#### 2.3.5 分叉链管理
 
 * 功能说明：
 
-  略
+  判断分叉链与主链是否需要进行切换
 
 * 流程描述
+  ​      
+  - 检查是否有孤儿链能链接上主链或分叉链，如果有则链接
+  - 取出最长的一条分叉链与主链长度对比判断是否需要切换主链
+      - 如果分叉链长度比主链长度长3（配置）个区块以上则需要切换主链
+      - 找到主链与最长分叉链的分叉点
+      - 验证分叉链中的区块，如果验证通过继续往下执行
+      - 回滚主链区块
+      - 切换分叉链为主链
 
-![](./image/consensus-module/block-monitoring.png)
-
-  - 启动监控定时任务，每分钟执行一次
-  - 取本地最新区块头
-  - 验证网络模块是否需要重启（如果本地最新区块3分钟都没有更新过则需要网络模块断开并随机重连）
-  - 待完善
+![](./image/block-module/block-fork-chain.png)
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块的数据库存储工具
 
-#### 2.3.7 转发区块
+#### 2.3.6 转发区块
 
 * 功能说明：
 
@@ -1197,11 +1261,9 @@
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块的数据库存储工具
 
-#### 2.3.8 广播区块
+#### 2.3.7 广播区块
 
 * 功能说明：
 
@@ -1210,17 +1272,32 @@
 * 流程描述
 
 1. 根据HASH获取BlockHeader,TxList,组装成SmallBlock，
-2. 将一个SmallBlock放入内存中，若不主动删除，则在缓存存满或者存在时间超过1000秒时，自动清理
-3. 本地缓存blockHash，用于过滤重复下载
-4. 组装SmallBlockMessage，调用RPC模块发送消息给目标节点
-5. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装GetTxGroupRequest发给源节点
-6. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
-7. 至此所有区块数据已经发送给目标节点。
+2. 将一个<SmallBlock.hash,SmallBlock>放入缓存中，若不主动删除，则在缓存存满或者存在时间超过1000秒时，自动清理
+3. 组装SmallBlockMessage，调用RPC模块发送消息给目标节点
+4. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装GetTxGroupRequest发给源节点
+5. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
+6. 至此所有区块数据已经发送给目标节点。
   
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
+  工具模块的数据库存储工具
+
+#### 2.3.8 区块监控
+
+* 功能说明：
+
+  略
+
+* 流程描述
+
+![](./image/consensus-module/block-monitoring.png)
+
+  - 启动监控定时任务，每分钟执行一次
+  - 取本地最新区块头
+  - 验证网络模块是否需要重启（如果本地最新区块3分钟都没有更新过则需要网络模块断开并随机重连），这里区分chainID
+
+* 依赖服务
+
   工具模块的数据库存储工具
 
 ## 三、事件说明
@@ -1267,7 +1344,7 @@ data:{
 
 ### 4.2 消息协议
 
-#### 4.2.1 转发区块消息ForwardSmallBlockMessage
+#### 4.2.1 转发小区块消息ForwardSmallBlockMessage
 
 * 消息说明：用于“转发区块”功能
 
@@ -1279,6 +1356,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | hashLength        | VarInt    | 数组长度           |
 | ?     | hash        | byte[]    | hash           |
@@ -1289,8 +1367,9 @@ data:{
 
 * 消息的处理逻辑
 
-1. 判断hash是否重复
-2. 如果没有重复，用hash组装GetSmallBlockMessage，并发送给源节点
+1. 目标节点收到消息后，先根据chainID判断缓存中hash是否重复
+2. 如果重复，说明已经收到别的节点转发的SmallBlock，丢弃消息
+3. 如果没有重复，用hash组装GetSmallBlockMessage，并发送给源节点
 
 #### 4.2.2 获取小区块消息GetSmallBlockMessage
 
@@ -1304,6 +1383,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | hashLength      | VarInt    | 数组长度           |
 | ?     | hash            | byte[]    | hash           |
@@ -1314,7 +1394,7 @@ data:{
 
 * 消息的处理逻辑
 
-1. 根据hash获取SmallBlock对象
+1. 根据chainID、hash获取SmallBlock对象
 2. 组装SmallBlockMessage，并发送给源节点
 
 #### 4.2.3 区块广播消息SmallBlockMessage
@@ -1329,6 +1409,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | preHashLength   | VarInt    | preHash数组长度           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1357,10 +1438,11 @@ data:{
 * 消息的处理逻辑
 
 1. 判断区块时间戳是否大于(当前时间+10s)，如果大于这个时间，则判定为恶意提前出块，忽略该消息
-2. 根据区块hash判断消息是否重复，如果重复，则忽略该消息(这里要求维护一个set,储存收到的区块hash)
-3. 根据区块hash在DB中查询本地是否已经有该区块，如果已经有了，则忽略该消息
+2. 根据chainID、区块hash判断消息是否重复，如果重复，则忽略该消息(这里要求维护一个集合,按照chainID分类储存收到的区块hash)
+3. 根据chainID、区块hash在DB中查询本地是否已经有该区块，如果已经有了，则忽略该消息
 4. 验证区块头，验证失败，则忽略该消息
 5. 取txHashList，判断那些tx本地没有，组装GetTxGroupMessage，发给源节点
+6. 如果交易都有，组放入缓存队列，等待验证线程验证后存储
 
 #### 4.2.4 根据高度获取区块消息GetBlocksByHeightMessage
 
@@ -1374,6 +1456,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 32     | startHeight  | uint32      | 起始高度           |
 | 32     | endHeight  | uint32      | 结束高度           |
 
@@ -1383,7 +1466,7 @@ data:{
 
 * 消息的处理逻辑
 
-1. 高度参数验证
+1. chainID、高度参数验证
 2. 返回响应消息ReactMessage
 3. 从endHeight开始查找Block,组装BlockMessage，发给目标节点
 4. 查找到startHeight为止，组装CompleteMessage，发给目标节点
@@ -1400,6 +1483,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1426,6 +1510,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | preHashLength   | VarInt    | preHash数组长度           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1466,7 +1551,7 @@ data:{
 * 消息的处理逻辑
 
 1. 放入缓存队列
-2. 回调Future.complete，完成异步请求
+2. 等待其他区块同步中
 
 #### 4.2.7 未找到数据消息NotFoundMessage
 
@@ -1480,6 +1565,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | msgType        | byte    | 未找到的数据类型           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
@@ -1491,7 +1577,7 @@ data:{
 
 * 消息的处理逻辑
 
-    略
+1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为完成，把返回结果设置为空
 
 #### 4.2.8 响应消息ReactMessage
 
@@ -1505,6 +1591,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1515,7 +1602,7 @@ data:{
 
 * 消息的处理逻辑
 
-    略
+1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为等待中
 
 #### 4.2.9 请求完成消息CompleteMessage
 
@@ -1529,6 +1616,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1540,7 +1628,7 @@ data:{
 
 * 消息的处理逻辑
 
-    略
+1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为完成。
 
 #### 4.2.10 获取交易列表的消息GetTxGroupRequest
 
@@ -1554,6 +1642,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | ?     | ArrayLength   | VarInt    | Hash列表长度           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | HashLength   | VarInt    | Hash数组长度           |
@@ -1565,7 +1654,7 @@ data:{
 
 * 消息的处理逻辑
 
-1. 目标节点收到该消息后，取出hashList，遍历hashList，根据txHash获取Tx，组装TxGroupMessage，发给源节点
+1. 目标节点收到该消息后，取出hashList，遍历hashList，根据chainID、txHash获取Tx，组装TxGroupMessage，发给源节点
 
 #### 4.2.11 交易列表的消息TxGroupMessage
 
@@ -1579,6 +1668,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | requestHashLength   | VarInt    | requestHash数组长度           |
 | ?     | requestHash         | byte[]    | requestHash           |
@@ -1620,8 +1710,8 @@ blacklist=0.0.0.0   //黑名单
 
 #sync
 downloadNumber=20               //同步时，每次从一个节点下载多少区块
-minNodeAmount=10                //最小可用节点个数
-consistencyNodePercent=80       //一致可用节点最低比例
+minNodeAmount=10                //最小可用节点个数，低于此数不同步区块
+consistencyNodePercent=80       //一致可用节点最低比例，低于此数不同步区块
 
 #rollback
 maxRollback=20                  //每次最多回滚多少区块
@@ -1647,7 +1737,8 @@ resetTime=180       //持续多长时间区块高度没有更新时，就重新�
 > | `字段名称`          | `字段类型` | `说明`     |
 > | ------------------- | ---------- | ---------- |
 > | blockHeader             | BlockHeader     | 区块头   |
-> | transactions | List<String>     | 交易HASH列表 |
+> | transactions | List<String>     | 所有交易HASH列表 |
+> | subTxList | List<Transaction>     | 其他节点一定没有的交易(如共识奖励交易、红黄牌交易等) |
 
 - BlockHeader对象设计
 > | `字段名称`          | `字段类型` | `说明`     |
