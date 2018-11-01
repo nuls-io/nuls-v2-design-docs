@@ -67,7 +67,7 @@
 
 [^说明]: 说明的功能设计，可以有层级关系，可以通过图形的形式展示，并用文字进行说明。
 
-![](E:\tony\nuls\nuls_2.0_docs\design-zh-CHS\image\tools-rpc\Websocket-Tool-package.png)
+![](image\tools-rpc\Websocket-Tool-package.png)
 
 ### 2.2 服务
 
