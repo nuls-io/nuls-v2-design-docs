@@ -1652,11 +1652,11 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
 
   - 请求参数说明
 
-    | index | parameter | required |  type  |          description           |
-    | :---: | :-------: | :------: | :----: | :----------------------------: |
-    |   0   |  address  |   true   | String |            出块地址            |
-    |   1   |   type    |   true   |  int   | 惩罚类型   0黄牌，1红牌，2全部 |
-    |   2   |  chainId  |   true   | String |              链ID              |
+    | index | parameter | required |  type  |          description          |
+    | :---: | :-------: | :------: | :----: | :---------------------------: |
+    |   0   |  address  |   true   | String |           出块地址            |
+    |   1   |   type    |   true   |  int   | 惩罚类型  1黄牌，2红牌，0全部 |
+    |   2   |  chainId  |   true   | String |             链ID              |
 
   - 返回示例
 
@@ -2549,26 +2549,6 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
         "version:"1.0",
         "params":["chainId",1999,8000,12131,24274727,54646,12.5,80.5,200000,700000,2000,500000]
     }
-    
-    打包间隔时间
-    packing_interval
-    出块最小金额
-    packing_amount
-    奖励金锁定块数
-    coinbase_lockHeight
-    获得红牌保证金锁定时间
-    redPublish_lockTime
-    注销节点保证金锁定时间
-    stopAgent_lockTime
-    佣金比例的最大值和最小值
-    commissionRate_min
-    commissionRate_max
-    创建节点的保证金最大值最小值
-    deposit_min
-    deposit_max
-    委托最大值最小值
-    commission_min
-    Commission_max
     ```
 
   - 请求参数说明（待完善）
