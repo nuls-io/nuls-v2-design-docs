@@ -418,13 +418,13 @@ Websocket-Tool会做成JAR包供各模块使用，分为三个部分：
 #### 7.1.3 启动Server
 
 ```
-/**
+/*
 * 初始化websocket服务器，供其他模块调用本模块接口
 * 端口随机，会自动分配未占用端口
 */
 WsServer s = new WsServer(HostInfo.randomPort());
 
-/**
+/*
 * 初始化，参数说明：
 * 1. 本模块的code
 * 2. 依赖的模块的code
@@ -432,12 +432,12 @@ WsServer s = new WsServer(HostInfo.randomPort());
 */
 s.init("m1", new String[]{"m2", "m3"}, "io.nuls.rpc.cmd");
 
-/**
+/*
 * 启动服务
 */
 s.start();
 
-/**
+/*
 * 向核心模块汇报本模块信息
 */
 CmdDispatcher.syncWebsocket("kernel url");
@@ -448,7 +448,7 @@ CmdDispatcher.syncWebsocket("kernel url");
 #### 7.1.4 为kernel提供的接口
 
 ```
-/**
+/*
  * 1. 该类所在的包需要通过7.1.3中的方法进行扫描
  * 2. 一个模块只需要有一个类实现该接口
  * 3. 注解中的cmd用预定义的常量，不要擅自改动
@@ -469,12 +469,12 @@ public class CmKernelCmd implements KernelCmd {
 #### 7.1.5 自定义cmd接口
 
 ```
-/**
+/*
  * 该类所在的包需要通过7.1.3中的方法进行扫描
  */
 public class SomeCmd extends BaseCmd {
 
-    /**
+    /*
      * CmdAnnotation注解包含
      * 1. 调用的命令
      * 2. 调用的命令的版本
@@ -499,7 +499,7 @@ public class SomeCmd extends BaseCmd {
 #### 7.1.6 调用cmd
 
 ```
-/**
+/*
 * 参数说明：
 * 1. 调用的命令
 * 2. 调用的命令的最低版本号
