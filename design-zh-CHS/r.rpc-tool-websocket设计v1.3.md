@@ -9,7 +9,7 @@
 ```
 如果想知道websocket的具体设计，请逐步阅读本文档
 
-如果只想知道如何使用，请跳转到章节《7.1 如何使用》（敲黑板：只需要看7.1）
+如果只想知道如何使用，请跳转到章节《7.1 如何使用》
 ```
 
 
@@ -393,7 +393,7 @@ Websocket-Tool会做成JAR包供各模块使用，分为三个部分：
 ```json
 {
   "id": 1,					// 调用编号，用以匹配回执消息
-  "cmd": "cmExColdField",	// cmd命令加上本模块缩写的前缀，如cm=ChainManager，驼峰形式
+  "cmd": "cm_xColdField",	// cmd命令加上本模块缩写的前缀，如cm=ChainManager，驼峰形式
   "minVersion": 1.0,  		// 根据自己需要传最低版本号
   "params": []				// 该命令所需参数
 }
@@ -486,7 +486,7 @@ public class SomeCmd extends BaseCmd {
      * 3. 返回的文本
      * 4. 返回的对象，由接口自己约定
      */
-    @CmdAnnotation(cmd = "cmExColdField", version = 1.0, preCompatible = true)
+    @CmdAnnotation(cmd = "cm_exColdField", version = 1.0, preCompatible = true)
     public CmdResult methodName(List params) {
         System.out.println("I'm version 1");
         return result(SUCCESS_CODE, 1.0, "hello nuls", null);
