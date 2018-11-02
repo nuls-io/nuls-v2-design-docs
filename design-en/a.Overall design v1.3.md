@@ -11,76 +11,64 @@ One: rich NULS modules
 The new architecture allows NULS modules to run independently, combining a basic blockchain operation framework through a standard base module interface. The NULS module does not limit any developers, supports all programming languages that can provide http services, and strives to get the most out of every blockchain technician without setting any threshold. On this basis, more possibilities are extended.
 
 Second: building a technical community for NULS
-NULS is a pure blockchain project that integrates the idea of blockchain to create a blockchain community of development, freedom, and evolution. Therefore, the vitality of NULS depends on the degree of development of the community, especially the degree of construction of the technical community. Therefore, NULS takes advantage of the new architecture design, simultaneously attaches great importance to and develops the technology community, allowing the technical community and the core development team to “distribute” from the beginning; to attract all regions of the world with open technology and ideal forward-looking. Added in the development of blockchain.
+NULS is a pure blockchain project that combines the idea of blockchain to create an open, free and evolutionary blockchain community. Therefore, the vitality of NULS depends on the degree of development of the community, especially the degree of construction of the technical community. Therefore, NULS takes advantage of the new architecture design, simultaneously attaches great importance to and develops the technology community, allowing the technical community and the core development team to “distribute” from the beginning; to attract all regions of the world with open technology and ideal forward-looking. Added in the development of blockchain.
 
 Based on the above, the NULS core team initiated the design of the new version of the architecture, and hoped that the partners in the community actively participated in the construction of NULS, contributing to the development of the blockchain industry, and contributing a bright future.
 
 ## 2、Design goals
 
 - Define cross-chain standards to enable communication between different blockchains.
-- Build a "satellite chain" to achieve asset flow between different blockchains.
-- Using the microservices architecture, each module is a separate process service, without limiting the development language
+- Upgrade the NULS main network function to achieve asset flow between different blockchains.
+- Using the microservices architecture, each module is a service run by a separate process and does not limit the development language.
 
 Description:
 
 - Why do you want to cross the chain?
-  The blockchain has been introduced by many media as the next generation of the Internet. This argument is very reasonable, but the distance is still very far away, there are a lot of ways to go, and the blockchain has to become a real Internet, and there is also a Passing the pass is the passing of value. At present, there are two solutions: 1. A blockchain completes all applications and user value transfer. 2. A general value transfer protocol between blockchains. The first option seems simple, but it is very limited and difficult to implement. NULS believes that Option 2 is a better solution in the current environment, so in this direction, cross-chain agreements and related supporting facilities are the first step in this direction.
+  The blockchain has been introduced by many media as the next generation of the Internet. This argument is very reasonable, but the distance is still very far away, there is a long way to go, and the blockchain has to become a real Internet, and there is also a Passing the pass is the passing of value. At present, there are two solutions: 1. A blockchain completes all applications and user value transfer. 2. A general value transfer protocol between blockchains. The first option seems simple, but it is very limited and difficult to implement. NULS believes that Option 2 is a better solution in the current environment, so in this direction, cross-chain agreements and related supporting facilities are the first step in this direction.
 - From modular to microservices
   Nuls is a modular underlying infrastructure. The blockchain programs currently running are based on the Java language. Modularization only implements the modularization of the coding layer. Our goal is a more flexible, operational state module. The underlying facilities. It should be able to support anyone who wants to make a technical contribution, so you should not set the language threshold. It should be easier to extend, modify, and replace. Each of its modules should be simple, static, and should not be blocked by the blockchain. The complexity of the overall program impact. So we proposed the micro-service architecture idea, the module is more independent, the module business is more simple, the module supports multi-language development, the module is easier to expand, the module supports distributed deployment, and the module is easier to plug and unplug...
 
-risk:
-
-The blockchain client has higher performance requirements. Each module in the new architecture is an independent process. The process communicates through the http protocol. In the case of no initial network setup, only some simple performance tests can be used. Estimating performance metrics is likely to fail to meet the requirements of a high-performance blockchain application. Solution: Set up a simple network in a short time to test the performance more accurately.
-
-## 3、Overall Description
-
-### 3.1Overall architecture
+## 3、Ecological architecture
 
 ![design](./image/bridge.png)
 
 Description:
 
-An independent satellite chain that is responsible for docking with all chains. Implement inter-chain communication in an open manner
+​	Upgrade the NULS main network and add functions to the main network to connect with all the links. Implement inter-chain communication in an open manner
 
-Based on the blockchain implemented by the NULS module warehouse (blockchain in the ecosystem), a cross-chain module can be added by means of module selection, so that the ground layer can communicate with the satellite chain.
+​	Based on the blockchain implemented by the NULS module warehouse (blockchain in the ecosystem), a cross-chain module can be added by means of module selection, so that the bottom layer can communicate with NULS.
 
-For the Ethereum and Bitcoin, the public chain that is not affected by NULS needs to implement the conversion of the protocol through a special mechanism, and adapt the public chain protocol and the NULS cross-chain protocol to achieve the purpose of unified protocol communication.
+​	For the Ethereum and Bitcoin, the public chain that is not affected by NULS needs to implement the conversion of the protocol through a special mechanism, and adapt the public chain protocol and the NULS cross-chain protocol to achieve the purpose of unified protocol communication.
 
-All blockchains only communicate with the satellite chain, the verification of the transaction is carried out by the satellite chain, and the parallel chains trust the verification results of the satellite chain.
+​	All blockchains only communicate with the NULS main network. The verification of the transaction is performed by the NULS main network, and each parallel chain trusts the verification result of the NULS main network.
 
-- Inter-chain connection
-  Each node on the blockchain runs a cross-chain module, each node connecting some of the nodes on the satellite chain. The random algorithm is used to determine which nodes are connected, to ensure the dispersion of node connections as much as possible, and to ensure the security of the network.
-- Multiple algorithm adaptation
-  The satellite chain supports most of the mathematical algorithms on the market, including digest algorithms, symmetric encryption, asymmetric encryption, etc., which can be used through a unified interface provided by the algorithm library.
-- Community governance
-  The satellite chain will have built-in community governance mechanisms, including system operating parameter modifications, protocol upgrades, malicious chain processing, community funding, and more.
+​	The assets in each blockchain can be circulated to any chain in the NULS ecosystem to accept the transfer of the external chain assets. It is also possible to achieve business interoperability based on any mutual agreement between any two chains at a small cost.
 
 
-## 4、 Satellite chain design
+## 4、System design
 
-###  4.1 Satellite chain architecture
+###  4.1 Architecture diagram
 
  ![layer](./image/bridge-layer.png)
 
-* The satellite chain uses the POC consensus mechanism to combine the Byzantine fault-tolerant mechanism to confirm and package cross-chain transactions, and to achieve decentralization and performance and security.
-* Each node on the satellite chain connects multiple nodes in multiple blockchains. Because the protocol is a uniformly defined NULS cross-chain protocol, it is possible to connect multiple nodes on different blockchains simultaneously.
-* The satellite chain provides a chain management mechanism to manage all peer-to-peer blockchains registered in the satellite chain. The contents of the registration include chain information, asset information, cross-chain mortgages, etc.
+* NULS main network uses POC consensus mechanism, combined with Byzantine fault tolerance mechanism to realize the confirmation and packaging of cross-chain transactions, to achieve decentralization and performance and security.
+* Each node on the NULS main network connects multiple nodes in multiple blockchains. Because the protocol is a uniformly defined NULS cross-chain protocol, it is possible to connect multiple nodes on different blockchains simultaneously.
+* The NULS main network provides a chain management mechanism to manage all peer blockchains registered on the NULS main network. The contents of the registration include chain information, asset information, cross-chain margin, etc.
 * When an asset of another chain is received on a blockchain, the corresponding asset needs to be generated in the chain. Tokens on different blockchains are stored in other chains in the form of assets.
-* A breakdown of the assets transferred to another chain in a blockchain will be stored in the satellite chain. When the asset is transferred out of the blockchain, it will be verified, and illegal assets will not be allowed to be generated from the blockchain. Malicious blockchains are handled through community mechanisms such as suspending cross-chains, suspending cross-chains, forfeiting margins, etc.
-* The Api user manual will be available in the satellite chain. Any developer can develop their own wallet, browser, light wallet and other tools according to the manual.
-* In order to reduce the business complexity of the satellite chain, smart contracts will not be operated in the satellite chain
-* Provision of protocol provisioning in the satellite chain, which can be used for DAPP development and cross-chain protocol optimization
+* The details of a blockchain transferred to other chain assets will be stored in the NULS main network. When the asset is transferred out of this blockchain, it will be verified, and illegal assets will not be allowed to be generated from the blockchain. Malicious blockchains are handled through community mechanisms such as suspending cross-chains, suspending cross-chains, forfeiting margins, etc.
+* NULS main network will provide Api manual, any developer can develop their own wallet, browser, light wallet and other tools according to the manual.
+* Provides protocol extensions in the NULS main network, which can be used to develop DAPP and optimize cross-chain protocols.
 
-### 4.2 How the satellite chain run
+### 4.2 The operation of the new version of the modular program
 
 ![](./image/modules.png)
 
-* Satellite chain architecture in a modular manner
+* NULS main network is structured in a modular way
 * Each module is a microservice that can run independently
-* Communication between microservices directly via http protocol
+* Microservices communicate directly via api
 * Module does not limit development language
-* Provide microkernel module responsible for service management, configuration management and data sharing
-* The module of the satellite chain will be shared with the NULS main network to a certain extent, so the module of the satellite chain will be added to the NULS module warehouse just like the NULS module for direct use by applications such as "chain factory".
+* Provide microkernel module responsible for module management, configuration management and version management functions
+* NULS modules will be added to the NULS module repository for direct use by applications such as "chain factories"
 * Each module supports extensions at the same time as it is used, ie if the modules in the module repository can only meet some of the business requirements, the module can be extended to avoid the workload of redevelopment
 
 ### 4.3 Bottom support for the chain factory
@@ -96,29 +84,29 @@ The chain factory is built on the NULS module, so when designing the NULS module
 1. The address a in the friend chain A initiates the transaction tx_a, and transfers the aCoin to the b address of the B chain.
 
 - The format of the b address is the address in the nuls format starting with ChainId_B. When the asset is transferred to the address, the address is not allowed to initiate a transaction on the A chain, ie the address of the other chain cannot initiate a transaction in the chain.
-- Generate a transaction for the satellite chain tx_a_trans based on the cross-chain protocol and sign the cross-chain transaction with the private key of b.
+- Generate a transaction tx_a_trans under the NULS cross-chain protocol based on the cross-chain protocol, and sign the cross-chain transaction with a private key of a.
 
-2. tx_a is packed in the A chain, and after the n block is confirmed, the satellite chain is sent by the cross-chain module (independent of the basic module other than the A-chain function).
+2. tx_a is packed in the A chain, and after the n block is confirmed, the NULS main network is sent by the cross-chain module (independent of the basic module except the A-chain function).
 
-3. The cross-chain module broadcasts the transaction to the connected satellite chain node (broadcast mode: first broadcast hash, wait for the other party to obtain a complete transaction)
+3. The cross-chain module broadcasts the transaction to the connected NULS main network node (broadcast mode: first broadcast hash, wait for the other party to obtain a complete transaction)
 
-4. After receiving the transaction (tx_a_trans), the satellite chain node (transaction management module) first performs basic verification (format, required field, signature, chain balance, etc.), and then asks whether the connected A-chain node has a The tx_a_hash transaction is confirmed by n blocks and converted to a satellite chain format transaction, the transaction digest is tx_a_trans_hash.
+4. After receiving the transaction (tx_a_trans), the NULS main network node (transaction management module) first performs basic verification (format, required fields, signature, chain balance, etc.), and then asks whether the connected A-chain node has A tx_a_hash transaction is confirmed n blocks, and after conversion to NULS main network format transaction, the transaction summary is tx_a_trans_hash.
 
-2. The result of the aggregate inquiry of the satellite chain node. If more than 51% of the nodes confirm the transaction, the node approves the transaction.
+5. The result of the NULS main network node summary inquiry, if more than 51% of the nodes confirm the transaction, the node approves the transaction.
 
 - The normal node asks for any node, the consensus node queries all nodes, and the ordinary node forwards the transaction if any 3 nodes confirm it, otherwise it discards. If the consensus node gets more than 51% node confirmation, it will sign tx_a_trans_hash and broadcast the hash and signature data to the network.
 
-6. The satellite chain consensus node summarizes the cross-chain transaction signatures in the chain. When the signer of a transaction exceeds 80% of the total number of consensus nodes, the transaction is considered to be packaged into the block.
+6. The NULS main network consensus node summarizes the cross-chain transaction signatures in the chain. When the signer of a transaction exceeds 80% of the total number of consensus nodes, the transaction is considered to be packaged into the block.
 
 - This function is provided by the "Transaction Management" module. When 80% signature collection is completed, the transaction is pushed to the consensus module for packaging.
 
-7. The consensus module of the satellite chain consensus node, when packing, verifies the number of signatures and the balance of the assets of the outbound chain. If the requirements are met, the transaction is packaged into the block.
+7. The consensus module of the NULS main network consensus node, when packing, verifies the number of signatures and the balance of the assets of the roll-out chain. If the requirements are met, the transaction is packaged into the block.
 
 8. Block confirmation logic: When verifying the cross-chain transaction included in the block, verify the number of signatures and the balance of the assets of the transfer chain, and confirm the transaction if it meets the requirements.
 
 9. When the block where the transaction is located is confirmed, the "transaction management module" pushes the transaction (tx_a_trans) to the target chain node.
 
-10. After receiving the transaction, the cross-chain module of the target chain queries the connected satellite chain node whether the transaction exists and has been confirmed. If more than 51% of the nodes confirm the transaction, the node recognizes the transaction.
+10. After receiving the transaction, the cross-chain module of the target chain queries the connected NULS main network node whether the transaction exists and has been confirmed. If more than 51% of the nodes confirm the transaction, the node recognizes the transaction.
 
 11. After the node recognizes the transaction, the cross-chain module converts tx_a_trans into a B-chain asset transaction and broadcasts
 
@@ -146,8 +134,11 @@ The chain factory is built on the NULS module, so when designing the NULS module
 5. the broadcast block head
 
 6. Add the block to the verification queue of the "block management" module.
+
 7. The verification thread takes the block out and verifies it.
+
 8. After verification, confirm each transaction in turn
+
 9. storage transactions and block headers
 
 10. completed
