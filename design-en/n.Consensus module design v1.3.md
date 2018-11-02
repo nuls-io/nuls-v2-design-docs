@@ -1,62 +1,60 @@
-# 共识模块设计文档
+# Consensus module design document
 
 [TOC]
 
-## 一、总体描述
+## 1、General description
 
-### 1.1 模块概述
+### 1.1 Module overview
 
-#### 1.1.1 为什么要有共识模块
+#### 1.1.1 Why do you have a consensus module
 
-​	众所周知，区块链的核心是共识机制。和传统互联网的cliet-server架构不同，区块链的节点是对等的，没有中心，大家权利一样；所以为了使数据达到一致性，让一个没有中心的网络维护一套大家都认同的账本，这就是共识机制的作用。
+​	As we all know, the core of the blockchain is the consensus mechanism. Unlike the traditional Internet's clipet-server architecture, the nodes of the blockchain are peer-to-peer, without the center, and everyone has the same rights; so in order to make the data consistent, let a network without a center maintain a set of books that everyone agrees with. This is the role of the consensus mechanism.
 
-​	从广义上来说，共识机制就是区块链每个节点共同遵守的规则或算法，是实现互信的基础，如此才能实现去中心化的无监管，维持整个平台的正常运转。
+​	Broadly speaking, the consensus mechanism is the rule or algorithm that each node of the blockchain adheres to, and is the basis for mutual trust. In this way, it can achieve decentralized unsupervised and maintain the normal operation of the entire platform.
 
-​	从狭义来说，共识机制决定了每个节点对区块链上交易的验证和确认的机制。
+​	In a narrow sense, the consensus mechanism determines the mechanism by which each node verifies and validates transactions on the blockchain.
 
-#### 1.1.2 共识模块要做什么
+#### 1.1.2 What does the consensus module do
 
-​	区块链的每次交易，都必须获得每个节点的认可，只有全网都达成共识后，交易才算完成。就好像民主选举中，投票方式或规则必须被全民认可，基于此才能完成选举。而在区块链中，共识机制的主要表现就是激励制度，也就是给矿工的奖励。在共识机制的保障下，每个矿工都能获得奖励，整个区块链才能有序的运转，提供公平、透明及互信的环境。因此共识模块就需要提供特定的算法来维持，即共识算法。
+​	Each transaction in the blockchain must be approved by each node, and the transaction is completed only after the entire network has reached a consensus. It is like in a democratic election, the voting method or rules must be recognized by the whole people, based on which the election can be completed. In the blockchain, the main performance of the consensus mechanism is the incentive system, which is the reward for the miners. Under the guarantee of the consensus mechanism, every miner can be rewarded, and the entire blockchain can operate in an orderly manner, providing a fair, transparent and trusting environment. Therefore, the consensus module needs to provide a specific algorithm to maintain, that is, the consensus algorithm.
 
-​	公链共识机制有多种，主流的有POW、POS、DPOS。NULS主网采用自主原创的POC（Proof Of Credit）共识机制，一种继承了Dpos共识机制的安全性和高效率，同时在协作方面进行了非常大的改进，可以看成是一种升级版的Dpos。
+​	There are many public chain consensus mechanisms, and the mainstream is POW, POS, and DPOS. The NULS main network adopts the self-originated POC (Proof Of Credit) consensus mechanism, which inherits the security and high efficiency of the Dpos consensus mechanism. At the same time, it has made great improvements in collaboration, which can be regarded as an upgraded version. Dpos.
 
-​	POC共识模块职责：
+​	POC Consensus module responsibility：
 
-- 区块同步后的合法性验证
+- Legality verification after block synchronization
 
-- 创建共识节点、委托参与共识、取消委托、注销共识节点★
+- Create consensus nodes, delegate participation consensus, cancel delegation, and cancel consensus nodes ★
 
-- 共识节点打包出块
+- Consensus node packs out blocks
 
-- 网络维护激励的发放
+- Disbursement of network maintenance incentives
 
-- 作恶节点惩罚★
+- Bad node punishment ★
 
-  **PS：不同的共识机制其共识算法不尽相同，以上有标记★的为POC共识特有**
+  **PS：Different consensus mechanisms have different consensus algorithms. The above marked ★ is unique to POC consensus.**
 
-#### 1.1.3 《共识模块》在系统中的定位
+#### 1.1.3 《Consensus module》Positioning in the system
 
-​	共识模块在系统中是比较核心的一块，主要负责打包交易出块，验证区块头，管理系统中的共识节点信息，委托信息，处罚信息等。
+​	The consensus module is a relatively core piece in the system. It is mainly responsible for packing transactions, verifying block headers, managing consensus node information in the management system, entrusting information, and penalizing information.
 
-### 1.2 架构图
-
-（注意：区块下载属于区块管理模块，重新画图）
+### 1.2 Architecture diagram
 
 ![](./image/consensus-module/consensus-constants.jpg)
 
-说明：
+Description：
 
-- Services 层：
-  - tx service : 交易的增删改查
-  - consensus service : 共识活动及状态管理二、功能设计
+- Services：
+  - tx service : Additions, deletions and changes to transactions
+  - consensus service : Consensus activities and state management, functional design
 - Validator
-  - tx Validator: 共识相关交易的验证器，用于验证共识相关交易
+  - tx Validator: Validator for consensus-related transactions for verifying consensus-related transactions
 - Processor
-  - Tx Processor:共识模块相关交易处理器，用于提交回滚检测交易
-- Task/Thread层：定时任务
-  - consensus Task: 共识打包
-  - Reward Task ： 数据统计
-- Storage层:存储共识模块相关交易数据
+  - Tx Processor:Consensus module related transaction processor for submitting rollback detection transactions
+- Task/Thread：
+  - consensus Task: Consensus packaging
+  - Reward Task ： Data statistics
+- Storage:Store consensus module related transaction data
 
 ### 2.0 功能架构图
 
@@ -2660,7 +2658,7 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
 
 - 共识奖励统计
 
-  ![](./image/consensus-module/consensus-staticsReward.jpg)
+  ![](./image/consensus-module/statics_en.png)
 
   - 获取本地账户列表
   - 获取24小时内的区块列表
