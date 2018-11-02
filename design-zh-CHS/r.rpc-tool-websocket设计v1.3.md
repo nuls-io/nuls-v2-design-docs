@@ -393,7 +393,7 @@ Websocket-Tool会做成JAR包供各模块使用，分为三个部分：
 ```json
 {
   "id": 1,					// 调用编号，用以匹配回执消息
-  "cmd": "cmExColdField",	// cmd命令加上本模块缩写的前缀，如 cm = Chain Manager，驼峰形式
+  "cmd": "cmExColdField",	// cmd命令加上本模块缩写的前缀，如cm=ChainManager，驼峰形式
   "minVersion": 1.0,  		// 根据自己需要传最低版本号
   "params": []				// 该命令所需参数
 }
