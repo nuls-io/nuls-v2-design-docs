@@ -334,6 +334,12 @@ certain nodes (which can be 1 node) send messages.
 
 * Process description
 
+   The actual creation of a NodeGroup also has two kinds of logic:
+
+  1> Generate your own network group (or data load call) by loading the configuration file.
+
+  2> Call by external module: Create a network group as confirmed by registering cross-chain transactions.  
+
   ![](./image/network-module/createNodeGroup.png)
 
 * interface definition
@@ -416,9 +422,7 @@ Relies on remote service interface data provided by the kernel module.
 
    Receive a call from an external module and unregister the cross-chain node group.
 
-  1>  As a satellite chain node, the chain management module performs  deregistration, and the system generates a transaction verification  confirmation and then calls it.
-
-  2> As a  friend chain node, the registration cross-chain request is not accepted n  minutes after the cross-chain protocol is started, and the timeout node  group is cancelled.  
+   As a satellite chain node, the chain management module performs  deregistration, and the system generates a transaction verification  confirmation and then calls it.  
 
 - Process description
 
@@ -724,7 +728,9 @@ Relies on remote service interface data provided by the kernel module.
 
    After receiving the command, disconnect all the peers under the specified nodeGroup and reconnect to the network.
 
-  (Do you want to delete the peer node under the nodeGroup and re-discover the peer?)  
+​       Refresh the peer connection under nodegroup and restart the network connection.
+
+​       If  the peer connection is owned by multiple network services, you only  need to cancel the association. If only the service is used by itself,  you can disconnect.  
 
 - Interface definition
 
@@ -1252,6 +1258,10 @@ The criteria for the stability of network module start-up connection are: no new
   ​      After the TCP connection is complete with the server, the client needs to handshake through the rervice version protocol. Only the connection with successful handshake can forward the service. The state in the connection cannot be transitioned to connected after X minutes, and the connection is actively disconnected.
 
   ![](./image/network-module/connection.png)
+
+ PS: In order to meet the  requirements of one process carrying multiple-chain services at the same  time, after a node peer connection is established, multiple NodeGroup  services should be satisfied.
+
+That is, the node peer connection and the nodeGroup object are many-to-many, n:n relationships.  
 
 
 
