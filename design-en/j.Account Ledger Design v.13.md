@@ -1,4 +1,4 @@
-#帐本模块设计文档
+# Account Ledger module design document
 
 [TOC]
 
@@ -6,19 +6,19 @@
 
 ### 1.1 Module Overview
 
-#### 1.1.1 Why do you have a "book module"?
+#### 1.1.1 Why do you have a "Ledger module"?
 
 > The ledger module is the data hub of the blockchain. The balances and transactions of all accounts are saved in the ledger module.
-  A network-wide account book is saved on each network node to ensure complete, open and transparent data, while ensuring that data cannot be tampered and traceable.
+  A network-wide account ledger is saved on each network node to ensure complete, open and transparent data, while ensuring that data cannot be tampered and traceable.
 
-#### 1.1.2 What should be done in the Book Module?
+#### 1.1.2 What should be done in the Ledger Module?
 
 > Provide data support for assembly transactions, mainly accounting and auditing, verify the legality of the transaction, such as: whether there is sufficient balance, whether to repeat payment (double flower)
 
-#### 1.1.3 Positioning of the "book module" in the system
+#### 1.1.3 Positioning of the "Ledger module" in the system
 
 > The ledger module is the data hub, which stores the result data of all existing transactions in the system. It does not depend on any business modules, and other modules depend on it as needed.
-#### 1.1.4 Explanation of terms in "book module"
+#### 1.1.4 Explanation of terms in "Ledger module"
 - The random number of the transaction (nonce, a 32-bit hash value)
   - nonce: A scalar value equal to the number of transactions sent at this address, which will be included in every transaction initiated by the user.
   - Each transaction in the account needs to save the nonce (hash) of the previous transaction
@@ -27,7 +27,7 @@
   - Use nonce to ensure that all nodes calculate the same balance and correctly sort the transactions, which is equivalent to the mechanism used in Bitcoin to prevent "double payment". However, because Ethereum tracks account balances and does not track individual coins separately (called UTXO in Bitcoin), "double payments" occur only when the account balance is incorrectly calculated. The nonce mechanism prevents this from happening.
   
 ### 1.2 Architecture
-> The core of the book is asset management and bookkeeping management.
+> The core of the Ledger is assets management and ledger management.
 
 ![ledger-arch.png](image/ledger/ledger-arch.png)
 
@@ -37,7 +37,7 @@
 ![ledger-functions.png](image/ledger/ledger-functions.png)
 
 ### 2.2 Module Service
-#### 2.2.1 System Service of the Book Module
+#### 2.2.1 System Service of the Ledger Module
 ![ledger-service.png](image/ledger/ledger-service.png)
 
 > The RPC interface call provided by the ledger module. For detailed interface, please refer to the interface design section.
@@ -73,7 +73,7 @@
 > Since the cold wallet only signs the transaction information, the signed hex string is transmitted to the server through the hot wallet, and then the server performs unified transaction processing, so the client needs to perform the offline signature function.
 > The offline transaction system maintains the storage information of the nonce. After using a nonce, the nonce is saved in the business system.
  
-### 2.4 Bookkeeping Process
+### 2.4 Ledger flowcharts
 #### 2.4.1 Transfer Transaction Process
 
   - User enters the address of the transfer and the transferred address and the transferred amount
