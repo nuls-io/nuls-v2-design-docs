@@ -1657,7 +1657,7 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     |   0   |  address  |   true   | String |           出块地址            |
     |   1   |   type    |   true   |  int   | 惩罚类型  1黄牌，2红牌，0全部 |
     |   2   |  chainId  |   true   | String |             链ID              |
- 
+
  - 返回示例
 
     成功
@@ -2861,25 +2861,74 @@ data:{
 ## 六、模块配置
 
 ```
-打包间隔时间
-packing_interval
-出块最小金额
-packing_amount
-奖励金锁定块数
-coinbase_unlock_height
-获得红牌保证金锁定时间
-redPublish_lockTime
-注销节点保证金锁定时间
-stopAgent_lockTime
-佣金比例的最大值和最小值
-commissionRate_min
-commissionRate_max
-创建节点的保证金最大值最小值
-deposit_min
-deposit_max
-委托最大值最小值
-commission_min
-Commission_max
+{
+    {
+        "name": "packing_interval",
+        "remark": “打包间隔时间”,
+        "changable": "true",
+        "default": "10秒"
+    },
+    {
+    	"name": "packing_amount",
+        "remark": “出块最小金额”,
+        "changable": "true",
+        "default": "200000"
+    },
+    {
+    	"name": "coinbase_unlock_height",
+        "remark": “奖励金锁定块数”,
+        "changable": "true",
+        "default": "100"
+    },
+    {
+    	"name": "redPublish_lockTime",
+        "remark": “获得红牌保证金锁定时间”,
+        "changable": "true",
+        "default": "3个月"
+    },
+    {
+    	"name": "stopAgent_lockTime",
+        "remark": “注销节点保证金锁定时间”,
+        "changable": "true",
+        "default": "3天"
+    },
+    {
+    	"name": "commissionRate_min",
+        "remark": “佣金比例的最小值”,
+        "changable": "true",
+        "default": "10"
+    },
+    {
+    	"name": "commissionRate_max",
+        "remark": “佣金比例的最大值”,
+        "changable": "true",
+        "default": "80"
+    },
+    {
+    	"name": "deposit_min",
+        "remark": “创建节点的保证金最小值”,
+        "changable": "true",
+        "default": "20000"
+    },
+    {
+    	"name": "deposit_max",
+        "remark": “创建节点的保证金最大值”,
+        "changable": "true",
+        "default": "700000"
+    },
+    {
+    	"name": "commission_min",
+        "remark": “委托最小值”,
+        "changable": "true",
+        "default": "2000"
+    },
+    {
+    	"name": "commission_max",
+        "remark": “委托最大值”,
+        "changable": "true",
+        "default": "680000"
+    }
+}
 ```
 
 ## 七、Java特有的设计
