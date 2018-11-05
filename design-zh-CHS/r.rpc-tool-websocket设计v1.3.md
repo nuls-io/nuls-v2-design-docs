@@ -319,24 +319,24 @@
 
   modules_information
 
-  | parameter | required | type              | description          |
-  | --------- | -------- | ----------------- | -------------------- |
-  | service   | true     | string[]          | 本模块需要依赖的模块 |
-  | available | true     | boolean           | 本模块是否可提供服务 |
-  | modules   | true     | map<name, module> | 所有模块的信息       |
+| parameter | required | type              | description          |
+| --------- | -------- | ----------------- | -------------------- |
+| service   | true     | string[]          | 本模块需要依赖的模块 |
+| available | true     | boolean           | 本模块是否可提供服务 |
+| modules   | true     | map<name, module> | 所有模块的信息       |
 
 
   module
 
-  | parameter     | required | type     | description        |
-  | ------------- | -------- | -------- | ------------------ |
-  | name          | true     | string   | 模块名称           |
-  | status        | true     | string   | 模块状态           |
-  | available     | true     | boolean  | 模块是否可提供服务 |
-  | addr          | true     | string   | 连接的ip地址/域名  |
-  | port          | true     | int      | 连接的端口         |
-  | cmdDetailList | true     | list     | 对外提供的命令列表 |
-  | dependsModule | true     | string[] | 所依赖的模块       |
+| parameter     | required | type     | description        |
+| ------------- | -------- | -------- | ------------------ |
+| name          | true     | string   | 模块名称           |
+| status        | true     | string   | 模块状态           |
+| available     | true     | boolean  | 模块是否可提供服务 |
+| addr          | true     | string   | 连接的ip地址/域名  |
+| port          | true     | int      | 连接的端口         |
+| cmdDetailList | true     | list     | 对外提供的命令列表 |
+| dependsModule | true     | string[] | 所依赖的模块       |
 
 
 
@@ -440,7 +440,7 @@ s.start();
 /*
 * 向核心模块汇报本模块信息
 */
-CmdDispatcher.syncWebsocket("kernel url");
+CmdDispatcher.syncLocalToKernel("kernel url");
 ```
 
 
