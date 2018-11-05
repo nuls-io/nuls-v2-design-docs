@@ -861,7 +861,7 @@
 
 * 接口说明
 
-本地节点共识模块打包后，调用此接口保存区块数据，不做验证
+本地节点共识模块打包后，调用此接口保存区块数据
 
 * 请求示例
 
@@ -1507,19 +1507,22 @@ data:{
 | 1     | signAlgType      | byte    | 签名算法类型           |
 | ?     | signBytesLength| VarInt    | 签名数组长度           |
 | ?     | signBytes      | byte[]    | 区块签名           |
-| ?     | txCount   | VarInt    | 交易数           |
 | 16     | type      | uint16    | 交易类型           |
 | 48     | time      | uint48    | 交易时间           |
 | ?     | remarkLength| VarInt    | 备注数组长度           |
 | ?     | remark      | byte[]    | 备注           |
+| 32     | fromCount      | Uint32    | 转出记录数           |
 | 32     | fromAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | fromAssetsId      | Uint32    | 资产id           |
 | ?     | fromAddress      | VarChar    | 转出账户地址           |
+| 48     | amount      | Uint48    | 转出金额           |
+| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 32     | toCount      | Uint32    | 转入记录数           |
 | 32     | toAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | toAssetsId      | Uint32    | 资产id           |
 | ?     | toAddress      | VarChar    | 转入账户地址           |
-| 48     | amount      | Uint48    | 转出金额           |
-| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 48     | amount      | Uint48    | 转入金额           |
+| 32     | lockTIme      | Uint32    | 锁定时间           |
 | ?     | txData      | T    | 交易数据           |
 | ?     | txSignLength| VarInt    | 交易签名数组长度           |
 | ?     | txSign      | byte[]    | 交易签名           |
@@ -1657,14 +1660,18 @@ data:{
 | 48     | time      | uint48    | 交易时间           |
 | ?     | remarkLength| VarInt    | 备注数组长度           |
 | ?     | remark      | byte[]    | 备注           |
+| 32     | fromCount      | Uint32    | 转出记录数           |
 | 32     | fromAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | fromAssetsId      | Uint32    | 资产id           |
 | ?     | fromAddress      | VarChar    | 转出账户地址           |
+| 48     | amount      | Uint48    | 转出金额           |
+| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 32     | toCount      | Uint32    | 转入记录数           |
 | 32     | toAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | toAssetsId      | Uint32    | 资产id           |
 | ?     | toAddress      | VarChar    | 转入账户地址           |
-| 48     | amount      | Uint48    | 转出金额           |
-| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 48     | amount      | Uint48    | 转入金额           |
+| 32     | lockTIme      | Uint32    | 锁定时间           |
 | ?     | txData      | T    | 交易数据           |
 | ?     | txSignLength| VarInt    | 交易签名数组长度           |
 | ?     | txSign      | byte[]    | 交易签名           |

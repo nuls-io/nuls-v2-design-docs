@@ -8,25 +8,25 @@
 
 #### 1.1.1 Why do you should have the block management module
 
-All transaction data in the blockchain is stored in the block, so there is a module responsible for the saving and management of the block, so that other modules can obtain the block when verifying the data in the block and processing the business.
+All transaction data in the blockchain is stored in the block, so there is a module responsible for the saving and management of the block, so that other modules can obtain the block when verifying the data in the block and processing the business etc.
 
-When the blockchain program is started for the first time, it is necessary to synchronize the full block on the network to the local. This process is generally time consuming, and the transaction cannot be initiated when the synchronization is not completed, so it is suitable for the work to be performed by a separate module.
+When the blockchain program is started for the first time, it is necessary to synchronize the full blocks from the network to the local. This process is generally time consuming, and the transaction cannot be initiated when the synchronization is not completed, so it is suitable for the work to be performed by a separate module.
 
-In summary, it is necessary to provide a unified block data service for other modules, and it is also better to separate the management of the block from the specific service of the block. The modules used in the block do not have to care about the block. Get the details.
+In summary, it is necessary to provide a unified block data service for other modules, and it is also better to separate the management of the block from the specific service of the block. The modules who used the block do not have to care about the details of block's acquire.
 
 #### 1.1.2 Block management module's tasks
 
-When the system starts, it is judged whether the height of the local block reaches the latest height of most nodes on the network. If it is not reached, the block is downloaded from the network to the local area, and the block is verified. After the verification is passed, the data is saved to the local database. This is called synchronization of blocks.
+1. When the system starts, it is judged whether the height of the local block reaches the latest height of most nodes on the network. If it is not reached, the block is downloaded from the network to the local, and then the block will be verified. If the verification is passed, the data is saved to the local database. This is called synchronization of blocks.
 
-After the block synchronization is completed, the system starts normal operation and is discussed in the following two cases.
+2. After the block synchronization is completed, the system starts normal operation.Let's discuss separately below
 
-- If the self-node performs the packing block, the consensus module broadcasts the block information to the network before the packaged block is handed over to the block management module. The block management module verifies that the block is legal, and the verification passes and saves. Go to the database and respond to requests from other nodes on the network to get the block.
+- If the self-node performs the packing block, the consensus module broadcasts the block information to the network before the packaged block is handed over to the block management module. The block management module verifies whether the block is legal, if legal then save it to the database, and respond to requests from other nodes on the network to get this block.
 
 - If other nodes on the network are packing blocks, the local node will receive the forwarding block message sent from the network. At this time, the block information is obtained from other nodes, verified and saved.
 
-In the abnormal case, the block verification fails, and the new block cannot be connected to the last block on the main chain. The block is regarded as a forked block and placed in the forked chain set for maintenance. When it is found that one of the bifurcation chains A is longer than the main chain B, the switching is performed, and the bifurcation chain A is the latest main chain, and the original main chain B enters the bifurcation chain assembly maintenance.
+3. In the abnormal case, the block's verification fails, and the new block cannot be connected to the last block on the main chain. The block is regarded as a forked block and placed in the forked chain set for maintenance. When it is found that one of the forked chains A is longer than the main chain B, the switching is performed, and the bifurcation chain A is the latest main chain, and the original main chain B enters the bifurcation chain assembly maintenance.
 
-Provide block header and block query services to the outside world
+4. Provide block header and block's query services for other modules or clients.
 
 #### 1.1.3 The position of block management module in the system
 
@@ -53,11 +53,11 @@ Be dependent
 
 ![](image/block-module/block-functions.png)
 
-1. Provide the API to block storage, query, a rollback operation
+1. Provide the API to block storage, query, rollback operations.
 2. Synchronous latest blocks from the Internet, a preliminary verification, validation, bifurcation without bifurcate, call consensus in a consensus based verification, the trading module dual authentication, all validation after saved to the local.
 3. Block synchronization, broadcasting, forwarding message process
-4. Fork chains maintenance and switch
-5. Fork blocks judgment and storage
+4. Fork blocks judgment and storage
+5. Fork chains maintenance and switch
 
 ### 2.2 The module service
 
@@ -65,7 +65,7 @@ Be dependent
 
 * Interface specification
 
-1. Query the DB according to the chain ID and the latest block height of the cache to get the latest block header HASH.
+1. Query the DB according to the chain ID and the latest block height in the cache to get the latest block header HASH.
 2. According to the HASH query DB to get the block header byte array
 3. Deserialize to block header object
 
@@ -144,7 +144,7 @@ Be dependent
 
 * Interface specification：
 
-1. Get the latest local block header based on the chain ID
+1. Get the latest local block header according to the the chain ID
 2. Query the DB according to the block head height to get the transaction HASH list.
 3. Obtain transaction data from the transaction management module according to the HASH list
 4. Assemble into a block object
@@ -246,8 +246,8 @@ Be dependent
 
 * Interface specification
 
-1. According to the chain ID and height query DB, get the latest block header HASH
-2. According to the HASH query DB to get the block header byte array
+1. Query DB according to the chain ID and height, get the latest block header HASH
+2. Query DB according to the HASH to get the block header byte array
 3. Deserialize to block header object
 
 * Sample request
@@ -611,7 +611,7 @@ Be dependent
 
 * Interface specification
 
-When the block synchronization on a ChainID is completed, the cached synchronization status identifier is updated. It is forbidden to initiate a transaction when the sync block is not completed.
+When the block synchronization on a ChainID is completed, the cached synchronization status identifier is updated. It is forbidden to initiate a transaction when the block synchronization is not completed.
 
 * Sample request
 
@@ -663,9 +663,9 @@ When the block synchronization on a ChainID is completed, the cached synchroniza
 * Interface specification
 
 1. Make queryHash = endHash
-2. According to queryHash query DB get block headerbyte array
+2. Query DB according to queryHash to get block header byte array
 3. Deserialization for block header object blockHeader, added to the List as a return value
-4. If the blockHeader. Hash!= startHash, make queryHash = blockHeader preHash, startHash, repeat step 2
+4. If the blockHeader.Hash!= startHash, make queryHash = blockHeader.preHash, repeat step 2
 5. Return to the List
 
 * Sample request
@@ -751,9 +751,9 @@ When the block synchronization on a ChainID is completed, the cached synchroniza
 * Interface specification
 
 1. make queryHash=endHash
-2. According to the chain ID, queryHash query DB to get the block byte array
+2. Query DB according to the chain ID, queryHash to get the block byte array
 3. Deserialize to block object block, add to List as return value
-4. If block.hash!=startHash, make queryHash=block.preHash, startHash, repeat step 2
+4. If block.hash!=startHash, make queryHash=block.preHash, repeat step 2
 5. Return to List
 
 * Sample request
@@ -856,32 +856,20 @@ When the block synchronization on a ChainID is completed, the cached synchroniza
   
     omit
 
-#### 2.2.10 set node's latest height, latest Hash
+#### 2.2.10 Receive the latest packaging block
 
 * Interface specification
 
-After the local node consensus module is packaged, this interface is called to save the block data without verification.
+After the local node's consensus module paking a block, this interface is called to save the block data.
 
 * Sample request
 
     ```
     {
-      "cmd": "bl_setNodesInfo",
+      "cmd": "bl_receivePackingBlock",
       "minVersion":"1.1",
       "params": [
-        {
-           chainId：122,//chain ID
-           nodeId:"20.20.30.10:9902"
-           magicNumber：134124,//Magic number
-           version：2,//Protocol version number
-           blockHeight：6000,   //block's height
-           blockHash："0020ba3f3f637ef53d025d",  //block Hash
-           ip："200.25.36.41",//ip
-           port：54,//
-           state："connected",
-           isOut："1", //0-Passive connection,1-active connection
-           time："6449878789", //Recent connection time
-        },{}
+      	blockhex
       ]
     }
     ```
@@ -917,7 +905,105 @@ After the local node consensus module is packaged, this interface is called to s
   
 | parameter | type      | description                                |
 | --------- | --------- | ------------------------------------------ |
-| sync      | String    | Block information synchronization is completed    |
+| sync      | String    | wherther the Block's save is completed    |
+
+#### 2.2.11 run a chain
+
+* Interface specification
+
+After the chain factory releases a chain, the core module calls the interface of the block management module, initializes the block and the forked chain database according to the chainID, starts a series of work threads corresponding to the chainID, and prepares for running the new chain.
+
+* Sample request
+
+    ```
+    {
+      "cmd": "bl_startChain",
+      "minVersion":"1.1",
+      "params": ["888"]
+    }
+    ```
+
+* Instructions of request parameters
+
+    omit
+
+* response sample
+
+    Failed
+
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {"result": "true"}
+    }
+    ```
+
+* Instructions of response parameters
+
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| result      | String    | whether the new chain started successfully    |
+
+#### 2.2.12 stop a chain
+
+* Interface specification
+
+After stopping a chain in the chain factory, the core module will call the interface of the block management module, delete the cache block and the fork chain data of the chain, and stop a series of work threads corresponding to the chainID.
+
+* Sample request
+
+    ```
+    {
+      "cmd": "bl_stopChain",
+      "minVersion":"1.1",
+      "params": ["888"]
+    }
+    ```
+
+* Instructions of request parameters
+
+    omit
+
+* response sample
+
+    Failed
+
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {"result": "true"}
+    }
+    ```
+
+* Instructions of response parameters
+
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| result      | String    | whether the new chain started successfully    |
 
 ### 2.3 module's internal function
 
@@ -931,11 +1017,11 @@ After the local node consensus module is packaged, this interface is called to s
 
 ![](./image/block-module/block-module-boot.png)
 
-1. The loading block module configuration information
-2. The registration of block module, message handler
-3. Register block module service interface
-4. Register block module
-5. Start the synchronization of threads, the block monitoring thread, branching chain processing threads
+1. Load block module configuration information
+2. Register block module's message handlers
+3. Register block module's service interfaces
+4. Register block module's events
+5. Start the synchronization thread, the block monitoring thread, branching chain processing thread.
 
 * Dependent service
 
@@ -957,18 +1043,16 @@ A complete block consists of a block header and a transaction, and the block hea
 
    
    * fork chain's storage
-Different branches of the bifurcation chain have different tables, table name plus chainID suffix
-    Key (start block height + start block hash) - value (complete chains) chains
-   ```
-        ChainContainer
-            private Chain chain;
-                    private String id;
-                    private String preChainId;
-                    private BlockHeader startBlockHeader;
-                    private BlockHeader endBlockHeader;
-                    private List<BlockHeader> blockHeaderList;
-                    private List<Block> blockList;
-   ```
+Cache each forked chain (starting height, starting hash, ending height, ending hash) in memory, and cache full forked chain data in the hard disk
+         There are different tables for the bifurcation chain collection of different chains. The table name is added with the chainID suffix. Each bifurcation chain object is as follows:
+             Key (start block height + start block hash) - value (complete chains) fork chains
+         Private chain chain;
+                 Private String id;
+                 Private String preChainId;
+                 Private BlockHeader startBlockHeader;
+                 Private BlockHeader endBlockHeader;
+                 Private List<BlockHeader> blockHeaderList;
+                 Private List<Block> blockList;
 
 * process description
 
@@ -1427,20 +1511,23 @@ data:{
 | 1     | signAlgType      | byte    | Signature algorithm type           |
 | ?     | signBytesLength| VarInt    | sign array's length           |
 | ?     | signBytes      | byte[]    | Signature of block           |
-| ?     | txCount   | VarInt    | count of transactions           |
 | 16     | type      | uint16    | transaction's type           |
 | 48     | time      | uint48    | transaction's timestamp           |
 | ?     | remarkLength| VarInt    | remark array's length           |
 | ?     | remark      | byte[]    | remark bytes           |
-| 32     | fromAssetsChainId      | Uint32    | 资产发行链的id           |
-| 32     | fromAssetsId      | Uint32    | 资产id           |
-| ?     | fromAddress      | VarChar    | 转出账户地址           |
-| 32     | toAssetsChainId      | Uint32    | 资产发行链的id           |
-| 32     | toAssetsId      | Uint32    | 资产id           |
-| ?     | toAddress      | VarChar    | 转入账户地址           |
-| 48     | amount      | Uint48    | 转出金额           |
-| 32     | nonce      | Uint32    | 交易顺序号，递增           |
-| ?     | txData      | T    | count of transactions据           |
+| 32     | fromCount      | Uint32    | count of froms           |
+| 32     | fromAssetsChainId      | Uint32    | chain id           |
+| 32     | fromAssetsId      | Uint32    | asset id           |
+| ?     | fromAddress      | VarChar    | from account address            |
+| 48     | amount      | Uint48    | Transfer amount           |
+| 32     | nonce      | Uint32    | Transaction sequence number, increment           |
+| 32     | toCount      | Uint32    | count of tos           |
+| 32     | toAssetsChainId      | Uint32    |  chain id           |
+| 32     | toAssetsId      | Uint32    | asset id           |
+| ?     | toAddress      | VarChar    | to account address           |
+| 48     | amount      | Uint48    | Transfer amount           |
+| 32     | lockTime      | Uint32    | lock time           |
+| ?     | txData      | T    | data of special transaction           |
 | ?     | txSignLength| VarInt    | transaction's sign array's length           |
 | ?     | txSign      | byte[]    | transaction's sign           |
 
@@ -1477,7 +1564,7 @@ data:{
 
 * Message processing logic
 
-    omit
+1. Find the asynchronous request of the source node cache according to the chainID and hash, set the processing result flag to complete, and set the return result to null.
 
 #### 4.2.8 Response message-ReactMessage
 
@@ -1575,17 +1662,21 @@ data:{
 | ?     | txCount   | VarInt    | count of transactions           |
 | 16     | type      | uint16    | transaction's type           |
 | 48     | time      | uint48    | transaction's timestamp           |
-| ?     | remarkLength| VarInt    | 备注 array's length           |
-| ?     | remark      | byte[]    | 备注           |
-| 32     | fromAssetsChainId      | Uint32    | 资产发行链的id           |
-| 32     | fromAssetsId      | Uint32    | 资产id           |
-| ?     | fromAddress      | VarChar    | 转出账户地址           |
-| 32     | toAssetsChainId      | Uint32    | 资产发行链的id           |
-| 32     | toAssetsId      | Uint32    | 资产id           |
-| ?     | toAddress      | VarChar    | 转入账户地址           |
-| 48     | amount      | Uint48    | 转出金额           |
+| ?     | remarkLength| VarInt    | remark array's length           |
+| ?     | remark      | byte[]    | remark bytes           |
+| 32     | fromCount      | Uint32    | count of froms           |
+| 32     | fromAssetsChainId      | Uint32    | chain id           |
+| 32     | fromAssetsId      | Uint32    | asset id           |
+| ?     | fromAddress      | VarChar    | from account address            |
+| 48     | amount      | Uint48    | Transfer amount           |
 | 32     | nonce      | Uint32    | Transaction sequence number, increment           |
-| ?     | txData      | T    | count of transactions据           |
+| 32     | toCount      | Uint32    | count of tos           |
+| 32     | toAssetsChainId      | Uint32    |  chain id           |
+| 32     | toAssetsId      | Uint32    | asset id           |
+| ?     | toAddress      | VarChar    | to account address           |
+| 48     | amount      | Uint48    | Transfer amount           |
+| 32     | lockTime      | Uint32    | lock time           |
+| ?     | txData      | T    | data of special transaction          |
 | ?     | txSignLength| VarInt    | transaction's sign array's length           |
 | ?     | txSign      | byte[]    | transaction's sign           |
 
