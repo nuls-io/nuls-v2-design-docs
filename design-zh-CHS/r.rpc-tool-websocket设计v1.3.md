@@ -456,7 +456,7 @@ CmdDispatcher.syncLocalToKernel("kernel url");
 public class CmKernelCmd implements KernelCmd {
 	@Override
     @CmdAnnotation(cmd = Constants.SHUTDOWN, version = 1.0, preCompatible = true)
-    public CmdResult shutdown(List params) {
+    public CmdResponse shutdown(List params) {
         return result(1.0);
     }
     
