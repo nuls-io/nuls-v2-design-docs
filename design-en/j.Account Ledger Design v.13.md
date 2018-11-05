@@ -19,12 +19,13 @@
 
 > The ledger module is the data hub, which stores the result data of all existing transactions in the system. It does not depend on any business modules, and other modules depend on it as needed.
 #### 1.1.4 Explanation of terms in "Ledger module"
+
 - The random number of the transaction (nonce, a 32-bit hash value)
-- nonce: A scalar value equal to the number of transactions sent at this address, which will be included in every transaction initiated by the user.
-- Each transaction in the account needs to save the nonce (hash) of the previous transaction
-- Strictly speaking, a nonce is an attribute of the originating address (it only makes sense in the context of the sending address). However, the nonce is not explicitly stored in the blockchain as part of the account status.
-- The nonce value is also used to prevent incorrect calculation of account balances. For example, suppose an account has 10 NULS balances and signs two transactions, all of which cost 6 NULS with nonce 1 and nonce 2, respectively. Which of the two transactions is valid? In a blockchain distributed system, nodes may receive transactions out of order. Nonce forces transactions of any address to be processed in order, regardless of the interval, regardless of the order in which the nodes receive. This way, all nodes will calculate the same balance. The transaction paying 6 Ethereum will be successfully processed and the account balance will be reduced to 4 ether. Whenever it is received, all nodes believe that the transaction with nonce 2 is invalid. If a node receives a nonce 2 transaction first, it will hold it, but will not verify it until it receives and processes the nonce 1 transaction.
-- Use nonce to ensure that all nodes calculate the same balance and correctly sort the transactions, which is equivalent to the mechanism used in Bitcoin to prevent "double payment". However, because Ethereum tracks account balances and does not track individual coins separately (called UTXO in Bitcoin), "double payments" occur only when the account balance is incorrectly calculated. The nonce mechanism prevents this from happening.
+    - nonce: A scalar value equal to the number of transactions sent at this address, which will be included in every transaction initiated by the user.
+    - Each transaction in the account needs to save the nonce (hash) of the previous transaction
+    - Strictly speaking, a nonce is an attribute of the originating address (it only makes sense in the context of the sending address). However, the nonce is not explicitly stored in the blockchain as part of the account status.
+    - The nonce value is also used to prevent incorrect calculation of account balances. For example, suppose an account has 10 NULS balances and signs two transactions, all of which cost 6 NULS with nonce 1 and nonce 2, respectively. Which of the two transactions is valid? In a blockchain distributed system, nodes may receive transactions out of order. Nonce forces transactions of any address to be processed in order, regardless of the interval, regardless of the order in which the nodes receive. This way, all nodes will calculate the same balance. The transaction paying 6 Ethereum will be successfully processed and the account balance will be reduced to 4 ether. Whenever it is received, all nodes believe that the transaction with nonce 2 is invalid. If a node receives a nonce 2 transaction first, it will hold it, but will not verify it until it receives and processes the nonce 1 transaction.
+    - Use nonce to ensure that all nodes calculate the same balance and correctly sort the transactions, which is equivalent to the mechanism used in Bitcoin to prevent "double payment". However, because Ethereum tracks account balances and does not track individual coins separately (called UTXO in Bitcoin), "double payments" occur only when the account balance is incorrectly calculated. The nonce mechanism prevents this from happening.
   
 ### 1.2 Architecture
 > The core of the Ledger is assets management and ledger management.
@@ -52,20 +53,20 @@
 > Module internal work mainly includes asset management, obtaining account address balance and nonce, and verifying transaction coinData.
 
 - asset Management
- - Total assets of the account
- - Available assets
- - Freeze assets. For locked assets, separate record and locked asset information, including chain ID, asset ID, asset amount, lock time, lock height, etc.
- - In the asset unlocking process, when the user's locked asset time or height reaches the unlock condition, the account will unlock the asset information, accumulate the available balance, and delete the asset lock record of the local data.
- - Multi-asset situation, need to join chainId.
+    - Total assets of the account
+    - Available assets
+    - Freeze assets. For locked assets, separate record and locked asset information, including chain ID, asset ID, asset amount, lock time, lock height, etc.
+    - In the asset unlocking process, when the user's locked asset time or height reaches the unlock condition, the account will unlock the asset information, accumulate the available balance, and delete the asset lock record of the local data.
+    - Multi-asset situation, need to join chainId.
 - Get account address balance and nonce
- - Get account address balance
- - Get the account address nonce (the nonce is a hash value, meaning that the nonce of the first transaction is 0. Each transaction in the account will contain the nonce value of the previous transaction)
+    - Get account address balance
+    - Get the account address nonce (the nonce is a hash value, meaning that the nonce of the first transaction is 0. Each transaction in the account will contain the nonce value of the previous transaction)
 - Verify the transaction
- - Double flower verification (nonce mechanism prevents double payment)
- - Transaction creator verification, verifying that the issuer of the transaction has sufficient balance to verify that the nonce of the transaction creator is legal
- - Continuous transaction verification
+    - Double flower verification (nonce mechanism prevents double payment)
+    - Transaction creator verification, verifying that the issuer of the transaction has sufficient balance to verify that the nonce of the transaction creator is legal
+    - Continuous transaction verification
 - Function Interface Management (rpc)
-  - rpc interface for use by other modules
+    - rpc interface for use by other modules
   
 #### 2.3.2 Cold (offline) transaction processing
 > A cold wallet is an unconnected wallet, also called an offline wallet. A hot wallet is a wallet that keeps online, that is, an online wallet. Cold wallets are not more secure than hot wallets.
@@ -79,16 +80,16 @@
 - User enters the address of the transfer and the transferred address and the transferred amount
 - The system signs the transfer information by the private key of the transferred address (used to prove that the transaction was actually initiated by me)
 - The system verifies the transaction information
- - Balance verification
- - Fee verification
- - nonce continuity verification
- - Signature and input account verification
+    - Balance verification
+    - Fee verification
+    - nonce continuity verification
+    - Signature and input account verification
 - Put this transaction into the local TxPool (that is, the account unconfirmed trading pool)
 - Broadcast transaction information to other nodes
 - Packing blocks, verifying blocks
 - Confirm transaction
- - Update the balance of all accounts related (transferred or transferred)
- - Update the nonce corresponding to the account asset
+    - Update the balance of all accounts related (transferred or transferred)
+    - Update the nonce corresponding to the account asset
 
 #### 2.4.2 Ordinary transaction process (reference example)
 
@@ -408,10 +409,10 @@ no
 ### 6.2 Module Dependencies
 
 - Kernel module
-   - Module registration
-   - Module logout
-   - Module status escalation (heartbeat)
-   - Service interface data acquisition and timing update
+    - Module registration
+    - Module logout
+    - Module status escalation (heartbeat)
+    - Service interface data acquisition and timing update
 
 ## 7. Java-specific design
 
@@ -420,4 +421,4 @@ no
 ## 8. supplementary content
 
 ### References Literature
-- [Proficient in Ethereum - Chapter 7 Transaction] (https://github.com/inoutcode/ethereum_book/blob/master/%E7%AC%AC%E4%B8%83%E7%AB%A0.asciidoc)
+- [Proficient in Ethereum - Chapter 7 Transaction](https://github.com/inoutcode/ethereum_book/blob/master/%E7%AC%AC%E4%B8%83%E7%AB%A0.asciidoc)
