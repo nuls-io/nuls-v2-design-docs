@@ -8,14 +8,10 @@
 
 #### 1.1.1 为什么要有《账户》模块
 
-[^说明]: 介绍模块的存在的原因
-
 - 用于管理账户的生成、安全和保管、信息的获取
 - 用户保存账户的地址、公私钥对、以及验证数据签名
 
 #### 1.1.2 《账户》要做什么
-
-[^说明]: 模块要做些什么事情，达到什么目的，目标是让非技术人员了解要做什么事情
 
 账户模块是提供关于账户各项功能的基础性模块。主要对账户的生成、安全和保管、信息的获取等几个方面的功能提供支持，其他模块可以根据账户模块提供的接口来使用账户的各种功能以及获取账户信息，用户或者其他应用可以根据RPC接口对账户进行更加实用性和个性化的操作。账户是基础模块，也是用户数据的载体 。
 
@@ -33,11 +29,9 @@
 
 - 其他实用性和个性化功能
 
-  设置账户别名、设置账户备注、验证账户是否加密、签名、验证签名、验证账户地址格式、验证账户密码是否正确等功能 
+  设置账户别名、设置账户备注、验证账户是否加密、签名、验证账户地址格式、验证账户密码是否正确等功能 
 
 #### 1.1.3 《账户》在系统中的定位
-
-[^说明]: 模块在系统中的定位，是什么角色，依赖哪些模块做哪些事情，可以被依赖用于做哪些事情
 
 ![](./image/account-module/account-context.png)
 
@@ -90,8 +84,6 @@
 
 ### 1.2 架构图
 
-[^说明]: 图形说明模块的层次结构、组件关系，并通过文字进行说明
-
 ![](./image/account-module/account-module.png)
 
 
@@ -110,8 +102,6 @@
 
 ### 2.2 模块服务
 
-[^说明]: 这里说明该模块对外提供哪些服务，每个服务的功能说明、流程描述、接口定义、实现中依赖的外部服务
-
 #### 2.2.1 创建账户
 
 - 功能说明：
@@ -129,16 +119,17 @@
   2、获取chainId和账户类型
   3、根据公钥计算hash160
   4、拼接字节数组组成地址：
-  4.1、如果是NULS体系地址：address=chainId+type+hash160
-  4.2、如果非NULS体系地址(比特币)：chainId+原始地址长度+原始地址
-  5、生成地址字符串：地址byte[]+校验位 进行base58计算生成字符串
-  5.1、如果是NULS体系校验位：xor=XOR(chainId+addressType+pkh)
-  5.1、如果非NULS体系校验位：xor=XOR(chainId+length+address)
-     address = Base58Encode(address+xor)
-  6、根据密码对私钥进行加密，并将私钥的明文删除
-  7、存储账户信息
-  8、将账户加入缓存
-  9、发送创建账户事件
+  4.1、如果是NULS体系地址：address=type+hash160
+  4.2、如果非NULS体系地址(比特币)：address=原始地址长度+原始地址
+  5.1、如果是NULS体系校验位：xor=XOR(addressType+pkh)
+  5.1、如果非NULS体系校验位：xor=XOR(length+address)
+  6、base58计算生成地址字符串：
+     NULS体系地址：Base58(type+hash160+xor)+Base58(chainId)
+     非NULS体系地址：Base58(length+address+xor)+Base58(chainId)
+  7、根据密码对私钥进行加密，并将私钥的明文删除
+  8、存储账户信息
+  9、将账户加入缓存
+  10、发送创建账户事件
   ```
 
 - ac_createAccount接口
@@ -212,14 +203,15 @@
   2、获取chainId和账户类型
   3、根据公钥计算hash160
   4、拼接字节数组组成地址：
-  4.1、如果是NULS体系地址：address=chainId+type+hash160
-  4.2、如果非NULS体系地址(比特币)：chainId+原始地址长度+原始地址
-  5、生成地址字符串：地址byte[]+校验位 进行base58计算生成字符串
-  5.1、如果是NULS体系校验位：xor=XOR(chainId+addressType+pkh)
-  5.1、如果非NULS体系校验位：xor=XOR(chainId+length+address)
-     address = Base58Encode(address+xor)
-  6、根据密码对私钥进行加密，并将私钥的明文删除
-  7、返回账户信息，并不保存到数据库
+  4.1、如果是NULS体系地址：address=type+hash160
+  4.2、如果非NULS体系地址(比特币)：address=原始地址长度+原始地址
+  5.1、如果是NULS体系校验位：xor=XOR(addressType+pkh)
+  5.1、如果非NULS体系校验位：xor=XOR(length+address)
+  6、base58计算生成地址字符串：
+     NULS体系地址：Base58(type+hash160+xor)+Base58(chainId)
+     非NULS体系地址：Base58(length+address+xor)+Base58(chainId)
+  7、根据密码对私钥进行加密，并将私钥的明文删除
+  8、返回账户信息，并不保存到数据库
   ```
 
 - ac_createOfflineAccount接口
@@ -452,17 +444,18 @@
   1、根据私钥生成公私钥对
   2、获取chainId和账户类型
   3、根据公钥计算hash160
-  4、拼接字节数组组成地址：chainId+type+hash160
-  4.1、如果是NULS体系地址：address=chainId+type+hash160
-  4.2、如果非NULS体系地址(比特币)：chainId+原始地址长度+原始地址
-  5、生成地址字符串：地址byte[]+校验位 进行base58计算生成字符串
-  5.1、如果是NULS体系校验位：xor=XOR(chainId+addressType+pkh)
-  5.1、如果非NULS体系校验位：xor=XOR(chainId+length+address)
-     address = Base58Encode(address+xor)
-  6、根据密码对私钥进行加密，并将私钥的明文删除
-  7、存储账户信息
-  8、将账户加入缓存
-  9、若发送导入账户事件：账户已存在的情况不发布新事件，只做覆盖更新
+  4、拼接字节数组组成地址：
+  4.1、如果是NULS体系地址：address=type+hash160
+  4.2、如果非NULS体系地址(比特币)：address=原始地址长度+原始地址
+  5.1、如果是NULS体系校验位：xor=XOR(addressType+pkh)
+  5.1、如果非NULS体系校验位：xor=XOR(length+address)
+  6、base58计算生成地址字符串：
+     NULS体系地址：Base58(type+hash160+xor)+Base58(chainId)
+     非NULS体系地址：Base58(length+address+xor)+Base58(chainId)
+  7、根据密码对私钥进行加密，并将私钥的明文删除
+  8、存储账户信息
+  9、将账户加入缓存
+  10、若发送导入账户事件：账户已存在的情况不发布新事件，只做覆盖更新
   ```
 
 - ac_importAccountByPriKey接口
@@ -2013,8 +2006,6 @@
 
 ### 2.3 模块内部功能
 
-[^说明]: 这里说明该模块内部有哪些功能，每个功能的说明、流程描述、实现中依赖的外部服务，参考上面外部服务格式
-
 
 
 
@@ -2127,18 +2118,18 @@ server.port:8080    //提供服务的端口
   非NULS体系：chainId+length+address
 
 
-| `字段名称`      | ` type` | `说明`                   |
-| :-------------- | :------ | :----------------------- |
-| chainId         | short   | 链ID                     |
-| address         | String  | 账户地址（Base58Encode） |
-| alias           | String  | 账户别名                 |
-| status          | Integer | 账户状态                 |
-| pubKey          | byte[]  | 公匙                     |
-| priKey          | byte[]  | 私匙-未加密              |
-| encryptedPriKey | byte[]  | 已加密私匙               |
-| extend          | byte[]  | 扩展数据                 |
-| remark          | String  | 备注                     |
-| createTime      | long    | 创建时间                 |
+| `字段名称`      | ` type` | `说明`                                      |
+| :-------------- | :------ | :------------------------------------------ |
+| chainId         | short   | 链ID                                        |
+| address         | String  | 账户地址（Base58(address)+Base58(chainId)） |
+| alias           | String  | 账户别名                                    |
+| status          | Integer | 账户状态                                    |
+| pubKey          | byte[]  | 公匙                                        |
+| priKey          | byte[]  | 私匙-未加密                                 |
+| encryptedPriKey | byte[]  | 已加密私匙                                  |
+| extend          | byte[]  | 扩展数据                                    |
+| remark          | String  | 备注                                        |
+| createTime      | long    | 创建时间                                    |
 
 * Address对象设计（不持久化存储）
 
