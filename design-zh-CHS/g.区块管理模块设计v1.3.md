@@ -8,30 +8,40 @@
 
 #### 1.1.1 为什么要有《区块管理》模块
 
-    区块链上所有数据都保存在区块中，其他模块对区块中数据进行验证、业务处理都要先获取区块。
-    区块链程序初次启动时，需要同步主网的全量区块到本地，耗时长，且同步未完成时系统处于不可用状态，适合由单独模块完成该工作。
-    所以为其他模块提供统一的区块数据服务是必要的，也能更好地把区块的增删改查同区块的具体业务进行解耦，用到区块的模块不必关心区块的获取细节。
+​	区块链上所有交易数据都保存在区块中，所以要有一个模块负责区块的保存与管理，以便其他模块对区块中数据进行验证、业务处理时可以获取到区块。
+
+​	区块链程序初次启动时，需要同步网络上的全量区块到本地，这个过程一般耗时较长，且同步未完成时不能发起交易，所以适合由单独模块来完成该工作。
+
+​	综上所述，为其他模块提供统一的区块数据服务是必要的，也能更好地把区块的管理与区块的具体业务进行分离，用到区块的模块不必关心区块的获取细节。
 
 #### 1.1.2 《区块管理》要做什么
 
-    主链区块的同步、存储(DB)、查询、广播、转发、回滚、基础验证
-    分叉区块的判断、存储(cache)
-    分叉链与主链高度对比、切换
+​	系统启动时，判断本地区块高度是否达到网络上大多数节点的最新高度，如果没有达到，要从网络上下载区块到本地，进行区块的验证，验证通过后，保存到本地数据库，这叫区块的同步。
+
+​	区块同步完成后，系统开始正常运行，分下面两种情况讨论
+
+- 如果是自身节点进行打包区块，共识模块把打包好的区块交给区块管理模块之前，已经把区块信息广播到网络上，区块管理模块验证区块是否合法，验证通过并保存到数据库，并且要响应网络上的其他节点发起的获取该区块的请求。
+
+- 如果是网络上其他节点打包区块，本地节点会收到网络上发来的转发区块消息，此时要从其他节点获取区块信息，进行验证并保存。
+
+	异常情况下，区块验证不通过，新区块无法与主链上最后一个区块相连，就把该区块视为分叉区块，放入分叉链集合维护。当发现有一条分叉链A比主链B长一定高度时，进行切换，以分叉链A为最新的主链，原主链B进入分叉链集合维护。
+
+	对外提供区块头、区块查询服务
 
 #### 1.1.3 《区块管理》在系统中的定位
 
-    区块管理是底层模块之一，以下分功能讨论模块依赖情况
-    
-    依赖
-    
-    * 区块同步-依赖网络模块的通讯接口，依赖工具模块的序列化工具
-    * 区块存储、回滚-依赖工具模块的数据库存储工具、共识模块、交易管理模块
-    * 区块转发-依赖网络模块的广播消息接口
-    
-    被依赖
-    
-    * 整个系统可以发起交易-区块同步
-    * 共识模块：区块详细验证、打包-区块查询、区块保存、区块广播、区块回滚
+区块管理是底层模块之一，以下分功能讨论模块依赖情况
+
+依赖
+
+* 区块同步-依赖网络模块的通讯接口，依赖工具模块的序列化工具
+* 区块存储、回滚-依赖工具模块的数据库存储工具、共识模块、交易管理模块
+* 区块转发-依赖网络模块的广播消息接口
+
+被依赖
+
+* 整个系统可以发起交易-区块同步
+* 共识模块：区块详细验证、打包-区块查询、区块保存、区块广播、区块回滚
 
 ### 1.2 架构图
 
@@ -46,8 +56,8 @@
 1. 提供api，进行区块存储、查询、回滚的操作
 2. 从网络上同步最新区块，进行初步验证、分叉验证，如果没有分叉，调用共识模块进行共识验证，调用交易模块进行双花验证，全部验证通过后保存到本地。
 3. 区块同步、广播、转发消息的处理
-4. 分叉链维护、切换
-5. 分叉区块、孤儿区块的判断、存储
+4. 分叉区块的判断、存储
+5. 分叉链维护、切换
 
 ### 2.2 模块服务
 
@@ -55,9 +65,9 @@
 
 * 接口说明
 
-    1. 根据链ID、缓存的最新区块高度查询DB得到最新区块头HASH
-    2. 根据HASH查询DB得到区块头byte数组
-    3. 反序列化为区块头对象
+1. 根据链ID、缓存的最新区块高度查询DB得到最新区块头HASH
+2. 根据HASH查询DB得到区块头byte数组
+3. 反序列化为区块头对象
 
 * 请求示例
 
@@ -74,7 +84,7 @@
 | index | parameter | required | type    | description |
 | ----- | --------- | -------- | ------- | :---------: |
 | 0     | chainId   | true     | Long  |   链ID    |
-    
+
 * 返回示例
 
     Failed
@@ -134,10 +144,10 @@
 
 * 接口说明：
 
-    1. 根据链ID获取本地最新区块头
-    2. 根据区块头高度查询DB得到交易HASH列表
-    3. 根据HASH列表从交易管理模块获取交易数据
-    4. 组装成block对象
+1. 根据链ID获取本地最新区块头
+2. 根据区块头高度查询DB得到交易HASH列表
+3. 根据HASH列表从交易管理模块获取交易数据
+4. 组装成block对象
 
 * 请求示例
 
@@ -236,9 +246,9 @@
 
 * 接口说明
 
-    1. 根据链ID、高度查询DB得到最新区块头HASH
-    2. 根据HASH查询DB得到区块头byte数组
-    3. 反序列化为区块头对象
+1. 根据链ID、高度查询DB得到最新区块头HASH
+2. 根据HASH查询DB得到区块头byte数组
+3. 反序列化为区块头对象
 
 * 请求示例
 
@@ -256,7 +266,7 @@
 | ----- | --------- | -------- | ------- | :---------: |
 | 0     | chainId   | true     | Long  |   链ID    |
 | 1     | height   | true     | Long  |   区块高度    |
-    
+
 * 返回示例
 
     Failed
@@ -316,10 +326,10 @@
 
 * 接口说明：
 
-    1. 根据链ID、高度获取区块头
-    2. 根据区块头高度查询DB得到交易HASH列表
-    3. 根据HASH列表从交易管理模块获取交易数据
-    4. 组装成block对象
+1. 根据链ID、高度获取区块头
+2. 根据区块头高度查询DB得到交易HASH列表
+3. 根据HASH列表从交易管理模块获取交易数据
+4. 组装成block对象
 
 * 请求示例
 
@@ -419,8 +429,8 @@
 
 * 接口说明
 
-    1. 根据链ID、HASH查询DB得到区块头byte数组
-    2. 反序列化为区块头对象
+1. 根据链ID、HASH查询DB得到区块头byte数组
+2. 反序列化为区块头对象
 
 * 请求示例
 
@@ -438,7 +448,7 @@
 | ----- | --------- | -------- | ------- | :---------: |
 | 0     | chainId   | true     | Long  |   链ID    |
 | 1     | hash   | true     | String  |   区块hash    |
-    
+
 * 返回示例
 
     Failed
@@ -498,10 +508,10 @@
 
 * 接口说明：
 
-    1. 根据链ID、hash获取区块头
-    2. 根据区块头高度查询DB得到交易HASH列表
-    3. 根据HASH列表从交易管理模块获取交易数据
-    4. 组装成block对象
+1. 根据链ID、hash获取区块头
+2. 根据区块头高度查询DB得到交易HASH列表
+3. 根据HASH列表从交易管理模块获取交易数据
+4. 组装成block对象
 
 * 请求示例
 
@@ -601,7 +611,7 @@
 
 * 接口说明
 
-    某个ChainID上的区块同步完成时，更新缓存的同步状态标识。同步区块未完成时，禁止发起交易
+某个ChainID上的区块同步完成时，更新缓存的同步状态标识。同步区块未完成时，禁止发起交易
 
 * 请求示例
 
@@ -618,7 +628,7 @@
 | index | parameter | required | type    | description |
 | ----- | --------- | -------- | ------- | :---------: |
 | 0     | chainId   | true     | Long  |   链ID    |
-    
+
 * 返回示例
 
     Failed
@@ -653,11 +663,11 @@
 
 * 接口说明
 
-    1. 令queryHash=endHash
-    2. 根据链ID、queryHash查询DB得到区块头byte数组
-    3. 反序列化为区块头对象blockHeader，添加到List中作为返回值
-    4. 如果blockHeader.hash!=startHash，令queryHash=blockHeader.preHash，重复第2步
-    5. 返回List
+1. 令queryHash=endHash
+2. 根据链ID、queryHash查询DB得到区块头byte数组
+3. 反序列化为区块头对象blockHeader，添加到List中作为返回值
+4. 如果blockHeader.hash!=startHash，令queryHash=blockHeader.preHash，重复第2步
+5. 返回List
 
 * 请求示例
 
@@ -676,7 +686,7 @@
 | 0     | chainId   | true     | Long  |   链ID    |
 | 1     | startHeight   | true     | Long  |   起始高度    |
 | 2     | endHeight   | true     | Long  |   结束高度    |
-    
+
 * 返回示例
 
     Failed
@@ -741,11 +751,11 @@
 
 * 接口说明
 
-    1. 令queryHash=endHash
-    2. 根据链ID、queryHash查询DB得到区块byte数组
-    3. 反序列化为区块对象block，添加到List中作为返回值
-    4. 如果block.hash!=startHash，令queryHash=block.preHash，startHash，重复第2步
-    5. 返回List
+1. 令queryHash=endHash
+2. 根据链ID、queryHash查询DB得到区块byte数组
+3. 反序列化为区块对象block，添加到List中作为返回值
+4. 如果block.hash!=startHash，令queryHash=block.preHash，startHash，重复第2步
+5. 返回List
 
 * 请求示例
 
@@ -764,7 +774,7 @@
 | 0     | chainId   | true     | Long  |   链ID    |
 | 1     | startHeight   | true     | Long  |   起始高度    |
 | 2     | endHeight   | true     | Long  |   结束高度    |
-    
+
 * 返回示例
 
     Failed
@@ -847,74 +857,11 @@
   
     略
 
-#### 2.2.10 设置节点最新高度、最新Hash
+#### 2.2.10 接收最新打包区块
 
 * 接口说明
 
-    略
-
-* 请求示例
-
-    ```
-    {
-      "cmd": "bl_setNodesInfo",
-      "minVersion":"1.1",
-      "params": [
-        {
-           chainId：122,//链id
-           nodeId:"20.20.30.10:9902"
-           magicNumber：134124,//魔法参数
-           version：2,//协议版本号
-           blockHeight：6000,   //区块高度
-           blockHash："0020ba3f3f637ef53d025d",  //区块Hash值
-           ip："200.25.36.41",//ip地址
-           port：54,//
-           state："已连接",
-           isOut："1", //0被动连接，1主动连接
-           time："6449878789", //最近连接时间
-        },{}
-      ]
-    }
-    ```
-
-* 请求参数说明
-
-    略
-    
-* 返回示例
-
-    Failed
-    
-    ```
-    {
-        "version": 1.2,
-        "code": 1,
-        "msg": "error message",
-        "result": {}
-    }
-    ```
-    
-    Success
-    
-    ```
-    {
-        "version": 1.2,
-        "code": 0,
-        "result": {"sync": "true"}
-    }
-    ```
-    
-* 返回字段说明
-  
-| parameter | type      | description                                |
-| --------- | --------- | ------------------------------------------ |
-| sync      | String    | 区块信息同步是否完成                          |
-
-#### 2.2.11 接受节点最新打包区块
-
-* 接口说明
-
-    本地节点共识模块打包后，调用此接口保存区块数据，不做验证
+本地节点共识模块打包后，调用此接口保存区块数据，不做验证
 
 * 请求示例
 
@@ -923,55 +870,7 @@
       "cmd": "bl_receivePackingBlock",
       "minVersion":"1.1",
       "params": [
-        "blockHeader": {
-            "chainId": "888",
-            "hash": "xxxxxxx",
-            "preHash": "xxxxxxx",
-            "merkleHash": "1",
-            "height": 1,
-            "size": 1,
-            "time": 1,
-            "txCount": 1,
-            "packingAddress": "1",
-            "reward": 0,
-            "fee": 0,
-            "extend": xxxxxxx,HEX
-            "scriptSig": "1"
-        }, //区块头
-        "transactions": [
-            {
-                "chainId": "888", //链Id
-                "height": "1", //区块高度
-                "hash": "1", //交易HASH
-                "remark": "1", //交易备注
-                "size": "1", //交易大小
-                "time": "1", //交易时间
-                "type": "1", //交易类型
-                "transactionSignature": "1", //交易签名
-                "coinData": {
-                    "from" : [
-                        {
-                            “fromAssetsChainId”：“”//资产发行链的id  
-                            “fromAssetsId”：“”//资产id
-                            “fromAddress”：“”//转出账户地址
-                            “amount”：“”//转出金额
-                            “nonce”：“”//交易顺序号，递增
-                        },{...}
-                    ]
-                    "to" : [
-                        {
-                            “toAssetsChainId”：“”//资产发行链的id  
-                            “toAssetsId”：“”//资产id
-                            “toAddress”：“”//转出账户地址
-                            “amount”：“”//转出金额
-                            “locktime”：“”
-                        },{...}
-                    ]
-                }
-                "txData": XXXX, //交易数据 HEX
-            },
-            {...}
-        ] //交易列表
+      	blockhex//能用hex就用hex
       ]
     }
     ```
@@ -979,11 +878,11 @@
 * 请求参数说明
 
     略
-    
+
 * 返回示例
 
     Failed
-    
+
     ```
     {
         "version": 1.2,
@@ -992,9 +891,9 @@
         "result": {}
     }
     ```
-    
+
     Success
-    
+
     ```
     {
         "version": 1.2,
@@ -1002,9 +901,9 @@
         "result": {"sync": "true"}
     }
     ```
-    
+
 * 返回字段说明
-  
+
 | parameter | type      | description                                |
 | --------- | --------- | ------------------------------------------ |
 | sync      | String    | 区块是否保存成功                          |
@@ -1029,8 +928,6 @@
 
 * 依赖服务
 
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-  
   工具模块、内核模块
 
 #### 2.3.2 区块存储
@@ -1041,7 +938,7 @@
     
    * 主链存储
    ```
-        不同的链存在不同的表，表名加chainID后缀
+        不同的链存到不同的表，表名加chainID后缀
         一个完整的区块由区块头和交易组成，区块头与交易分别进行存储。
           区块头：(放在区块管理模块)
               key(区块高度)-value(区块头hash)              block-header-index
@@ -1050,7 +947,8 @@
    ```
    * 分叉链存储
    ```
-        不同的分叉链集合存在不同的表，表名加chainID后缀
+        不同链的分叉链集合存在不同的表，表名加chainID后缀
+            key(start区块高度+start区块hash)-value(完整的chains)           chains
         ChainContainer(分叉链)
             private Chain chain;
                     private String id;
@@ -1059,37 +957,6 @@
                     private BlockHeader endBlockHeader;
                     private List<BlockHeader> blockHeaderList;
                     private List<Block> blockList;
-                    private List<Agent> agentList;
-                    private List<Deposit> depositList;
-                    private List<PunishLogPo> yellowPunishList;
-                    private List<PunishLogPo> redPunishList;
-            private RoundManager roundManager;
-                    private List<MeetingRound> roundList = new ArrayList<>();
-                            private Account localPacker;
-                            private double totalWeight;
-                            private long index;
-                            private long startTime;
-                            private long endTime;
-                            private int memberCount;
-                            private List<MeetingMember> memberList;
-                                private long roundIndex;
-                                private long roundStartTime;
-                                private byte[] agentAddress;
-                                private byte[] packingAddress;
-                                private byte[] rewardAddress;
-                                private NulsDigestData agentHash;
-                                private int packingIndexOfRound;
-                                private double creditVal;
-                                private Agent agent;
-                                private List<Deposit> depositList = new ArrayList<>();
-                                private Na totalDeposit = Na.ZERO;
-                                private Na ownDeposit = Na.ZERO;
-                                private double commissionRate;
-                                private String sortValue;
-                                private long packStartTime;
-                                private long packEndTime;
-                            private MeetingRound preRound;
-                            private MeetingMember myMember;
    ```
 
 * 流程描述
@@ -1232,7 +1099,7 @@
 
 * 流程描述
   ​      
-  - 检查是否有孤儿链能链接上主链或分叉链，如果有则链接
+  - 检查是否有分叉链能链接上主链，如果有则链接
   - 取出最长的一条分叉链与主链长度对比判断是否需要切换主链
       - 如果分叉链长度比主链长度长3（配置）个区块以上则需要切换主链
       - 找到主链与最长分叉链的分叉点
@@ -1250,7 +1117,7 @@
 
 * 功能说明：
 
-    略
+    详细说明
 
 * 流程描述
 
@@ -1277,7 +1144,7 @@
 4. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装GetTxGroupRequest发给源节点
 5. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
 6. 至此所有区块数据已经发送给目标节点。
-  
+
 * 依赖服务
 
   工具模块的数据库存储工具
@@ -1304,11 +1171,11 @@
 
 ### 3.1 发布的事件
 
-#### 3.1.1 保存区块
+#### 3.1.1 同步完成
 
-说明：每保存一个区块，发布该事件
+说明：同步完成，本地区块高度与网络高度一致时，发布该事件
 
- event_topic : "evt_bl_saveBlock",
+ event_topic : "bl_blockSyncComplete",
 
 ```
 data:{
@@ -1318,11 +1185,25 @@ data:{
 }
 ```
 
-#### 3.1.2 回滚区块
+#### 3.1.2 保存区块
+
+说明：每保存一个区块，发布该事件，初次同步时不发该事件
+
+ event_topic : "bl_saveBlock",
+
+```
+data:{
+    chainId
+    height
+    hash
+}
+```
+
+#### 3.1.3 回滚区块
 
 说明：每回滚一个区块，发布该事件   
 
- event_topic : "evt_bl_rollbackBlock",
+ event_topic : "bl_rollbackBlock",
 
 ```
 data:{
@@ -1348,9 +1229,9 @@ data:{
 
 * 消息说明：用于“转发区块”功能
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  18
+  ForwardSmallBlock
 
 * 消息的格式（txData）
 
@@ -1375,9 +1256,9 @@ data:{
 
 * 消息说明：用于“转发区块”功能
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  19
+  GetSmallBlock
 
 * 消息的格式（txData） 
 
@@ -1403,7 +1284,7 @@ data:{
 
 * 消息类型（short）
 
-  11
+  SmallBlock
 
 * 消息的格式（txData）
 
@@ -1448,9 +1329,9 @@ data:{
 
 * 消息说明：用于“同步区块”功能
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  6
+  GetBlocksByHeight
 
 * 消息的格式（txData）
 
@@ -1475,9 +1356,9 @@ data:{
 
 * 消息说明：用于“区块同步”
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  3
+  GetBlock
 
 * 消息的格式（txData）
 
@@ -1502,9 +1383,9 @@ data:{
 
 * 消息说明：用于“区块同步”
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  4
+  Block
 
 * 消息的格式（txData）
 
@@ -1557,9 +1438,9 @@ data:{
 
 * 消息说明：通用消息，用于异步请求，标志目标节点未找到对应信息。
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  1
+  NotFound
 
 * 消息的格式（txData）
 
@@ -1585,7 +1466,7 @@ data:{
 
 * 消息类型（short）
 
-  16
+  React
 
 * 消息的格式（txData）
 
@@ -1608,9 +1489,9 @@ data:{
 
 * 消息说明：通用消息，用于异步请求，标志异步请求处理结束。
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  15
+  Complete
 
 * 消息的格式（txData）
 
@@ -1634,9 +1515,9 @@ data:{
 
 * 消息说明：用于“转发区块”
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  9
+  GetTxGroup
 
 * 消息的格式（txData）
 
@@ -1660,9 +1541,9 @@ data:{
 
 * 消息说明：用于“转发区块”
 
-* 消息类型（short）
+* 消息类型（cmd）
 
-  10
+  TxGroup
 
 * 消息的格式（txData）
 
@@ -1699,30 +1580,82 @@ data:{
 
 ## 五、模块配置
 
-[^说明]: 本模块必须要有的配置项
-
 ```
-#common
-server.ip=0.0.0.0   //服务ip，若不配置则默认使用127.0.0.1
-server.port=8080    //服务端口，若未配置，则随机选择端口
-whitelist=0.0.0.0   //白名单
-blacklist=0.0.0.0   //黑名单
+{
+    {
+        "name": "serverIp",
+        "remark": “服务ip”,
+        "changable": "true",
+        "default": "127.0.0.1"
+    },
+    {
+        "name": "serverPort",
+        "remark": “服务端口”,
+        "changable": "true",
+        "default": ""
+    },
+    {
+        "name": "blockSize",
+        "remark": “区块大小”,
+        "changable": "false",
+        "default": "3m"
+    },
+    {
+        "name": "resetTime",
+        "remark": “持续多长时间区块高度没有更新时，就重新获取可用节点”,
+        "changable": "true",
+        "default": "180"
+    },
+    {
+        "name": "forkCount",
+        "remark": “当分叉链比主链高于多少高度时，进行切换”,
+        "changable": "false",
+        "default": "3"
+    },
+    {
+        "name": "cacheSize",
+        "remark": “分叉链缓存大小”,
+        "changable": "true",
+        "default": "50m"
+    },
+    {
+        "name": "heightRange",
+        "remark": “缓存到分叉链的高度区间”,
+        "changable": "false",
+        "default": "1000"
+    },
+    {
+        "name": "maxRollback",
+        "remark": “每次最多回滚多少区块”,
+        "changable": "true",
+        "default": "20"
+    },
+    {
+        "name": "consistencyNodePercent",
+        "remark": “一致可用节点最低比例，低于此数不同步区块”,
+        "changable": "false",
+        "default": "80"
+    },
+    {
+        "name": "minNodeAmount",
+        "remark": “最小可用节点个数，低于此数不同步区块”,
+        "changable": "false",
+        "default": "10"
+    },
+    {
+        "name": "downloadNumber",
+        "remark": “同步时，每次从一个节点下载多少区块”,
+        "changable": "true",
+        "default": "20"
+    },
+    {
+        "name": "extendMaxSize",
+        "remark": “区块头扩展字段最大值”,
+        "changable": "false",
+        "default": "1024"
+    }
+}
 
-#sync
-downloadNumber=20               //同步时，每次从一个节点下载多少区块
-minNodeAmount=10                //最小可用节点个数，低于此数不同步区块
-consistencyNodePercent=80       //一致可用节点最低比例，低于此数不同步区块
-
-#rollback
-maxRollback=20                  //每次最多回滚多少区块
-
-#forkChain
-heightRange=1000    //缓存到分叉链的高度区间
-cacheSize=50m       //分叉链缓存大小
-forkCount=3         //当分叉链比主链高于多少高度时，进行切换
-
-#reset
-resetTime=180       //持续多长时间区块高度没有更新时，就重新获取可用节点
 ```
 
 ## 六、Java特有的设计

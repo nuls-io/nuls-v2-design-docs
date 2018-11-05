@@ -8,32 +8,40 @@
 
 #### 1.1.1 Why do you should have the block management module
 
-Chain all data is stored in the block, the other modules in the block data validation, business processing will take first block.
-Block chain program start for the first time, need to be synchronized provids the full amount of blocks to the local, time-consuming, 
-and not finished synchronously system is in a state is not available, for by a separate module to complete the job.
-So for other modules provide unified regional data service is necessary, also can better to add and delete from the block of the specific business decouple, 
-use modules do not have to care about the block to get details.
+All transaction data in the blockchain is stored in the block, so there is a module responsible for the saving and management of the block, so that other modules can obtain the block when verifying the data in the block and processing the business.
+
+When the blockchain program is started for the first time, it is necessary to synchronize the full block on the network to the local. This process is generally time consuming, and the transaction cannot be initiated when the synchronization is not completed, so it is suitable for the work to be performed by a separate module.
+
+In summary, it is necessary to provide a unified block data service for other modules, and it is also better to separate the management of the block from the specific service of the block. The modules used in the block do not have to care about the block. Get the details.
 
 #### 1.1.2 Block management module's tasks
 
-Main chain block of synchronization, storage (DB), query, broadcasting, forwarding, rollback, basic authentication
-Judgment of the fork block storage (cache)
-Branch chain and main chain high contrast, switching
+When the system starts, it is judged whether the height of the local block reaches the latest height of most nodes on the network. If it is not reached, the block is downloaded from the network to the local area, and the block is verified. After the verification is passed, the data is saved to the local database. This is called synchronization of blocks.
+
+After the block synchronization is completed, the system starts normal operation and is discussed in the following two cases.
+
+- If the self-node performs the packing block, the consensus module broadcasts the block information to the network before the packaged block is handed over to the block management module. The block management module verifies that the block is legal, and the verification passes and saves. Go to the database and respond to requests from other nodes on the network to get the block.
+
+- If other nodes on the network are packing blocks, the local node will receive the forwarding block message sent from the network. At this time, the block information is obtained from other nodes, verified and saved.
+
+In the abnormal case, the block verification fails, and the new block cannot be connected to the last block on the main chain. The block is regarded as a forked block and placed in the forked chain set for maintenance. When it is found that one of the bifurcation chains A is longer than the main chain B, the switching is performed, and the bifurcation chain A is the latest main chain, and the original main chain B enters the bifurcation chain assembly maintenance.
+
+Provide block header and block query services to the outside world
 
 #### 1.1.3 The position of block management module in the system
 
-Block management is one of the underlying module, function modules depend on the following points
+Block management is one of the underlying modules. The following sub-functions discuss module dependencies.
 
-Rely on
+rely
 
-* block synchronization - rely on the network communication interface module, rely on the tool module serialization tool
-* block storage, rollback - rely on tools module database storage module, transaction management module, consensus
-* block forward - rely on the network broadcast message interface module
+* Block synchronization - depends on the communication interface of the network module, relying on the serialization tool of the tool module
+* Block storage, rollback-dependent tool module database storage tool, consensus module, transaction management module
+* Block forwarding - dependent on the network module's broadcast message interface
 
-Be dependent on
+Be dependent
 
-* the whole system can initiate transactions - block in sync
-* consensus modules: detailed validation query, package - blocks, the block preservation, broadcasting, the block rolled back
+* The entire system can initiate transactions - block synchronization
+* Consensus module: block detailed verification, packing - block query, block saving, block broadcasting, block rollback
 
 ### 1.2 Architecture diagram
 
@@ -47,9 +55,9 @@ Be dependent on
 
 1. Provide the API to block storage, query, a rollback operation
 2. Synchronous latest blocks from the Internet, a preliminary verification, validation, bifurcation without bifurcate, call consensus in a consensus based verification, the trading module dual authentication, all validation after saved to the local.
-3. Block synchronization, broadcasting, forwarding message processing
-4. Branch chain maintenance, switch
-5. Bifurcate, orphans the block judgment, storage
+3. Block synchronization, broadcasting, forwarding message process
+4. Fork chains maintenance and switch
+5. Fork blocks judgment and storage
 
 ### 2.2 The module service
 
@@ -57,9 +65,9 @@ Be dependent on
 
 * Interface specification
 
-1. According to the latest cache highly query DB to get the latest the block head HASH
-2. According to the HASH query DB get block header byte array
-3. Deserialization for block header object
+1. Query the DB according to the chain ID and the latest block height of the cache to get the latest block header HASH.
+2. According to the HASH query DB to get the block header byte array
+3. Deserialize to block header object
 
 * Sample request
 
@@ -136,11 +144,10 @@ Be dependent on
 
 * Interface specification：
 
-1. Get the latest local block
-2. According to the height of block head query DB transaction HASH list
-3. According to the HASH list query DB transaction byte array
-4. Deserialization as trading objects
-5. Assemble block object
+1. Get the latest local block header based on the chain ID
+2. Query the DB according to the block head height to get the transaction HASH list.
+3. Obtain transaction data from the transaction management module according to the HASH list
+4. Assemble into a block object
 
 * Sample request
 
@@ -239,9 +246,9 @@ Be dependent on
 
 * Interface specification
 
-1. According to the height of the query DB is the latest block head HASH
-2. According to the HASH query DB get block header byte array
-3. Deserialization for block header object
+1. According to the chain ID and height query DB, get the latest block header HASH
+2. According to the HASH query DB to get the block header byte array
+3. Deserialize to block header object
 
 * Sample request
 
@@ -319,11 +326,10 @@ Be dependent on
 
 * Interface specification：
 
-1. According to height for block header
-2. According to the height of block head query DB transaction HASH list
-3. According to the HASH list query DB transaction byte array
-4. Deserialization as trading objects
-5. Assemble block object
+1. Get the block header according to the chain ID and height
+2. Query the DB according to the block head height to get the transaction HASH list.
+3. Obtain transaction data from the transaction management module according to the HASH list
+4. Assemble into a block object
 
 * Sample request
 
@@ -423,8 +429,8 @@ Be dependent on
 
 * Interface specification
 
-1. According to the HASH query DB get block header byte array
-2. Deserialization for block header object
+1. According to the chain ID, HASH query DB to get the block header byte array
+2. Deserialize to block header object
 
 * Sample request
 
@@ -502,11 +508,10 @@ Be dependent on
 
 * Interface specification：
 
-1. According to the hash for block header
-2. According to the block header height query DB get transaction 's hash list
-3. According to the HASH list query DB transaction byte array
-4. Deserialization as trading objects
-5. Assemble block object
+1. Get the block header according to the chain ID and hash
+2. Query the DB according to the block head height to get the transaction HASH list.
+3. Obtain transaction data from the transaction management module according to the HASH list
+4. Assemble into a block object
 
 * Sample request
 
@@ -606,7 +611,7 @@ Be dependent on
 
 * Interface specification
 
-    When the synchronization block unfinished, prohibit a deal
+When the block synchronization on a ChainID is completed, the cached synchronization status identifier is updated. It is forbidden to initiate a transaction when the sync block is not completed.
 
 * Sample request
 
@@ -745,11 +750,11 @@ Be dependent on
 
 * Interface specification
 
-1. Make queryHash = endHash
-2. According to queryHash query DB block byte array
-3. Deserialization block for block object, added to the List as a return value
-4. If the block. The hash!= startHash, make queryHash = block. PreHash startHash, repeat step 2
-5. Return to the List
+1. make queryHash=endHash
+2. According to the chain ID, queryHash query DB to get the block byte array
+3. Deserialize to block object block, add to List as return value
+4. If block.hash!=startHash, make queryHash=block.preHash, startHash, repeat step 2
+5. Return to List
 
 * Sample request
 
@@ -855,7 +860,7 @@ Be dependent on
 
 * Interface specification
 
-    omit
+After the local node consensus module is packaged, this interface is called to save the block data without verification.
 
 * Sample request
 
@@ -940,6 +945,8 @@ Be dependent on
 
 * Functional specifications：
 
+Description storage table division
+
    * main chain's storage
 
 A complete block consists of a block header and a transaction, and the block header is stored separately from the transaction.
@@ -950,6 +957,8 @@ A complete block consists of a block header and a transaction, and the block hea
 
    
    * fork chain's storage
+Different branches of the bifurcation chain have different tables, table name plus chainID suffix
+    Key (start block height + start block hash) - value (complete chains) chains
    ```
         ChainContainer
             private Chain chain;
@@ -959,37 +968,6 @@ A complete block consists of a block header and a transaction, and the block hea
                     private BlockHeader endBlockHeader;
                     private List<BlockHeader> blockHeaderList;
                     private List<Block> blockList;
-                    private List<Agent> agentList;
-                    private List<Deposit> depositList;
-                    private List<PunishLogPo> yellowPunishList;
-                    private List<PunishLogPo> redPunishList;
-            private RoundManager roundManager;
-                    private List<MeetingRound> roundList = new ArrayList<>();
-                            private Account localPacker;
-                            private double totalWeight;
-                            private long index;
-                            private long startTime;
-                            private long endTime;
-                            private int memberCount;
-                            private List<MeetingMember> memberList;
-                                private long roundIndex;
-                                private long roundStartTime;
-                                private byte[] agentAddress;
-                                private byte[] packingAddress;
-                                private byte[] rewardAddress;
-                                private NulsDigestData agentHash;
-                                private int packingIndexOfRound;
-                                private double creditVal;
-                                private Agent agent;
-                                private List<Deposit> depositList = new ArrayList<>();
-                                private Na totalDeposit = Na.ZERO;
-                                private Na ownDeposit = Na.ZERO;
-                                private double commissionRate;
-                                private String sortValue;
-                                private long packStartTime;
-                                private long packEndTime;
-                            private MeetingRound preRound;
-                            private MeetingMember myMember;
    ```
 
 * process description
@@ -1095,29 +1073,7 @@ A complete block consists of a block header and a transaction, and the block hea
 
   Database storage tool of tool modules
 
-#### 2.3.4 fork chain management
-
-* Functional specifications：
-
-  Determine if the fork chain and the main chain need to be switched
-
-* process description
-  ​      
-    - Check if there is an orphan chain that links to the main chain or the forked chain, if any
-    - Take the longest one of the fork chains and compare the length of the main chain to determine whether you need to switch the main chain
-        - If the length of the fork chain is longer than the length of the main chain by 3 (configured), you need to switch the main chain.
-        - Find the bifurcation point of the main chain and the longest bifurcation chain
-        - Verify the block in the forked chain if the verification continues by going down
-        - Roll back the main chain block
-        - Switch the fork chain as the main chain
-
-![](./image/consensus-module/consensus-flow-3.png)
-
-* Dependent service
-
-  Database storage tool of tool modules
-
-#### 2.3.5 fork block management
+#### 2.3.4 fork block management
 
 * Functional specifications：
 
@@ -1153,26 +1109,29 @@ A complete block consists of a block header and a transaction, and the block hea
 
   Database storage tool of tool modules
 
-#### 2.3.6 Block monitoring
+#### 2.3.5 fork chain management
 
 * Functional specifications：
 
-  omit
+  Determine if the fork chain and the main chain need to be switched
 
 * process description
+  ​      
+    - Check if there is an orphan chain that links to the main chain or the forked chain, if any
+    - Take the longest one of the fork chains and compare the length of the main chain to determine whether you need to switch the main chain
+        - If the length of the fork chain is longer than the length of the main chain by 3 (configured), you need to switch the main chain.
+        - Find the bifurcation point of the main chain and the longest bifurcation chain
+        - Verify the block in the forked chain if the verification continues by going down
+        - Roll back the main chain block
+        - Switch the fork chain as the main chain
 
-![](./image/consensus-module/consensus-flow-6.png)
-
-    - Start monitoring scheduled tasks, once every minute
-    - Take the local latest block header
-    - Verify that the network module needs to be restarted (if the latest local block has not been updated for 3 minutes, the network module needs to be disconnected and reconnected randomly)
-    - to be perfected
+![](./image/consensus-module/consensus-flow-3.png)
 
 * Dependent service
 
   Database storage tool of tool modules
 
-#### 2.3.7 forward block
+#### 2.3.6 forward block
 
 * Functional specifications：
 
@@ -1189,7 +1148,7 @@ A complete block consists of a block header and a transaction, and the block hea
 
   Database storage tool of tool modules
 
-#### 2.3.8 braodcast block
+#### 2.3.7 braodcast block
 
 * Functional specifications：
 
@@ -1208,14 +1167,47 @@ A complete block consists of a block header and a transaction, and the block hea
 * Dependent service
 
   Database storage tool of tool modules
+  
+#### 2.3.8 Block monitoring
+
+* Functional specifications：
+
+  omit
+
+* process description
+
+![](./image/consensus-module/consensus-flow-6.png)
+
+    - Start monitoring scheduled tasks, once every minute
+    - Take the local latest block header
+    - Verify that the network module needs to be restarted (if the latest local block has not been updated for 3 minutes, the network module needs to be disconnected and reconnected randomly)
+    - to be perfected
+
+* Dependent service
+
+  Database storage tool of tool modules
 
 ## Chapter 3. Events
 
 ### 3.1 published event
 
-#### 3.1.1 save block event
+#### 3.1.1 Synchronization completed
 
-instruction：Each save a block, release the event
+Description: The synchronization is completed. When the height of the area is the same as the height of the network, the event is released.
+
+  Event_topic : "bl_blockSyncComplete",
+
+```
+Data:{
+     chainId
+     Height
+     Hash
+}
+```
+
+#### 3.1.2 save block event
+
+Description：Each save a block, release the event
 
  event_topic : "evt_bl_saveBlock",
 
@@ -1227,9 +1219,9 @@ data:{
 }
 ```
 
-#### 3.1.2 rollback block event
+#### 3.1.3 rollback block event
 
-instruction：Each roll back a block, release the event
+Description：Each roll back a block, release the event
 
  event_topic : "evt_bl_rollbackBlock",
 
@@ -1257,14 +1249,15 @@ data:{
 
 * Message description：Used for the "forward block" function
 
-* Message type（short）
+* Message type（cmd）
 
-  18
+  ForwardSmallBlock
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | hashLength        | VarInt    | array's length           |
 | ?     | hash        | byte[]    | hash           |
@@ -1275,21 +1268,23 @@ data:{
 
 * Message processing logic
 
-1. Determine if the hash is repeated
-2. If there is no duplication, assemble GetSmallBlockMessage with hash and send it to the source node.
+1. After receiving the message, the target node first determines whether the hash in the cache is duplicated according to the chainID.
+2. If it is repeated, it indicates that the SmallBlock forwarded by another node has been received, and the message is discarded.
+3. If there is no duplication, assemble GetSmallBlockMessage with hash and send it to the source node.
 
-#### 4.2.2 Get cell block message-GetSmallBlockMessage
+#### 4.2.2 Get small block message-GetSmallBlockMessage
 
 * Message description：Used for the "forward block" function
 
-* Message type（short）
+* Message type（cmd）
 
-  19
+  GetSmallBlock
 
 * Message format（txData） 
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | hashLength      | VarInt    | array's length           |
 | ?     | hash            | byte[]    | hash           |
@@ -1307,14 +1302,15 @@ data:{
 
 * Message description：Used for "forwarding block" and "broadcast block" functions
 
-* Message type（short）
+* Message type（cmd）
 
-  11
+  SmallBlock
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | preHashLength   | VarInt    | preHash array's length           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1352,14 +1348,15 @@ data:{
 
 * Message description：For the "sync block" function
 
-* Message type（short）
+* Message type（cmd）
 
-  6
+  GetBlocksByHeight
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 32     | startHeight  | uint32      | start Height           |
 | 32     | endHeight  | uint32      | end Height           |
 
@@ -1378,14 +1375,15 @@ data:{
 
 * Message description：Used for "block synchronization"
 
-* Message type（short）
+* Message type（cmd）
 
-  3
+  GetBlock
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | HashLength   | VarInt    | Hash array's length           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1404,14 +1402,15 @@ data:{
 
 * Message description：Used for "block synchronization"
 
-* Message type（short）
+* Message type（cmd）
 
-  4
+  Block
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | preHashLength   | VarInt    | preHash array's length           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1452,20 +1451,21 @@ data:{
 * Message processing logic
 
 1. Put into the cache queue
-2. Callback Future.complete to complete the asynchronous request
+2. Wait for other blocks to be synchronized
 
 #### 4.2.7 Data message not found-NotFoundMessage
 
 * Message description：A generic message for an asynchronous request that marks the target node not finding the corresponding information.
 
-* Message type（short）
+* Message type（cmd）
 
-  1
+  NotFound
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | msgType        | byte    | Data type not found           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | HashLength   | VarInt    | Hash array's length           |
@@ -1483,14 +1483,15 @@ data:{
 
 * Message description：A generic message, used for asynchronous requests, to flag that the target node receives the request and is processing it.
 
-* Message type（short）
+* Message type（cmd）
 
-  16
+  React
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | HashLength   | VarInt    | Hash array's length           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1501,20 +1502,21 @@ data:{
 
 * Message processing logic
 
-    omit
+1. Find the asynchronous request of the source node cache according to the chainID and hash, and set the processing result flag to wait.
 
 #### 4.2.9 Request completion message-CompleteMessage
 
 * Message description：A generic message for asynchronous requests that marks the end of asynchronous request processing.
 
-* Message type（short）
+* Message type（cmd）
 
-  15
+  Complete
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | HashLength   | VarInt    | Hash array's length           |
 | ?     | Hash         | byte[]    | Hash           |
@@ -1526,20 +1528,21 @@ data:{
 
 * Message processing logic
 
-    omit
+1. Find the asynchronous request of the source node cache according to the chainID and hash, and set the processing result flag to complete.
 
 #### 4.2.10 Get the message of the transaction list-GetTxGroupRequest
 
 * Message description：Used for "forwarding blocks"
 
-* Message type（short）
+* Message type（cmd）
 
-  9
+  GetTxGroup
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | ?     | ArrayLength   | VarInt    | Hash list length           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | HashLength   | VarInt    | Hash array's length           |
@@ -1557,14 +1560,15 @@ data:{
 
 * Message description：Used for "forwarding blocks"
 
-* Message type（short）
+* Message type（cmd）
 
-  10
+  TxGroup
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
+| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | requestHashLength   | VarInt    | requestHash array's length           |
 | ?     | requestHash         | byte[]    | requestHash           |
@@ -1596,27 +1600,80 @@ data:{
 ## Chapter 5. The module configuration
 
 ```
-#common
-server.ip=0.0.0.0   //Service IP, if not configured default to 127.0.0.1
-server.port=8080    //Service port, if not configured, then randomly selected port
-whitelist=0.0.0.0
-blacklist=0.0.0.0
-
-#sync
-downloadNumber=20               //Every time synchronization, how many blocks from one node to download
-minNodeAmount=10                //Minimum of available nodes
-consistencyNodePercent=80       //Minimum consistent available nodes
-
-#rollback
-maxRollback=20                  //How many blocks per roll back
-
-#forkChain
-heightRange=1000    //The cache to the height of branch chain interval
-cacheSize=50m       //Branch chain cache size
-forkCount=3         //When forked chain how many height higher than main chains, to switch
-
-#reset
-resetTime=180       //How long block 's height there is no update, just to get available nodes
+{
+    {
+        "name": "serverIp",
+        "remark": "service ip",
+        "changable": "true",
+        "default": "127.0.0.1"
+    },
+    {
+        "name": "serverPort",
+        "remark": "service port",
+        "changable": "true",
+        "default": ""
+    },
+    {
+        "name": "blockSize",
+        "remark": "block size",
+        "changable": "false",
+        "default": "3m"
+    },
+    {
+        "name": "resetTime",
+        "remark": "When the block height is not updated for a long time, the available nodes are reacquired",
+        "changable": "true",
+        "default": "180"
+    },
+    {
+        "name": "forkCount",
+        "remark": "When the fork chain is higher than the main chain, switch",
+        "changable": "false",
+        "default": "3"
+    },
+    {
+        "name": "cacheSize",
+        "remark": "forked chain cache size",
+        "changable": "true",
+        "default": "50m"
+    },
+    {
+        "name": "heightRange",
+        "remark": "Cache to the height range of the forked chain",
+        "changable": "false",
+        "default": "1000"
+    },
+    {
+        "name": "maxRollback",
+        "remark": "How many blocks are rolled back at most each time",
+        "changable": "true",
+        "default": "20"
+    },
+    {
+        "name": "consistencyNodePercent",
+        "remark": "The lowest percentage of consistent nodes available, below this number of unsynchronized blocks",
+        "changable": "false",
+        "default": "80"
+    },
+    {
+        "name": "minNodeAmount",
+        "remark": "The minimum number of available nodes, lower than this number of unsynchronized blocks",
+        "changable": "false",
+        "default": "10"
+    },
+    {
+        "name": "downloadNumber",
+        "remark": "How many blocks are downloaded from one node each time during synchronization",
+        "changable": "true",
+        "default": "20"
+    },
+    {
+        "name": "extendMaxSize",
+        "remark": "block header extension field maximum value",
+        "changable": "false",
+        "default": "1024"
+    }
+}
 ```
 
 ## Chapter 6. Java's design
@@ -1632,6 +1689,7 @@ resetTime=180       //How long block 's height there is no update, just to get a
 > | ------------------- | ---------- | ---------- |
 > | blockHeader             | BlockHeader     | block header   |
 > | transactions | List<String>     | transaction's hash list |
+> | subTxList | List<Transaction>     | Transactions that other nodes must not have (such as consensus reward transactions, red and yellow card transactions, etc. |
 
 - BlockHeader Object design
 > | `field name`          | `field type` | `instruction`     |
