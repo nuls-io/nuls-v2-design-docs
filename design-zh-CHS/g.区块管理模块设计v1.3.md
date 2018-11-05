@@ -908,6 +908,104 @@
 | --------- | --------- | ------------------------------------------ |
 | sync      | String    | 区块是否保存成功                          |
 
+#### 2.2.11 运行一条链
+
+* 接口说明
+
+在链工厂发布一条链后，核心模块会调用区块管理模块的该接口，根据chainID初始化区块、分叉链数据库，开启chainID对应的一系列工作线程，并为运行新链做准备。
+
+* 请求示例
+
+    ```
+    {
+      "cmd": "bl_startChain",
+      "minVersion":"1.1",
+      "params": ["888"]
+    }
+    ```
+
+* 请求参数说明
+
+    略
+
+* 返回示例
+
+    Failed
+
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {"result": "true"}
+    }
+    ```
+
+* 返回字段说明
+
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| result      | String    | 新链是否启动成功                          |
+
+#### 2.2.12 停止一条链
+
+* 接口说明
+
+在链工厂停止一条链后，核心模块会调用区块管理模块的该接口，删除该链的缓存区块、分叉链数据，停止chainID对应的一系列工作线程。
+
+* 请求示例
+
+    ```
+    {
+      "cmd": "bl_stopChain",
+      "minVersion":"1.1",
+      "params": ["888"]
+    }
+    ```
+
+* 请求参数说明
+
+    略
+
+* 返回示例
+
+    Failed
+
+    ```
+    {
+        "version": 1.2,
+        "code": 1,
+        "msg": "error message",
+        "result": {}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+        "version": 1.2,
+        "code": 0,
+        "result": {"result": "true"}
+    }
+    ```
+
+* 返回字段说明
+
+| parameter | type      | description                                |
+| --------- | --------- | ------------------------------------------ |
+| result      | String    | 新链是否停止成功                          |
+
 ### 2.3 模块内部功能
 
 #### 2.3.1 模块启动
@@ -921,9 +1019,9 @@
 ![](./image/block-module/block-module-boot.png)
 
 - 1.加载区块模块配置信息
-- 2.注册区块模块消息、消息处理器
-- 3.注册区块模块服务接口
-- 4.注册区块模块事件
+- 2.加载区块模块消息、消息处理器
+- 3.注册区块模块服务接口（向核心模块注册）
+- 4.注册区块模块事件（向事件总线模块注册）
 - 5.启动同步区块线程、区块监控线程、分叉链处理线程
 
 * 依赖服务
@@ -947,16 +1045,16 @@
    ```
    * 分叉链存储
    ```
-        不同链的分叉链集合存在不同的表，表名加chainID后缀
-            key(start区块高度+start区块hash)-value(完整的chains)           chains
-        ChainContainer(分叉链)
-            private Chain chain;
-                    private String id;
-                    private String preChainId;
-                    private BlockHeader startBlockHeader;
-                    private BlockHeader endBlockHeader;
-                    private List<BlockHeader> blockHeaderList;
-                    private List<Block> blockList;
+        内存中缓存每一个分叉链的(起始高度、起始hash、结束高度、结束hash)，在硬盘中缓存全量分叉链数据
+        不同链的分叉链集合存在不同的表，表名加chainID后缀，每一个分叉链对象如下：
+            key(start区块高度+start区块hash)-value(完整的chains)          fork chains
+        private Chain chain;
+                private String id;
+                private String preChainId;
+                private BlockHeader startBlockHeader;
+                private BlockHeader endBlockHeader;
+                private List<BlockHeader> blockHeaderList;
+                private List<Block> blockList;
    ```
 
 * 流程描述
@@ -1083,7 +1181,8 @@
     - 5.MG<BG-1，说明网络分叉，处理同第2步
     - 6.MG>BG，说明网络分叉，处理同第2步
     
-    高度差1000以内缓存到磁盘，磁盘空间做大小限制，超出高度则丢弃，缓存空间满则按加入缓存时间顺序清理分叉链
+    高度差1000以内缓存到磁盘，磁盘空间做大小限制，超出高度则丢弃，缓存空间满则按加入缓存时间顺序清理分叉链。
+    如果是正常运行时，收到其他节点转发的区块，发现分叉了要通知共识模块给生成这个区块的节点红牌惩罚，系统启动后的同步过程中不做这个判断
 
   ![](./image/block-module/block-fork.png)
 
@@ -1595,8 +1694,8 @@ data:{
         "default": ""
     },
     {
-        "name": "blockSize",
-        "remark": “区块大小”,
+        "name": "blockMaxSize",
+        "remark": “区块大小最大值”,
         "changable": "false",
         "default": "3m"
     },
