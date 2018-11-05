@@ -1657,8 +1657,8 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     |   0   |  address  |   true   | String |           出块地址            |
     |   1   |   type    |   true   |  int   | 惩罚类型  1黄牌，2红牌，0全部 |
     |   2   |  chainId  |   true   | String |             链ID              |
-
-  - 返回示例
+ 
+ - 返回示例
 
     成功
 

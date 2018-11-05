@@ -104,10 +104,9 @@ Consensus mechanism——POC
 
 ```
 
-*图p1：共识奖励计算公式：*
+*Figure p1: Consensus reward calculation formula：*
 
 ![](./image/consensus-module/coinbase.png)
-
 ##### In the POC system, there are four roles: agent, principal, packager, and rewarder
 
 - Agent - the consensus agent creator. The NULS holder initiates a transaction to create a consensus agent, which is recorded in the chain and tells everyone that I want to be a consensus agent. The basic condition for agent creation is that 20,000-200,000 NULS need to be locked, and there is no red card penalty record. The purpose of setting up this basic condition is to prove that you are really trying to maintain the basic network of NULS.
@@ -193,7 +192,6 @@ The above is a functional analysis of the implementation of the consensus module
   * Return example
 
     success
-
     ```
     {
      	"version": 1.0,
@@ -290,7 +288,7 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //error code
+       	 "code":1,                                //error code
        	 "msg" :"错误Prompt message",             //Prompt message
          "result":{
             
@@ -309,13 +307,13 @@ The above is a functional analysis of the implementation of the consensus module
 - Function Description:
 
   ```
-  保存创建的共识节点信息
+  Save the created consensus node information
   ```
 
 - Process description
 
   ```
-  - 保存节点信息到数据库
+  - Save node information to the database
   ```
 
 - Interface definition
@@ -323,7 +321,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Interface Description
 
     ```
-    保存共识节点信息到数据库
+    Save consensus node information to the database
     ```
 
   - Request example
@@ -434,7 +432,7 @@ The above is a functional analysis of the implementation of the consensus module
     ```
 
     fail
-
+    
     ```
     {
          "version": 1.0,
@@ -595,7 +593,7 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //error code
+       	 "code":1,                            //error code
        	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
@@ -660,7 +658,6 @@ The above is a functional analysis of the implementation of the consensus module
         "code": 0,                                  //error code
         "msg": "Prompt message",                    //Prompt message 
         "result": {                                 //Returned business data set  
-      		
         }
     }
     ```
@@ -670,7 +667,7 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //error code
+       	 "code":1,                            //error code
        	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
@@ -756,7 +753,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
 #### 2.2.9 Apply to join the consensus
@@ -816,7 +813,7 @@ The above is a functional analysis of the implementation of the consensus module
         "code": 0,                                  //error code
         "msg": "Prompt message",                    //Prompt message
         "result": {                                 //Returned business data set  
-      		"value":"tx.getHash().getDigestHex()"   //Generated transaction hash value
+      		"value":"tx.getHash().getDigestHex()"     //Generated transaction hash value
         }
     }
     ```
@@ -1270,7 +1267,7 @@ The above is a functional analysis of the implementation of the consensus module
 
     ```
     {
-        "version":"1.0",  
+        "version":"1.0", 
         "code": 0,                                  //error code
         "msg": "Prompt message",                    //Prompt message 
         "result": {                                 //Returned business data set  
@@ -1582,7 +1579,7 @@ The above is a functional analysis of the implementation of the consensus module
                     "totalDeposit":，               
                     "txHash":""，                  
                     "memberCount":，                 
-                    "version":                       
+                    "version":       
              }
         }
     }
@@ -1593,7 +1590,7 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //error code
+       	 "code":1,                            //error code
        	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
@@ -1686,7 +1683,7 @@ The above is a functional analysis of the implementation of the consensus module
                     "time",""，                      
                     "height",，                     
                     "roundIndex",，                              
-                    "reasonCode",""                  
+                    "reasonCode",""                 
                 }，{
                    ......
                 }
@@ -1696,7 +1693,6 @@ The above is a functional analysis of the implementation of the consensus module
     ```
 
     fail
-
     ```
     {
          "version": 1.0,
@@ -1802,7 +1798,7 @@ The above is a functional analysis of the implementation of the consensus module
                     "txHash":""，                    
                     "status":,                       
                     "agentName":"",                  
-                    "agentAddress":""               
+                    "agentAddress":""  
                 }，{
                     
                 }
@@ -1907,7 +1903,7 @@ The above is a functional analysis of the implementation of the consensus module
                 "totalDeposit":,                    
                 "rewardOfDay":,                   
                 "consensusAccountNumber":,          
-                "packingAgentCount":                
+                "packingAgentCount":     
         	}
         }
     }
@@ -1941,17 +1937,17 @@ The above is a functional analysis of the implementation of the consensus module
 - Function Description:
 
   ```
-  查询指定账户共识信息，包括该账户自己创建的共识节点个数及节点hash，参与共识的总金额，该账户参与的共识节点个数，可用余额，共识奖金，24小时内获取的共识奖金
+  Query the consensus information of the specified account, including the number of consensus nodes created by the account and the node hash, the total amount of participation in the consensus, the number of consensus nodes participating in the account, the available balance, the consensus bonus, and the consensus bonus obtained within 24 hours.
   ```
 
 - Process description
 
   ```
-  - 获取全网网络共识节点列表
-  - 查看共识节点列表中是否有该账户创建的共识节点
-  - 获取当前网络委托列表
-  - 从委托列表中获取该账户参与的委托列表
-  - 从该账户的委托列表获取该账户的委托信息
+   - Get a list of network-wide consensus nodes
+   - Check if there is a consensus node created by the account in the consensus node list
+   - Get the current network delegate list
+   - Get the list of delegates participating in the account from the delegate list
+   - Obtain commission information for the account from the delegate list of the account
   ```
 
 - Interface definition
@@ -1959,7 +1955,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Interface Description
 
     ```
-    查询指定账户共识信息，包括该账户自己创建的共识节点个数及节点hash，参与共识的总金额，该账户参与的共识节点个数，可用余额，共识奖金，24小时内获取的共识奖金
+    Query the consensus information of the specified account, including the number of consensus nodes created by the account and the node hash, the total amount of participation in the consensus, the number of consensus nodes participating in the account, the available balance, the consensus bonus, and the consensus bonus obtained within 24 hours.
     ```
 
   - Request example
@@ -1986,17 +1982,17 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
         "code": 0,                                  //error code
-        "msg": "success",                           //错误Prompt message
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
         "result": {                                 //Returned business data set  
         	"data":{
-                "agentCount":,                      //该账户创建的节点个数
-                "totalDeposit":,                    //该账户总的委托金额
-                "joinAgentCount":,                  //该账户参与的共识节点个数
-                "usableBalance":,                   //账户可用余额
-                "reward":,                          //账户参与共识的所有奖励
-                "rewardOfDay":,                     //账户24小时内获取的共识奖励
-                "agentHash":""                      //账户创建的节点的hash
+                "agentCount":,                      
+                "totalDeposit":,                    
+                "joinAgentCount":,                 
+                "usableBalance":,                   
+                "reward":,                          
+                "rewardOfDay":,                     
+                "agentHash":""                    
         	}
         }
     }
@@ -2033,18 +2029,18 @@ The above is a functional analysis of the implementation of the consensus module
 - Function Description:
 
   ```
-  验证区块轮次信息，打包人，区块中交易信息，CoinBase是否正确，并验证是否有红黄牌交易生成
+  Verify the block round information, package the person, the transaction information in the block, whether the CoinBase is correct, and verify whether there is red and yellow card transaction generation.
   ```
 
 - Process description
 
   ```
-  - 验证分叉（调用区块管理模块接口），有分叉则生成红牌交易
-  - 验证双花（调用交易模块接口），有双花则生成红牌交易并直接返回验证fail
-  - 生成红牌交易，将红牌交易放入待打包交易池
-  - 验证区块轮次信息及打包人是否正确
-  - 验证区块中交易正确性（调用交易模块接口）
-  - 验证CoinBase交易
+   - Verify fork (call block management module interface), generate red card trade with fork
+   - Verify double flower (call transaction module interface), generate double card transaction with double flower and return to verify fail directly
+   - Generate red card trades and place red card trades in the trading pool to be packaged
+   - Verify block rotation information and packager correct
+   - Verify transaction correctness in the block (call transaction module interface)
+   - Verify CoinBase transactions
   ```
 
 - Interface definition
@@ -2052,7 +2048,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Interface Description
 
     ```
-    这个接口主要是验证区块轮次信息，打包人，区块中的交易以及CoinBase是否正确，并验证是否有红黄牌惩罚
+    This interface is mainly to verify the block round information, the packager, the transaction in the block and whether the CoinBase is correct, and verify whether there is a red and yellow card penalty.
     ```
 
   - Request example
@@ -2080,7 +2076,7 @@ The above is a functional analysis of the implementation of the consensus module
     {
         "version":"1.0",  
         "code": 0,                                  //error code
-        "msg": "Prompt message",                           //Prompt message                          
+        "msg": "Prompt message",                    //Prompt message                          
         "result": {                                 //Returned business data set  
       		
         }
@@ -2093,8 +2089,8 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //error code
-       	 "msg" :"错误Prompt message",             //Prompt message
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2104,7 +2100,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
 #### 2.2.24 Consensus module batch verification
@@ -2112,14 +2108,14 @@ The above is a functional analysis of the implementation of the consensus module
 - Function Description:
 
   ```
-  共识模块交易批量验证，验证每笔交易正确性，验证交易冲突
+  Consensus module transaction batch verification, verify the correctness of each transaction, verify transaction conflict
   ```
 
 - Process description
 
   ```
-  - 循环验证每笔交易是否正确
-  - 验证交易列表的是否存在冲突交易
+   - Cycle to verify that each transaction is correct
+   - Verify that there is a conflicting transaction in the transaction list
   ```
 
 - Interface definition
@@ -2127,7 +2123,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Interface Description
 
     ```
-    循环验证传入的交易列表中的每笔交易是否正确，并验证交易列表中是否存在冲突交易
+    Loop to verify that each transaction in the incoming transaction list is correct and verify that there is a conflicting transaction in the transaction list
     ```
 
   - Request example
@@ -2153,9 +2149,9 @@ The above is a functional analysis of the implementation of the consensus module
     {
         "version":"1.0",  
         "code": 0,                                  //error code
-        "msg": "Prompt message",                           //Prompt message                          
+        "msg": "Prompt message",                    //Prompt message                          
         "result": {                                 //Returned business data set  
-      		"data":[							 //验证不通过的交易列表
+      		"data":[							 
       				"tx1_hash",
       				"tx2_hash",
       				"tx3_hash"
@@ -2176,13 +2172,13 @@ The above is a functional analysis of the implementation of the consensus module
 - Function Description:
 
   ```
-  查询当前网络共识节点的打包轮次信息，包括当前网络有多少处于打包状态的共识节点，本轮次打包的开始结束时间，本轮次所有打包节点的基本信息
+  Query the package round information of the current network consensus node, including the consensus node of the current network in the packed state, the start end time of the current round of packaging, and the basic information of all the packed nodes in the current round.
   ```
 
 - Process description
 
   ```
-  无
+  nothing
   ```
 
 - Interface definition
@@ -2190,7 +2186,7 @@ The above is a functional analysis of the implementation of the consensus module
   - Interface Description
 
     ```
-    查询当前网络共识节点打包轮次信息
+    Query the current network consensus node packaging round information
     ```
 
   - Request example
@@ -2217,7 +2213,7 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
         "code": 0,                                  //error code
-        "msg": "success",                           //错误Prompt message
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
         "result": {                                 //Returned business data set  
         	"data":{
@@ -2262,7 +2258,7 @@ The above is a functional analysis of the implementation of the consensus module
     {
          "version": 1.0,
        	 "code":1,                         //error code
-       	 "msg" :"错误Prompt message",             //Prompt message
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2349,7 +2345,7 @@ The above is a functional analysis of the implementation of the consensus module
         "version":"1.0",                            
         "result": {                                 //Returned business data set  
         	"data":{
-                "status":1                             
+                "status":1                            
         	}
         }
     }
@@ -2361,8 +2357,8 @@ The above is a functional analysis of the implementation of the consensus module
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //error code
-       	 "msg" :"错误Prompt message",             //Prompt message
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2556,7 +2552,7 @@ The above is a functional analysis of the implementation of the consensus module
         "version:"1.0",
         "params":["chainId",1999,8000,12131,24274727,54646,12.5,80.5,200000,700000,2000,500000]
     }
-    
+
     ```
 
   - Request parameter description（待完善）

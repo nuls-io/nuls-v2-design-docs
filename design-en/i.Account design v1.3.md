@@ -29,7 +29,7 @@ The Account Module is a basic module that provides information about the various
 
 - Other usability and personalization features
 
-  Set account alias, set account remark, verify account encryption, sign, verify signature, verify account address format, verify account password is correct, etc.
+  Set account alias, set account remark, verify account encryption, sign, verify account address format, verify account password is correct, etc.
 
 #### 1.1.3 Positioning of the account module in the system
 
@@ -119,16 +119,18 @@ Community governance requires account signature
   2.Get chainId and account type
   3.Calculate hash160 based on public key
   4.Stitching byte arrays to form addresses
-  4.1.If it is the NULS system address: address=chainId+type+hash160
-  4.2、If non-NULS system address (bitcoin): chainId+ original address length + original address
+  4.1.If it is the NULS system address: address=type+hash160
+  4.2、If non-NULS system address (bitcoin): original address length + original address
   5、Generate address string: address byte[] + check digit, then perform base58 calculation to generate string
-  5.1.If it is the NULS system check digit: xor=XOR(chainId+addressType+pkh)
-  5.2.If non-NULS system check digit: xor=XOR(chainId+length+address)
-     address = Base58Encode(address+xor)
-  6.Encrypt the private key according to the password and delete the plaintext of the private key
-  7.Store account information
-  8.Add account to cache
-  9.Send Create Account Event
+  5.1.If it is the NULS system check digit: xor=XOR(addressType+pkh)
+  5.2.If non-NULS system check digit: xor=XOR(length+address)
+  6. base58 calculation generates the address string:
+      NULS system address: Base58 (type+hash160+xor)+Base58(chainId)
+      Non-NULS system address: Base58 (length+address+xor)+Base58(chainId)
+  7.Encrypt the private key according to the password and delete the plaintext of the private key
+  8.Store account information
+  9.Add account to cache
+  10.Send Create Account Event
   ```
 
 - ac_createAccount interface
@@ -202,14 +204,16 @@ Community governance requires account signature
   2.Get chainId and account type
   3.Calculate hash160 based on public key
   4.Stitching byte arrays to form addresses
-  4.1.If it is the NULS system address: address=chainId+type+hash160
-  4.2、If non-NULS system address (bitcoin): chainId+ original address length + original address
+  4.1.If it is the NULS system address: address=type+hash160
+  4.2、If non-NULS system address (bitcoin): original address length + original address
   5、Generate address string: address byte[] + check digit, then perform base58 calculation to generate string
-  5.1.If it is the NULS system check digit: xor=XOR(chainId+addressType+pkh)
-  5.2.If non-NULS system check digit: xor=XOR(chainId+length+address)
-     address = Base58Encode(address+xor)
-  6.Encrypt the private key according to the password and delete the plaintext of the private key
-  7.Return account information, not saved to the database
+  5.1.If it is the NULS system check digit: xor=XOR(addressType+pkh)
+  5.2.If non-NULS system check digit: xor=XOR(length+address)
+  6. base58 calculation generates the address string:
+      NULS system address: Base58 (type+hash160+xor)+Base58(chainId)
+      Non-NULS system address: Base58 (length+address+xor)+Base58(chainId)
+  7.Encrypt the private key according to the password and delete the plaintext of the private key
+  8.Return account information, not saved to the database
   ```
 
 - ac_createOfflineAccount interface
@@ -437,17 +441,19 @@ Community governance requires account signature
   1. Generate a public-private key pair based on the private key.
   2. get the chainId and account type.
   3. calculate hash160 according to Public key.
-  4. spliced byte array composition address: chainId+type+hash160.
-  4.1. If it is the NULS system address: address=chainId+type+hash160.
-  4.2. if non-NULS system address (bitcoin): chainId + original address length + original address.
-  5. generate address string: address byte[] + check digits.
-  5.1. If it is the NULS system check digit: xor=XOR(chainId+addressType+pkh).
-  5.1. If the non-NULS system check digit: xor=XOR(chainId+length+address)
-      Address = Base58Encode(address+xor).
-  6. Encrypt the private key according to the password and delete the plaintext of the private key.
-  7. storage account information.
-  8. add the account to the cache.
-  9. If you send an import account event: If the account already exists, the new event will not be released, only the update will be made.
+  4.Stitching byte arrays to form addresses
+  4.1.If it is the NULS system address: address=type+hash160
+  4.2、If non-NULS system address (bitcoin): original address length + original address
+  5、Generate address string: address byte[] + check digit, then perform base58 calculation to generate string
+  5.1.If it is the NULS system check digit: xor=XOR(addressType+pkh)
+  5.2.If non-NULS system check digit: xor=XOR(length+address)
+  6. base58 calculation generates the address string:
+      NULS system address: Base58 (type+hash160+xor)+Base58(chainId)
+      Non-NULS system address: Base58 (length+address+xor)+Base58(chainId)
+  7. Encrypt the private key according to the password and delete the plaintext of the private key.
+  8. storage account information.
+  9. add the account to the cache.
+  10. If you send an import account event: If the account already exists, the new event will not be released, only the update will be made.
   ```
 
 - ac_importAccountByPriKey interface
@@ -2110,18 +2116,18 @@ server.port:8080    //Service port
   non-NULS system：chainId+length+address
 
 
-| `Field name`    | ` type` | `Description`                   |
-| :-------------- | :------ | :------------------------------ |
-| chainId         | short   | Chain ID                        |
-| address         | String  | Account address（Base58Encode） |
-| alias           | String  | Account alias                   |
-| status          | Integer | Account Status                  |
-| pubKey          | byte[]  | Public key                      |
-| priKey          | byte[]  | Private key - not encrypted     |
-| encryptedPriKey | byte[]  | Encrypted private key           |
-| extend          | byte[]  | Extended data                   |
-| remark          | String  | ramark                          |
-| createTime      | long    | create time                     |
+| `Field name`    | ` type` | `Description`                                      |
+| :-------------- | :------ | :------------------------------------------------- |
+| chainId         | short   | Chain ID                                           |
+| address         | String  | Account address（Base58(address)+Base58(chainId)） |
+| alias           | String  | Account alias                                      |
+| status          | Integer | Account Status                                     |
+| pubKey          | byte[]  | Public key                                         |
+| priKey          | byte[]  | Private key - not encrypted                        |
+| encryptedPriKey | byte[]  | Encrypted private key                              |
+| extend          | byte[]  | Extended data                                      |
+| remark          | String  | ramark                                             |
+| createTime      | long    | create time                                        |
 
 * Address object design (not persistent storage)
 
