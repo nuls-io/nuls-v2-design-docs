@@ -8,15 +8,15 @@
 
 #### 1.1.1 Why do you have a consensus module
 
-​	As we all know, the core of the blockchain is the consensus mechanism. Unlike the traditional Internet's clipet-server architecture, the nodes of the blockchain are peer-to-peer, without the center, and everyone has the same rights; so in order to make the data consistent, let a network without a center maintain a set of books that everyone agrees with. This is the role of the consensus mechanism.
+​	As we all know, the core of the blockchain is the consensus mechanism. Unlike the traditional Internet's clipet-server architecture, the agents of the blockchain are peer-to-peer, without the center, and everyone has the same rights; so in order to make the data consistent, let a network without a center maintain a set of books that everyone agrees with. This is the role of the consensus mechanism.
 
-​	Broadly speaking, the consensus mechanism is the rule or algorithm that each node of the blockchain adheres to, and is the basis for mutual trust. In this way, it can achieve decentralized unsupervised and maintain the normal operation of the entire platform.
+​	Broadly speaking, the consensus mechanism is the rule or algorithm that each agent of the blockchain adheres to, and is the basis for mutual trust. In this way, it can achieve decentralized unsupervised and maintain the normal operation of the entire platform.
 
-​	In a narrow sense, the consensus mechanism determines the mechanism by which each node verifies and validates transactions on the blockchain.
+​	In a narrow sense, the consensus mechanism determines the mechanism by which each agent verifies and validates transactions on the blockchain.
 
 #### 1.1.2 What does the consensus module do
 
-​	Each transaction in the blockchain must be approved by each node, and the transaction is completed only after the entire network has reached a consensus. It is like in a democratic election, the voting method or rules must be recognized by the whole people, based on which the election can be completed. In the blockchain, the main performance of the consensus mechanism is the incentive system, which is the reward for the miners. Under the guarantee of the consensus mechanism, every miner can be rewarded, and the entire blockchain can operate in an orderly manner, providing a fair, transparent and trusting environment. Therefore, the consensus module needs to provide a specific algorithm to maintain, that is, the consensus algorithm.
+​	Each transaction in the blockchain must be approved by each agent, and the transaction is completed only after the entire network has reached a consensus. It is like in a democratic election, the voting method or rules must be recognized by the whole people, based on which the election can be completed. In the blockchain, the main performance of the consensus mechanism is the incentive system, which is the reward for the miners. Under the guarantee of the consensus mechanism, every miner can be rewarded, and the entire blockchain can operate in an orderly manner, providing a fair, transparent and trusting environment. Therefore, the consensus module needs to provide a specific algorithm to maintain, that is, the consensus algorithm.
 
 ​	There are many public chain consensus mechanisms, and the mainstream is POW, POS, and DPOS. The NULS main network adopts the self-originated POC (Proof Of Credit) consensus mechanism, which inherits the security and high efficiency of the Dpos consensus mechanism. At the same time, it has made great improvements in collaboration, which can be regarded as an upgraded version. Dpos.
 
@@ -24,19 +24,19 @@
 
 - Legality verification after block synchronization
 
-- Create consensus nodes, delegate participation consensus, cancel delegation, and cancel consensus nodes ★
+- Create consensus agents, delegate participation consensus, cancel delegation, and cancel consensus agents ★
 
-- Consensus node packs out blocks
+- Consensus agent packs out blocks
 
 - Disbursement of network maintenance incentives
 
-- Bad node punishment ★
+- Bad agent punishment ★
 
   **PS：Different consensus mechanisms have different consensus algorithms. The above marked ★ is unique to POC consensus.**
 
 #### 1.1.3 《Consensus module》Positioning in the system
 
-​	The consensus module is a relatively core piece in the system. It is mainly responsible for packing transactions, verifying block headers, managing consensus node information in the management system, entrusting information, and penalizing information.
+​	The consensus module is a relatively core piece in the system. It is mainly responsible for packing transactions, verifying block headers, managing consensus agent information in the management system, entrusting information, and penalizing information.
 
 ### 1.2 Architecture diagram
 
@@ -56,110 +56,118 @@ Description：
   - Reward Task ： Data statistics
 - Storage:Store consensus module related transaction data
 
-### 2.0 功能架构图
+### 2.0 Functional architecture diagram
 
 ![](./image/consensus-module/consensus-func.png)
 
-### 2.1共识模块功能需求分析
+### 2.1Consensus module functional requirements analysis
 
-#### 2.1.1 支持多链并行
+#### 2.1.1 Support multi-chain parallelism
 
-NULS2.0设计理念是提供模块化的服务，并且每个模块都应该支持多条链的数据同时运行，因此共识模块需要实现不同共识机制的算法。当共识模块启动运行后，可同时支持多条链同时运行。
+​	The NULS 2.0 design concept is to provide modular services, and each module should support multiple chains of data running at the same time, so the consensus module needs to implement algorithms with different consensus mechanisms. When the consensus module is started, it can simultaneously support multiple chains to run at the same time.
 
 
 
-#### 2.1.2 POC的共识机制
+#### 2.1.2 POC consensus mechanism
 
-NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道POC的设计理念和业务规则，以下内容摘自NULS白皮书POC共识介绍部分，如果熟悉可直接跳过。
-
-```
-共识机制——POC
-	NULS主链默认采用信用共识机制 POC(Proof-Of-Credit)。节点信用达标的情况下，锁定一定保证金即可加入共识，共识节点重新排序后每轮轮流出块，退出共识时保证金解锁。
-1、共识进入与退出机制
-	任何人都可以随时加入NULS的共识之中，只要满足条件，遵守规则，即可持续获得NULS代币奖励。POC的加入分为硬性指标和软性指标。硬性指标指的是信用分值必须达到一定标准线，排除掉一部分曾经作恶的节点。软性指标指的是必须冻结一定量的NULS代币作为保证金，为杜绝节点的泛滥，同时让整个系统更加公平，保证金的数量除了有一个最低值的限制外，任何人可自由选择保证金的数量，保证金的数量会和最终的奖励挂钩。
-1.1黄牌警告
-	由于节点硬件配置或者网络原因，造成的共识期间掉线、死机等无法出块的，不属于违规情况，但对整个系统会造成一定影响，所以对这类情况，系统有一个轻度的警告机制：降低节点信用值，
-1.2红牌警告
-	对于一些双花、重复出块、尝试分叉系统、不遵守系统规则的恶意人为破坏情况，NULS系统坚决抵制，所有节点都可以检测到这类情况的发生；一旦有恶意节点确实试图挑战系统，那么对应的保证金将会被锁定2个月，且再次信用评级，将永远达不到共识门槛。
-2、信用评级
-	在 NULS 系统里，信用是账户在系统中的诚信系数，所有账户的信用会在区间[-1,1]内，通过信用评级算法公式自动计算。
-	信用评估公式：信用基数=能力系数+责任系数
-	能力系数：根据历史出块数量计算
-	责任系数：根据违规情况和出块正确性计算
-3、共识奖励
-	为了整个 NULS 系统的平衡与公平，共识奖励根据所有共识节点所提交保证金与共识节点信用综合计算。共识奖励计算公式：见（图p1）
-4、子链共识机制
-	接入 NULS 的子链分为两种类型，第一种是通过 NULS 系统的标准接口协议接入，第二种是通过 NULS 的程序部署接入。
-	NULS 是一套通用的区块链底层基础设施，在其主链上不运行任何应用业务，所有应用业务由子链运行。通过 NULS 的系统，能快速的部署基于 NULS 的子链，且可灵活定制子链的各种运行参数，包括是否支持基础代币、加密算法、共识机制、存储机制等。
-	NULS 定义了标准共识模块，以提供接口兼容不同的共识机制。NULS 社区会陆续开发 POW、DPOS、POS、PBFT、POOL 验证池等共识机制，以供用户自由选择。
+​	The main network of NULS adopts the independent POC consensus mechanism. To realize POC, you first need to know the design concept and business rules of POC. The following content is taken from the introduction part of the NULS white paper POC consensus. If you are familiar, you can skip it directly.
 
 ```
+Consensus mechanism——POC
+	The NULS main chain defaults to the credit consensus mechanism POC (Proof-Of-Credit). In the case where the agent credit is up to standard, a certain margin can be locked to join the consensus. After the consensus agent is reordered, each round will flow out of the block, and the margin will be unlocked when the consensus is exited.
+	
+1、Consensus entry and exit mechanism
+	Anyone can join the NULS consensus at any time, as long as they meet the conditions and follow the rules, that is, they can continue to receive NULS token rewards. The addition of POC is divided into hard indicators and soft indicators. The hard indicator means that the credit score must reach a certain standard line, and exclude some agents that have been evil. The soft index refers to the need to freeze a certain amount of NULS tokens as a margin, in order to prevent the proliferation of agents and make the whole system more fair. The number of margins can be freely selected by anyone except the minimum value. The amount of the deposit will be tied to the final reward.
+	
+1.1 Yellow card penalty
+	Due to the hardware configuration of the agent or the network, the disconnection, crash, etc. during the consensus period cannot be blocked. It is not a violation, but it will affect the whole system. Therefore, the system has a mild warning mechanism for such cases. : lower the agent credit value.
+	
+1.2 Red card penalty
+	For some double-split, repeated block-outs, attempts to fork the system, and malicious human-induced damage that does not comply with system rules, the NULS system is firmly resisted, and all agents can detect this kind of situation; once a malicious agent tries to challenge the system, Then the corresponding margin will be locked for 2 months, and the credit rating will never reach the consensus threshold.
+	
+2、Credit Rating
+	In the NULS system, credit is the credit factor of the account in the system, and the credit of all accounts is automatically calculated by the credit rating algorithm formula in the interval [-1, 1].
+	
+	Credit evaluation formula: credit base = capacity coefficient + responsibility coefficient
+	Capacity factor: calculated based on the number of historical blocks
+	Responsibility factor: Calculated according to violations and correctness of the block
+	
+3、Consensus reward
+	For the balance and fairness of the entire NULS system, the consensus reward is calculated based on the margin and consensus agent credits submitted by all consensus agents. Consensus reward calculation formula: see (Figure p1)
+	
+4、Subchain consensus mechanism
+	There are two types of sub-chains that access NULS. The first one is accessed through the standard interface protocol of the NULS system, and the second is deployed through the NULS program.
+	
+	NULS is a common blockchain underlying infrastructure that does not run any application services on its main chain, and all application services are run by sub-chains. Through the NULS system, NULS-based sub-chains can be quickly deployed, and various operational parameters of the sub-chain can be flexibly customized, including whether to support basic tokens, encryption algorithms, consensus mechanisms, and storage mechanisms.
+	
+	NULS defines a standard consensus module to provide interfaces that are compatible with different consensus mechanisms. The NULS community will develop consensus mechanisms such as POW, DPOS, POS, PBFT, and POOL verification pools for users to choose freely.
 
-*图p1：共识奖励计算公式：*
+```
+
+*Figure p1: Consensus reward calculation formula：*
 
 ![](./image/consensus-module/coinbase.png)
+##### In the POC system, there are four roles: agent, principal, packager, and rewarder
 
-##### 在POC系统中，有代理人、委托人、打包人、奖励人这四个角色。
+- Agent - the consensus agent creator. The NULS holder initiates a transaction to create a consensus agent, which is recorded in the chain and tells everyone that I want to be a consensus agent. The basic condition for agent creation is that 20,000-200,000 NULS need to be locked, and there is no red card penalty record. The purpose of setting up this basic condition is to prove that you are really trying to maintain the basic network of NULS.
+- Packager- When creating a consensus agent, the agent can specify a packager. This packager can be his own other account, or a friend who knows technology. The most important thing is that the packager can not hold any NULS. Even if the server participating in the consensus is hacked, the user will not have a huge loss, and the loss will only be affected by the earnings after the attack. It should be noted that the packager is a real out-of-the-box account. Each time you package a block, you need to sign the block. Therefore, you must not set a password for the packaged account.
+- Rewarding people- When creating a consensus agent, an agent can not only specify a packager, but also designate a beneficiary to specify who can get the reward generated by the consensus.
+- The principal-NULS holder can entrust the NULS he holds to the agent according to the agent's credit value and the influence of the agent, etc., and enjoy the corresponding consensus. Revenue, if the agent agent quality or integrity is found to decrease, the principal may withdraw its entrustment and change to others at any time.
 
-- 代理人————即共识节点创建人。NULS持有人发起一笔创建共识节点的交易，记录到链中，告诉所有人我要做共识节点。节点创建的基本条件是需要锁定20,000—200,000个NULS，且没有红牌惩罚记录，设立这个基本条件的目的是证明你是真心实意的想维护好NULS的基础网络。
-- 打包人————代理人在创建共识节点时，可指定一个打包人，这个打包人可以是自己的其他账户，也可以是懂技术的朋友，最重要的是打包人可以不持有任何NULS，即使参与共识的服务器被黑客攻破，用户也不会有巨大损失，损失的仅仅是被攻击后的收益影响。需要注意的是打包人是真正出块的账户，每次打包区块后都需要对区块签名，因此打包账户一定不要设置密码。
-- 奖励人————代理人在创建共识节点时，不仅仅可以指定一个打包人，还可以指定一个受益人，指定谁可以获得共识所产出的奖励
-- 委托人————NULS持有人，可根据代理人的信用值情况，以及代理人的影响力等等因素，把自己所持有的NULS委托给该代理人进行共识，同时享受相应的共识收益，若发现代理人节点质量或者诚信有所下降，委托人可随时撤掉其委托改投他人。
+##### In the POC system, there are four business logics: creating a proxy (creating a consensus agent), stopping a proxy agent (exiting consensus), delegating a consensus, and canceling a delegation.
 
-##### 在POC系统中，有创建代理（创建共识节点）、停止代理节点（退出共识）、委托共识、取消委托四种业务逻辑。
+- Create proxy (create consensus agent): Lock 20,000-200,000 NULS and initiate a registration proxy transaction. After packaging, the whole network can be seen. Others can lock the NULS delegation to the proxy agent.
+- Stop the agent agent (exit consensus): The agent can stop its agent qualification at any time, initiate a transaction to delete the agent agent, and after the transaction is packaged and confirmed, it will quickly withdraw from the consensus and no longer participate in the production of the new block. The 20,000 NULS locked during the registration of the agent will be unlocked after 72 hours, and the rest of the NULS delegated to the agent will be unlocked immediately.
+- Delegate consensus: Users with NULS of 2000 or above can choose a proxy agent to commission and obtain the corresponding block revenue. Before exiting, the corresponding delegated NULS will be locked out of use. A proxy agent can accept up to 500,000 NULS delegates.
+- Cancellation of the delegation: The user can cancel the previous entrustment. After the revocation, the locked NULS will immediately explain and no longer enjoy the corresponding consensus revenue.
 
-- 创建代理（创建共识节点）：锁定20,000—200,000个NULS，发起一笔注册代理交易，打包之后全网可见，其它人可锁定NULS委托到该代理人节点之上。
-- 停止代理节点（退出共识）：代理人可随时停止其代理资格，发起交易删除代理节点，交易被打包确认之后，很快就会退出共识，不再参与新区块的生产。注册代理时锁定的2万个NULS会72小时之后解锁，其余委托人委托到该节点的NULS立即解锁。
-- 委托共识：持有2000及以上NULS的用户，可以选择一个代理节点进行委托，获得相应的出块收益。在退出之前，相应委托的NULS将被锁定不可用。一个代理节点最高可接受500,000NULS的委托。
-- 取消委托：用户可对之前进行的委托进行撤销，撤销之后锁定的NULS马上解释，不再享受相应的共识收益。
+##### Two punishment mechanisms for POC systems
 
-##### POC系统的两种处罚机制
+- Yellow card penalty: When the block agent is disconnected from the network, card machine and other uncertain reasons, the block will not be out of the block, or the block is not used, then the yellow card will be punished in the next round. The yellow card penalty will affect the agent's income; when 100 consecutive yellow card penalties are awarded, a red card will be imposed.
+- Red card penalty: When the block agent makes malicious fork, double flower and other behaviors that seriously endanger the stability of the network, or when it receives 100 yellow card penalties continuously, the system will give a red card penalty. The agent that receives the red card penalty will be forced to stop the consensus. The deposit when the agent is created is frozen for 3 months, and the agent can never be created again; the corresponding agent of the agent that received the red card penalty is immediately unlocked.
 
-- 黄牌处罚：当出块节点因断网，卡机等各种不确定原因，导致该出块时没有出块，或者出的块没有被采用，那么将在下一轮获得黄牌处罚。黄牌处罚会影响节点的收益；当连续获得100个黄牌处罚时，会被进行红牌处罚。
-- 红牌处罚：当出块节点作出恶意分叉、双花等严重危害网络稳定的行为时，或者连续获得100个黄牌处罚时，系统会给予红牌处罚。获得红牌处罚的节点会被强制停止共识，创建代理时的押金被冻结3个月，且永远不可再次创建节点；获得红牌处罚的节点对应的委托立即解锁。
+##### Hidden functional requirements of POC internal systems
 
-##### POC内部系统的隐藏功能需求
+- Maintain a consensus agent information table and update based on the above four transactions received in real time.
+- Maintain a round of information table, so that each round of agents who meet the conditions of the outbound block are randomly queued out.
+- The proxy agent that meets the condition of the outbound condition verifies and packages the transaction of the memory pool, assembles it into a new block and broadcasts it to the whole network.
 
-- 维护一张共识节点信息表，并根据实时接收到的以上四种交易进行更新。
-- 维护一个轮次信息表，让每个轮次符合出块条件的代理人随机排队出块。
-- 符合出块条件的代理节点，对内存池的交易进行验证打包，组装成新区块并广播到全网。
+The above is a functional analysis of the implementation of the consensus module POC consensus mechanism. The details of each function implementation are described in the next section.
 
-以上是对共识模块POC共识机制实现的功能分析，在下一章节会介绍每个功能实现的细节。
+### 2.2 Module service
 
-### 2.2 模块服务
-
-共识模块为区块链的核心模块，由于共识机制的不同，导致对外提供的服务也不尽相同。模块服务会对共识模块共有的服务和POC机制特有的服务做详细描述。
-
+​	The consensus module is the core module of the blockchain. Due to the different consensus mechanisms, the services provided by the outside are not the same. The module service will describe in detail the services shared by the consensus module and the services specific to the POC mechanism.
 
 
-#### 2.2.1 创建节点
 
-* 功能说明：
+#### 2.2.1 Create agent
 
-  ```
-  创建一个指定打包区块的地址（当共识节点满足可打包条件后的处快地址），佣金比例（其他账户参与该节点共识的佣金比例），共识奖励结算地址（该共识节点出块的奖励金归属地址）的共识节点，等待其他节点委托共识，当委托共识金额达到标准金额时，该节点可以打包出块赚取奖励金
-  ```
-
-* 流程描述
+* Function Description:
 
   ```
-  - 验证参数正确性
-  - 创建交易
-  - 判断账户余额是否足够
-  - 验证交易
-  - 保存交易
-  - 广播交易
+  	Create an address that specifies the packaged block (the fast address when the consensus agent satisfies the packageable condition), the commission ratio (the commission ratio of other accounts participating in the agent consensus), and the consensus reward settlement address (the reward for the consensus agent) The consensus agent of the home address, waiting for other agents to delegate consensus, when the commissioned consensus amount reaches the standard amount, the agent can package the block to earn the reward.
   ```
 
-* 接口定义
+* Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Create a transaction
+  - Determine if the account balance is sufficient
+  - Verify the transaction
+  - Save the transaction
+  - Broadcasting transactions
+  ```
+
+* Interface definition
+
+  - Interface Description
 
     ```
-    通过创建节点接口，NULS用户可以发起创建节点交易，交易被确认打包后，即可成功创建共识节点。
+    	By creating a agent interface, the NULS user can initiate the creation of a agent transaction, and after the transaction is confirmed and packaged, the consensus agent can be successfully created.
     ```
 
-  * 请求示例
+  * Request example
 
     ```
     {
@@ -169,82 +177,81 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  * 请求参数说明
+  * Request parameter description
 
-    | index |   parameter    | required |  type  |            description             |
-    | :---: | :------------: | :------: | :----: | :--------------------------------: |
-    |   0   |  agentAddress  |   true   | String |       申请创建节点账户的地址       |
-    |   1   | packingAddress |   true   | String |            打包区块地址            |
-    |   2   | rewardAddress  |  false   | String | 奖励结算地址（默认与节点地址一致） |
-    |   3   | commissionRate |   true   | double |              佣金比例              |
-    |   4   |    deposit     |   true   |  long  |          创建节点的保证金          |
-    |   5   |    password    |  false   | String |                密码                |
-    |   6   |    chainId     |   true   | String |                链ID                |
+    | index |   parameter    | required |  type  |                         description                          |
+    | :---: | :------------: | :------: | :----: | :----------------------------------------------------------: |
+    |   0   |  agentAddress  |   true   | String |          Request to create a agent account address           |
+    |   1   | packingAddress |   true   | String |                    Packing block address                     |
+    |   2   | rewardAddress  |  false   | String | Reward settlement address (default is the same as the agent address) |
+    |   3   | commissionRate |   true   | double |                       Commission rate                        |
+    |   4   |    deposit     |   true   |  long  |                   Create a agent's margin                    |
+    |   5   |    password    |  false   | String |                           password                           |
+    |   6   |    chainId     |   true   | String |                           chain ID                           |
 
-  * 返回示例
+  * Return example
 
-    成功
-
+    success
     ```
     {
      	"version": 1.0,
         "code":0,
-        "msg" :"成功提示信息",
+        "msg" :"Success message",
         "result":{
-            "value":"tx.getHash().getDigestHex()"   //生成的交易hash值
+            "value":"tx.getHash().getDigestHex()" //Generated transaction hash value
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
     	"version": 1.0,
        	 "code":1,
-       	 "msg" :"错误提示信息",
+       	 "msg" :"Error message",
          "result":{
             
       	  }
     }
     ```
 
-  * 返回参数说明
+  * Return parameter description
 
-    | parameter |  type  |           description            |
-    | :-------: | :----: | :------------------------------: |
-    |   value   | String | 生成的交易hash值的十六进制字符串 |
+    | parameter |  type  |                      description                       |
+    | :-------: | :----: | :----------------------------------------------------: |
+    |   value   | String | The hex string of the generated transaction hash value |
 
-#### 2.2.2 创建节点交易验证
+#### 2.2.2 Create agent transaction verification
 
-- 功能说明：
-
-  ```
-  创建节点交易的验证器
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证交易中是否包含节点信息
-  - 验证交易创建者是否正确
-  - 节点地址与打包地址不能相同验证
-  - 节点奖励地址与打包地址不能相同验证
-  - 佣金比例有效性验证
-  - 创建节点的保证金有效性验证
-  - 签名正确性验证
-  - CoinData验证（锁定时间验证）
+  Create a validator for agent transactions
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify that the transaction contains agent information
+  - Verify that the trade creator is correct
+  - agent address and package address cannot be verified
+  - agent reward address and package address cannot be verified
+  - Commission proportional validity verification
+  - Create a agent's margin validity verification
+  - Signature correctness verification
+  - CoinData verification (lock time verification)
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    这个接口主要是验证区块轮次信息，打包人，区块中的交易以及CoinBase是否正确，并验证是否有红黄牌惩罚。
+    	This interface is mainly to verify the block round information, the packager, the transaction in the block and whether the CoinBase is correct, and verify whether there is a red and yellow card penalty.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -254,70 +261,70 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |       description        |
-    | :---: | :-------: | :------: | :----: | :----------------------: |
-    |   0   |    tx     |   true   | String | 创建节点交易的序列化数据 |
-    |   1   |  chainId  |   true   | String |           链ID           |
+    | index | parameter | required |  type  |                  description                  |
+    | :---: | :-------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |    tx     |   true   | String | Create serialized data for agent transactions |
+    |   1   |  chainId  |   true   | String |                   chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                           //Prompt message                          
+        "result": {                                 //Returned business data set  
       		
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                                //error code
+       	 "msg" :"错误Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
     无
     ```
 
-#### 2.2.3 创建节点交易提交
+#### 2.2.3 Create a agent transaction submission
 
-- 功能说明：
-
-  ```
-  保存创建的共识节点信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 保存节点信息到数据库
+  Save the created consensus node information
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Save node information to the database
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    保存共识节点信息到数据库
+    Save consensus node information to the database
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -327,71 +334,71 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |  parameter  | required |  type  |       description        |
-    | :---: | :---------: | :------: | :----: | :----------------------: |
-    |   0   |     tx      |   true   | String | 创建节点交易的序列化数据 |
-    |   1   | blockHeader |   true   | String |  区块头的十六进制字符串  |
-    |   2   |   chainId   |   true   | String |           链ID           |
+    | index |  parameter  | required |  type  |                  description                  |
+    | :---: | :---------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |     tx      |   true   | String | Create serialized data for agent transactions |
+    |   1   | blockHeader |   true   | String |            Block header hex string            |
+    |   2   |   chainId   |   true   | String |                   chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set  
       		
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.4 创建节点交易回滚
+#### 2.2.4 Create agent transaction rollback
 
-- 功能说明：
-
-  ```
-  删除共识节点信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 删除共识节点信息
+  Delete consensus agent information
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Delete consensus agent information
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    从数据中删除共识节点信息
+    Remove consensus agent information from the data
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -401,76 +408,76 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |  parameter  | required |  type  |       description        |
-    | :---: | :---------: | :------: | :----: | :----------------------: |
-    |   0   |     tx      |   true   | String | 创建节点交易的序列化数据 |
-    |   1   | blockHeader |   true   | String |  区块头的十六进制字符串  |
-    |   2   |   chainId   |   true   | String |           链ID           |
+    | index |  parameter  | required |  type  |                  description                  |
+    | :---: | :---------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |     tx      |   true   | String | Create serialized data for agent transactions |
+    |   1   | blockHeader |   true   | String |            Block header hex string            |
+    |   2   |   chainId   |   true   | String |                   chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set 
       		
         }
     }
     ```
 
-    失败
-
+    fail
+    
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.5 注销共识节点
+#### 2.2.5 Logout consensus agent
 
-- 功能说明：
-
-  ```
-  注销一个自己创建的共识节点，注销节点后参与共识的节点的共识金额及共识奖金会在一定时间后解冻
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 创建交易
-  - 判断账户余额是否足够
-  - 验证交易
-  - 保存交易
-  - 广播交易
+  	Log out a consensus agent created by yourself, and the consensus amount and consensus bonus of the agents participating in the consensus after unregistering the agent will be thawed after a certain time.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Create a transaction
+  - Determine if the account balance is sufficient
+  - Verify the transaction
+  - Save the transaction
+  - Broadcasting transactions
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    通过注销节点接口，NULS用户可以发起注销自己创建的节点的交易，交易被确认打包后，即可成功注销共识节点。
+    	By deregistering the agent interface, the NULS user can initiate a transaction to cancel the agent created by himself. After the transaction is confirmed to be packaged, the consensus agent can be successfully logged out.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -480,76 +487,76 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |        description         |
-    | :---: | :-------: | :------: | :----: | :------------------------: |
-    |   0   |  address  |   true   | String | 创建注销节点交易账户的地址 |
-    |   1   | password  |  false   | String |            密码            |
-    |   2   |  chainId  |   true   | String |            链ID            |
+    | index | parameter | required |  type  |                      description                       |
+    | :---: | :-------: | :------: | :----: | :----------------------------------------------------: |
+    |   0   |  address  |   true   | String | Create the address of the logout agent trading account |
+    |   1   | password  |  false   | String |                        password                        |
+    |   2   |  chainId  |   true   | String |                        chian ID                        |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
-      		"value":"tx.getHash().getDigestHex()"   //生成的交易hash值
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message        
+        "result": {                                 //Returned business data set 
+      		"value":"tx.getHash().getDigestHex()"   //Generated transaction hash value
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    | parameter | type   | description                      |
-    | --------- | ------ | -------------------------------- |
-    | value     | String | 生成的交易hash值的十六进制字符串 |
+    | parameter |  type  |                      description                       |
+    | :-------: | :----: | :----------------------------------------------------: |
+    |   value   | String | The hex string of the generated transaction hash value |
 
-#### 2.2.6 注销节点交易验证
+#### 2.2.6 Logout agent transaction verification
 
-- 功能说明：
-
-  ```
-  验证注销节点交易的正确性
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证删除的共识节点是否存在和该共识节点是否已经被注销
-  - 验证交易创建者是否正确
-  - CoinData验证（输出地址必须存在）
-  - 查询出所有参与该共识节点的共识信息和该节点总的共识金额
-  - 检查注销节点交易中花费的UTXO总额与数据库查询出的共识节点委托金额是否相等，如果不等则验证失败
-  - 验证注销节点交易中解锁的每笔UTXO是否正确
+  Verify the correctness of the logout agent transaction验证注销节点交易的正确性
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify that the deleted consensus agent exists and that the consensus agent has       been logged out
+  - Verify that the trade creator is correct
+  - CoinData verification (output address must exist)
+  - Query all consensus information participating in the consensus agent and the total   consensus amount of the agent
+  - Check whether the total amount of UTXO spent in the logout agent transaction is     equal to the consensus agent entrusted amount in the database query. If not,         verify the fail.
+  - Verify that each UTXO unlocked in the logout agent transaction is correct
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    验证注销节点交易是否正确。
+    Verify that the logout agent transaction is correct.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -559,71 +566,71 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |       description        |
-    | :---: | :-------: | :------: | :----: | :----------------------: |
-    |   0   |    tx     |   true   | String | 注销节点交易的序列化数据 |
-    |   1   |  chainId  |   true   | String |           链ID           |
+    | index | parameter | required |  type  |                  description                  |
+    | :---: | :-------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |    tx     |   true   | String | Logout serialized data for agent transactions |
+    |   1   |  chainId  |   true   | String |                   chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message 
+        "result": {                                 //Returned business data set
       		
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.7 注销节点交易提交
+#### 2.2.7 Logout agent transaction submission
 
-- 功能说明：
-
-  ```
-  提交注销节点数据交易
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 把该共识节点下所有的委托数据设为已删除
-  - 把该共识节点数据设为已删除
+  Submit logout agent data transaction
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Set all delegate data under the consensus agent to deleted
+  - Set the consensus agent data to deleted
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    注销共识节点，把该共识节点下的所有委托数据设和共识节点设为已删除状态
+    	Log out the consensus agent and set all the delegate data and consensus agents under the consensus agent to the deleted state.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -633,72 +640,71 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |  parameter  | required |  type  |       description        |
-    | :---: | :---------: | :------: | :----: | :----------------------: |
-    |   0   |     tx      |   true   | String | 创建节点交易的序列化数据 |
-    |   1   | blockHeader |   true   | String |  区块头的十六进制字符串  |
-    |   2   |   chainId   |   true   | String |           链ID           |
+    | index |  parameter  | required |  type  |                  description                  |
+    | :---: | :---------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |     tx      |   true   | String | Create serialized data for agent transactions |
+    |   1   | blockHeader |   true   | String |            Block header hex string            |
+    |   2   |   chainId   |   true   | String |                   chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
-      		
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message 
+        "result": {                                 //Returned business data set  
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.8 注销节点交易回滚
+#### 2.2.8 Logout agent transaction rollback
 
-- 功能说明：
-
-  ```
-  注销节点交易数据回滚
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 把该共识节点下所有的委托数据设为未删除
-  - 把该共识节点数据设为未删除
+  Logout agent transaction data rollback
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Set all delegate data under the consensus agent to not deleted
+  - Set the consensus agent data to not deleted
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    回滚注销节点交易数据
+    Rollback logout agent transaction data
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -708,76 +714,76 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |  parameter  | required |  type  |       description        |
-    | :---: | :---------: | :------: | :----: | :----------------------: |
-    |   0   |     tx      |   true   | String | 注销节点交易的序列化数据 |
-    |   1   | blockHeader |   true   | String |  区块头的十六进制字符串  |
-    |   2   |   chainId   |   true   | String |           链ID           |
+    | index |  parameter  | required |  type  |                  description                  |
+    | :---: | :---------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |     tx      |   true   | String | Logout serialized data for agent transactions |
+    |   1   | blockHeader |   true   | String |            Block header hex string            |
+    |   2   |   chainId   |   true   | String |                   chian ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message 
+        "result": {                                 //Returned business data set  
       		
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.9 申请加入共识
+#### 2.2.9 Apply to join the consensus
 
-- 功能说明：
-
-  ```
-  委托指定金额到共识节点参与共识赚取共识奖励，加入共识期间委托金额和共识奖励会被冻结
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 创建交易
-  - 判断账户余额是否足够
-  - 验证交易
-  - 保存交易
-  - 广播交易
+  	Entrust the specified amount to the consensus agent to participate in the consensus to earn consensus rewards. The entrusted amount and consensus reward will be frozen during the consensus period.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Create a transaction
+  - Determine if the account balance is sufficient
+  - Verify the transaction
+  - Save the transaction
+  - Broadcasting transactions
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    通过该接口，用户可以委托指定节点地址加入共识，赚取奖金。
+    	Through this interface, users can entrust the specified agent address to join the consensus and earn bonuses.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -787,77 +793,77 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |      description       |
-    | :---: | :-------: | :------: | :----: | :--------------------: |
-    |   0   |  address  |   true   | String |  申请参与共识账户地址  |
-    |   1   | agentHash |   true   | String |       共识节点id       |
-    |   2   |  deposit  |   true   |  long  |     参与共识的金额     |
-    |   3   | password  |  false   | String | 申请参与共识账户的密码 |
-    |   4   |  chainId  |   true   | String |          链ID          |
+    | index | parameter | required |  type  |                         description                          |
+    | :---: | :-------: | :------: | :----: | :----------------------------------------------------------: |
+    |   0   |  address  |   true   | String |            Apply for a consensus account address             |
+    |   1   | agentHash |   true   | String |                      Consensus agent id                      |
+    |   2   |  deposit  |   true   |  long  |           Amount of participation in the consensus           |
+    |   3   | password  |  false   | String | Apply for a password for participating in the consensus account |
+    |   4   |  chainId  |   true   | String |                           chain ID                           |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
-      		"value":"tx.getHash().getDigestHex()"   //生成的交易hash值
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set  
+      		"value":"tx.getHash().getDigestHex()"     //Generated transaction hash value
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    | parameter | type   | description                |
-    | --------- | ------ | -------------------------- |
-    | value     | String | 交易hash值的十六进制字符串 |
+    | parameter |  type  |                 description                  |
+    | :-------: | :----: | :------------------------------------------: |
+    |   value   | String | The hex string of the transaction hash value |
 
-#### 2.2.10 委托共识交易验证
+#### 2.2.10 Commissioned consensus transaction verification
 
-- 功能说明：
-
-  ```
-  委托共识交易正确性验证
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证申请加入的共识节点是否有效
-  - 验证申请加入的共识节点是否已经达到允许加入共识的最大数量
-  - 验证委托金额是否有效
-  - 验证交易是否为申请委托的账户自己创建
-  - 验证委托金额与输出的UTXO金额是否相等，输出的UTXO锁定时间是否正确
+  Entrusted consensus transaction correctness verification委托共识交易正确性验证
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify that the consensus agent to apply for is valid
+  - Verify that the consensus agent that applied to join has reached the maximum         number allowed to join the consensus
+  - Verify that the entrusted amount is valid
+  - Verify that the transaction was created by the account that requested the           application.
+  - Verify that the commission amount is equal to the output UTXO amount, and that     the output UTXO lock time is correct.
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    验证委托交易中委托节点有效性的验证，委托金额正确性验证，委托交易创建者是否正确，委托交易输出的UTXO是否正确等。验证注销节点交易是否正确。
+    	Verify the validity of the entrusted agent in the entrusted transaction, verify the correctness of the entrusted amount, verify whether the entrusted transaction creator is correct, and whether the UTXO output by the entrusted transaction is correct. Verify that the logout agent transaction is correct.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -867,71 +873,71 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |       description        |
-    | :---: | :-------: | :------: | :----: | :----------------------: |
-    |   0   |    tx     |   true   | String | 委托共识交易的序列化数据 |
-    |   1   |  chainId  |   true   | String |           链ID           |
+    | index | parameter | required |  type  |                       description                       |
+    | :---: | :-------: | :------: | :----: | :-----------------------------------------------------: |
+    |   0   |    tx     |   true   | String | Serialized data for commissioned consensus transactions |
+    |   1   |  chainId  |   true   | String |                        chain ID                         |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set  
       		
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.11 委托共识交易提交
+#### 2.2.11 Entrusted consensus transaction submission
 
-- 功能说明：
-
-  ```
-  委托交易提交
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 保存委托交易信息
+  Entrusted transaction submission
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Save commissioned transaction information
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    保存委托交易数据
+    Save commissioned transaction data
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -941,72 +947,72 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |       description        |
-    | :---: | :-------: | :------: | :----: | :----------------------: |
-    |   0   |    tx     |   true   | String |     交易的序列化数据     |
-    |   1   |  height   |   true   |  long  | 委托交易被打包的区块高度 |
-    |   2   |  chainId  |   true   | String |           链ID           |
+    | index | parameter | required |  type  |                         description                          |
+    | :---: | :-------: | :------: | :----: | :----------------------------------------------------------: |
+    |   0   |    tx     |   true   | String |               Serialized data for transactions               |
+    |   1   |  height   |   true   |  long  | The height of the block where the commissioned transaction is packaged |
+    |   2   |  chainId  |   true   | String |                           chain ID                           |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set  
       		
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.12 委托共识交易回滚
+#### 2.2.12 Delegate consensus transaction rollback
 
-- 功能说明：
-
-  ```
-  委托共识交易回滚，删除委托共识交易数据
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 删除委托共识交易信息
+  Delegate consensus transaction rollback, delete delegate consensus transaction data
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Delete delegate consensus transaction information
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    当委托共识交易提交出错时，需要掉此接口来删除委托共识交易数据
+    	When the commissioned consensus transaction commits an error, this interface needs to be dropped to delete the delegate consensus transaction data.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1016,77 +1022,77 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |         description          |
-    | :---: | :-------: | :------: | :----: | :--------------------------: |
-    |   0   |    tx     |   true   | String |   委托共识交易的序列化数据   |
-    |   1   |  height   |   true   |  long  | 委托共识交易被打包区块的高度 |
-    |   2   |  chainId  |   true   | String |             链ID             |
+    | index | parameter | required |  type  |                         description                          |
+    | :---: | :-------: | :------: | :----: | :----------------------------------------------------------: |
+    |   0   |    tx     |   true   | String |   Serialized data for commissioned consensus transactions    |
+    |   1   |  height   |   true   |  long  | The height of the consigned consensus transaction is packaged |
+    |   2   |  chainId  |   true   | String |                           chain ID                           |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message 
+        "result": {                                 //Returned business data set  
       		
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.13 撤销委托
+#### 2.2.13 Revoke commission
 
-- 功能说明：
-
-  ```
-  申请退出共识，交易验证通过后在指定时间之后加入共识的押金和奖励会解冻
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 创建交易
-  - 判断账户余额是否足够
-  - 验证交易
-  - 保存交易
-  - 广播交易
+  	Apply for withdrawal from the consensus, after the transaction is verified, the deposit and reward will be released after the specified time.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Create a transaction
+  - Determine if the account balance is sufficient
+  - Verify the transaction
+  - Save the transaction
+  - Broadcasting transactions
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    申请退出共识，交易验证通过后在指定时间之后加入共识的押金和奖励会解冻
+    	Apply for withdrawal from the consensus, after the transaction is verified, the deposit and reward will be released after the specified time.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1096,73 +1102,73 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |     description      |
-    | :---: | :-------: | :------: | :----: | :------------------: |
-    |   0   |  address  |   true   | String | 申请退出共识账户地址 |
-    |   1   |  txHash   |   true   | String | 加入共识时的交易hash |
-    |   2   | password  |  false   | String |         密码         |
-    |   3   |  chainId  |   true   | String |         链ID         |
+    | index | parameter | required |  type  |                     description                      |
+    | :---: | :-------: | :------: | :----: | :--------------------------------------------------: |
+    |   0   |  address  |   true   | String | Apply to withdraw from the consensus account address |
+    |   1   |  txHash   |   true   | String |       Transaction hash when joining consensus        |
+    |   2   | password  |  false   | String |                       password                       |
+    |   3   |  chainId  |   true   | String |                       chain ID                       |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
-      		"value":"tx.getHash().getDigestHex()"   //生成的交易hash值
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set  
+      		"value":"tx.getHash().getDigestHex()"   //Generated transaction hash value
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    | parameter | type   | description                |
-    | --------- | ------ | -------------------------- |
-    | value     | String | 交易hash值的十六进制字符串 |
+    | parameter |  type  |                 description                  |
+    | :-------: | :----: | :------------------------------------------: |
+    |   value   | String | The hex string of the transaction hash value |
 
-#### 2.2.14 退出共识交易验证
+#### 2.2.14 Exit consensus transaction verification
 
-- 功能说明：
-
-  ```
-  验证退出共识交易是否正确
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证要退出的共识之前是否已经委托且没有退出
-  - 验证创建该交易的账户是否正确
+  Verify that the exit consensus transaction is correct
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify that the consensus to exit has been delegated before and has not exited
+  - Verify that the account that created the transaction is correct
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    在退出之前要验证该账户是否参与过该委托且现在还是在委托中。还要验证交易创建者是否为委托人本人。
+    	Before exiting, verify that the account has participated in the delegate and is still in the delegate. Also verify that the transaction creator is the principal.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1172,23 +1178,23 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |       description        |
-    | :---: | :-------: | :------: | :----: | :----------------------: |
-    |   0   |    tx     |   true   | String | 退出委托交易的序列化数据 |
-    |   1   |  chainId  |   true   | String |           链ID           |
+    | index | parameter | required |  type  |                  description                   |
+    | :---: | :-------: | :------: | :----: | :--------------------------------------------: |
+    |   0   |    tx     |   true   | String | Exit serialized data for a trusted transaction |
+    |   1   |  chainId  |   true   | String |                    chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message  
+        "result": {                                 //Returned business data set  
       		
         }
     }
@@ -1196,48 +1202,48 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.15 退出共识交易提交
+#### 2.2.15 Exit consensus transaction submission
 
-- 功能说明：
-
-  ```
-  退出共识交易提交，保存退出共识交易相关数据
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 保存退出共识交易相关数据
+  	Exit the consensus transaction submission, save the data related to the exit consensus transaction
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Save exit consensus transaction related data
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    当退出共识交易验证成功之后通过调用该接口来保存交易相关数据
+    	Save the transaction-related data by calling the interface after exiting the consensus transaction verification success
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1247,24 +1253,24 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |  parameter  | required |  type  |      description       |
-    | :---: | :---------: | :------: | :----: | :--------------------: |
-    |   0   |     tx      |   true   | String |    交易的序列化数据    |
-    |   1   | blockHeader |   true   | String | 区块头的十六进制字符串 |
-    |   2   |   chainId   |   true   | String |          链ID          |
+    | index |  parameter  | required |  type  |           description            |
+    | :---: | :---------: | :------: | :----: | :------------------------------: |
+    |   0   |     tx      |   true   | String | Serialized data for transactions |
+    |   1   | blockHeader |   true   | String |     Block header hex string      |
+    |   2   |   chainId   |   true   | String |             chain ID             |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "version":"1.0", 
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message 
+        "result": {                                 //Returned business data set  
       		
         }
     }
@@ -1272,48 +1278,48 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.16 退出共识交易回滚
+#### 2.2.16 Exit consensus transaction rollback
 
-- 功能说明：
-
-  ```
-  退出共识交易数据回滚
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 回滚退出共识交易数据
+  Exit consensus transaction data rollback
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Rollback exit consensus transaction data
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    当退出共识交易提交出错时，需要调用此接口来回滚数据，保证数据的正确性。
+    	When exiting the consensus transaction submission error, you need to call this interface to roll back the data to ensure the correctness of the data.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1323,24 +1329,24 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |  parameter  | required |  type  |       description        |
-    | :---: | :---------: | :------: | :----: | :----------------------: |
-    |   0   |     tx      |   true   | String | 退出委托交易的序列化数据 |
-    |   1   | blockHeader |   true   | String |  区块头的十六进制字符串  |
-    |   2   |   chainId   |   true   | String |           链ID           |
+    | index |  parameter  | required |  type  |                  description                   |
+    | :---: | :---------: | :------: | :----: | :--------------------------------------------: |
+    |   0   |     tx      |   true   | String | Exit serialized data for a trusted transaction |
+    |   1   | blockHeader |   true   | String |            Block header hex string             |
+    |   2   |   chainId   |   true   | String |                    chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message
+        "result": {                                 //Returned business data set  
       		
         }
     }
@@ -1348,53 +1354,53 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.17 查询共识节点列表
+#### 2.2.17 Query consensus agent list
 
-- 功能说明：
-
-  ```
-  获取自己加入的或全网所有的共识节点列表，支持关键字查询，排序，分页查询
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 获取本地主链上共识节点列表
-  - 过滤共识节点列表，得到满足条件的共识节点列表
-  - 共识节点列表排序
-  - 分页
-  - 返回共识节点列表
+  	Obtain all the consensus agent lists that you have joined or the whole network, support keyword query, sort, page query
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Get a list of consensus agents on the local primary chain
+  - Filter the list of consensus agents to get a list of consensus agents that meet the   criteria
+  - Consensus agent list sorting
+  - Pagination
+  - Return to the list of consensus agents
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    获取自己加入的或全网所有的共识节点列表，支持关键字查询，排序，分页查询
+    	Obtain all the consensus agent lists that you have joined or the whole network, support keyword query, sort, page query
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1404,50 +1410,50 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter  | required |  type  |                         description                          |
     | :---: | :--------: | :------: | :----: | :----------------------------------------------------------: |
-    |   0   | pageNumber |   true   |  int   |                             页码                             |
-    |   1   |  pageSize  |   true   |  int   |                          每页数据量                          |
-    |   2   |  keyword   |  false   | String |        关键字（节点地址，打包地址，节点别名，节点ID）        |
-    |   3   |  sortType  |  false   | String | 排序类型（deposit创建共识节点的锁定金额，commissionRate佣金比 例，creditVal奖励金额，totalDeposit参与共识的总金额，comprehensive综合排序） |
-    |   4   |  chainId   |   true   | String |                             链ID                             |
+    |   0   | pageNumber |   true   |  int   |                         page number                          |
+    |   1   |  pageSize  |   true   |  int   |                   Amount of data per page                    |
+    |   2   |  keyword   |  false   | String | Keyword (agent address, packed address, agent alias, agent ID) |
+    |   3   |  sortType  |  false   | String | The sort type (deposit creates the lock amount of the consensus agent, the commissionRate commission ratio, the creditVal reward amount, the total amount of the total deposit consensus, the comprehensive sort of comprehensive) |
+    |   4   |  chainId   |   true   | String |                           chain ID                           |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
-        	"pageNumber":1,                         //页码         
-        	"pageSize":10,                          //每页数据量
-        	"total":100,                            //总数据量
-        	"pages",10,                             //总页数
+        "result": {                                 //Returned business data set  
+        	"pageNumber":1,                         //page number         
+        	"pageSize":10,                          //Amount of data per page
+        	"total":100,                            //Total data volume
+        	"pages",10,                             //total pages
         	"data":[
                 {
-                    "agentHash":"",                  //节点hash
-                    "agentAddress";""，              //创建节点的地址
-                    "packingAddress";""，            //打包地址
-                    "rewardAddress";""，             //奖励地址
-                    "deposit";，                     //保证金
-                    "commissionRate";，              //佣金比例
-                    "agentName";""，                 //节点名称
-                    "agentId";""，                   //节点ID
-                    "introduction";""，              //简介
-                    "time";，                        //创建时间
-                    "blockHeight";，                 //所在区块高度
-                    "delHeight":，                   //共识节点被删除的区块高度
-                    "status":，                      //状态                    
-                    "creditVal":，                   //信誉值
-                    "totalDeposit":，                //参与共识总金额
-                    "txHash":""，                    //交易hash
-                    "memberCount":，                 //加入该节点共识的人数
-                    "version":                       //版本
+                    "agentHash":"",                  //agent hash
+                    "agentAddress";""，            //Create the address of the agent
+                    "packingAddress";""，            //Packed address
+                    "rewardAddress";""，             //Reward address
+                    "deposit";，                     //Margin
+                    "commissionRate";，              //Commission rate
+                    "agentName";""，                 //agent name
+                    "agentId";""，                   //agent ID
+                    "introduction";""，              //Introduction
+                    "time";，                        //Creation time
+                    "blockHeight";，                 //Block height
+                    "delHeight":，                   //Block height at which the consensus agent is deleted
+                    "status":，                      //status                    
+                    "creditVal":，                   //Reputation value
+                    "totalDeposit":，                //Total amount of participation in the consensus
+                    "txHash":""，                    //Transaction hash
+                    "memberCount":，                 //Number of people joining the agent consensus
+                    "version":                       //version
                 }，{
                     
                 }
@@ -1456,79 +1462,79 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     data:
 
-    | parameter  |    type     | description  |
-    | :--------: | :---------: | :----------: |
-    | pageNumber |     int     |     页码     |
-    |  pageSize  |     int     |  每页数据量  |
-    |   total    |     int     |   总数据量   |
-    |   pages    |     int     |    总页数    |
-    |    data    | List<Agent> | 共识节点列表 |
+    | parameter  |    type     |       description       |
+    | :--------: | :---------: | :---------------------: |
+    | pageNumber |     int     |       page number       |
+    |  pageSize  |     int     | Amount of data per page |
+    |   total    |     int     |    Total data volume    |
+    |   pages    |     int     |       total pages       |
+    |    data    | List<Agent> |  Consensus agent list   |
 
     Agent:
 
-    |   parameter    |  type  |         description          |
-    | :------------: | :----: | :--------------------------: |
-    |   agentHash    | String |           节点hash           |
-    |  agentAddress  | String |        创建节点的地址        |
-    | packingAddress | String |           打包地址           |
-    | rewardAddress  | String |           奖励地址           |
-    |    deposit     |  long  |            保证金            |
-    | commissionRate | double |           佣金比例           |
-    |   agentName    | String |           节点名称           |
-    |    agentId     | String |            节点ID            |
-    |  introduction  | String |             简介             |
-    |      time      |  long  |           创建时间           |
-    |  blockHeight   |  long  | 创建该节点的交易所在区块高度 |
-    |   delHeight    |  long  |     注销交易所在区块高度     |
-    |     status     |  int   |             状态             |
-    |   creditVal    | double |            信誉值            |
-    |  totalDeposit  |  long  |          总委托金额          |
-    |     txHash     | String |           交易hash           |
-    |  memberCount   |  int   |           委托数量           |
-    |    version     | String |           协议版本           |
+    |   parameter    |  type  |                         description                          |
+    | :------------: | :----: | :----------------------------------------------------------: |
+    |   agentHash    | String |                          agnet hash                          |
+    |  agentAddress  | String |               Create the address of the agent                |
+    | packingAddress | String |                        Packed address                        |
+    | rewardAddress  | String |                        Reward address                        |
+    |    deposit     |  long  |                            Margin                            |
+    | commissionRate | double |                       Commission rate                        |
+    |   agentName    | String |                          agent name                          |
+    |    agentId     | String |                           agent ID                           |
+    |  introduction  | String |                         Introduction                         |
+    |      time      |  long  |                        Creation time                         |
+    |  blockHeight   |  long  |  Create the height of the block where the agent is trading   |
+    |   delHeight    |  long  | Write off the height of the block where the transaction is located |
+    |     status     |  int   |                            status                            |
+    |   creditVal    | double |                       Reputation value                       |
+    |  totalDeposit  |  long  |                   Total commission amount                    |
+    |     txHash     | String |                       Transaction hash                       |
+    |  memberCount   |  int   |                       Number of orders                       |
+    |    version     | String |                       Protocol version                       |
 
-#### 2.2.18 查询节点明细（基本信息、信用值、节点状态）
+#### 2.2.18 Query agent details (basic information, credit value, agent status)
 
-- 功能说明：
-
-  ```
-  查询指定共识节点详细信息，包括共识节点的创建时间，保证金，佣金比例，节点地址，打包地址，共识状态，信用值，委托金额，共识人数等信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 获取本地主链上共识节点列表
-  - 从列表中找出对应的节点信息
+  	Query detailed information of the specified consensus agent, including the creation time of the consensus agent, margin, commission ratio, agent address, package address, consensus status, credit value, commission amount, consensus number, etc.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Get a list of consensus agents on the local primary chain
+  - Find the corresponding agent information from the list
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    通过节点hash查询该节点的详细信息
+    Query the details of the agent through the agent hash
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1538,107 +1544,107 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  | description |
-    | :---: | :-------: | :------: | :----: | :---------: |
-    |   0   | agentHash |   true   | String | 共识节点id  |
-    |   1   |  chainId  |   true   | String |    链ID     |
+    | index | parameter | required |  type  |    description     |
+    | :---: | :-------: | :------: | :----: | :----------------: |
+    |   0   | agentHash |   true   | String | Consensus agent id |
+    |   1   |  chainId  |   true   | String |      chain ID      |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	"data":{
-                    "agentHash":"",                  //节点hash
-                    "agentAddress";""，              //创建节点的地址
-                    "packingAddress";""，            //打包地址
-                    "rewardAddress";""，             //奖励地址
-                    "deposit";，                     //保证经
-                    "commissionRate";，              //佣金比例
-                    "agentName";""，                 //节点名称
-                    "agentId";""，                   //节点ID
-                    "introduction";""，              //简介
-                    "time";，                        //创建时间
-                    "blockHeight";，                 //所在区块高度
-                    "delHeight":，                   //共识节点被删除的区块高度
-                    "status":，                      //状态                    
-                    "creditVal":，                   //信用值
-                    "totalDeposit":，                //参与共识总金额
-                    "txHash":""，                    //交易hash
-                    "memberCount":，                 //加入该节点共识的人数
-                    "version":                       //版本
+                    "agentHash":"",                  
+                    "agentAddress";""，              
+                    "packingAddress";""，          
+                    "rewardAddress";""，             
+                    "deposit";，                     
+                    "commissionRate";，              
+                    "agentName";""，                 
+                    "agentId";""，                   
+                    "introduction";""，              
+                    "time";，                       
+                    "blockHeight";，                 
+                    "delHeight":，                   
+                    "status":，                                      
+                    "creditVal":，                   
+                    "totalDeposit":，               
+                    "txHash":""，                  
+                    "memberCount":，                 
+                    "version":       
              }
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    |   parameter    |  type  |         description          |
-    | :------------: | :----: | :--------------------------: |
-    |   agentHash    | String |           节点hash           |
-    |  agentAddress  | String |        创建节点的地址        |
-    | packingAddress | String |           打包地址           |
-    | rewardAddress  | String |           奖励地址           |
-    |    deposit     |  long  |            保证金            |
-    | commissionRate | double |           佣金比例           |
-    |   agentName    | String |           节点名称           |
-    |    agentId     | String |            节点ID            |
-    |  introduction  | String |             简介             |
-    |      time      |  long  |           创建时间           |
-    |  blockHeight   |  long  | 创建该节点的交易所在区块高度 |
-    |   delHeight    |  long  |     注销交易所在区块高度     |
-    |     status     |  int   |             状态             |
-    |   creditVal    | double |            信誉值            |
-    |  totalDeposit  |  long  |          总委托金额          |
-    |     txHash     | String |           交易hash           |
-    |  memberCount   |  int   |           委托数量           |
-    |    version     | String |           协议版本           |
+    |   parameter    |  type  |                         description                          |
+    | :------------: | :----: | :----------------------------------------------------------: |
+    |   agentHash    | String |                          agent hash                          |
+    |  agentAddress  | String |               Create the address of the agent                |
+    | packingAddress | String |                        Packed address                        |
+    | rewardAddress  | String |                        Reward address                        |
+    |    deposit     |  long  |                            Margin                            |
+    | commissionRate | double |                       Commission rate                        |
+    |   agentName    | String |                          agent name                          |
+    |    agentId     | String |                           agent ID                           |
+    |  introduction  | String |                         Introduction                         |
+    |      time      |  long  |                        Creation time                         |
+    |  blockHeight   |  long  |  Create the height of the block where the agent is trading   |
+    |   delHeight    |  long  | Write off the height of the block where the transaction is located |
+    |     status     |  int   |                            status                            |
+    |   creditVal    | double |                       Reputation value                       |
+    |  totalDeposit  |  long  |                   Total commission amount                    |
+    |     txHash     | String |                           tx hash                            |
+    |  memberCount   |  int   |                       Number of orders                       |
+    |    version     | String |                       Protocol version                       |
 
-#### 2.2.19 查询节点惩罚列表（全部、红牌、黄牌）
+#### 2.2.19 Query agent penalty list (all, red, yellow)
 
-- 功能说明：
-
-  ```
-  获取共识节点以前获得的惩罚记录（红牌和黄牌惩罚），用户可自定义查询全部惩罚记录还是只获取红牌或则黄牌惩罚信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 根据查询类型获取相应惩罚
+  	Obtain the penalty record (red card and yellow card penalty) obtained by the consensus agent. The user can customize the query for all penalty records or only the red card or yellow card penalty information.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Get the penalty based on the type of query
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    查询指定出块地址的惩罚记录
+    Query the penalty record specifying the block address
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1648,36 +1654,36 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  |          description           |
-    | :---: | :-------: | :------: | :----: | :----------------------------: |
-    |   0   |  address  |   true   | String |            出块地址            |
-    |   1   |   type    |   true   |  int   | 惩罚类型   0黄牌，1红牌，2全部 |
-    |   2   |  chainId  |   true   | String |              链ID              |
+    | index | parameter | required |  type  |                  description                  |
+    | :---: | :-------: | :------: | :----: | :-------------------------------------------: |
+    |   0   |  address  |   true   | String |                 Block address                 |
+    |   1   |   type    |   true   |  int   | Penalty type 1 yellow card, 2 red card, 0 all |
+    |   2   |  chainId  |   true   | String |                   chain ID                    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
-        	"pageNumber":1,                         //页码         
-        	"pageSize":10,                          //每页数据量
-        	"total":100,                            //总数据量
-        	"pages",10,                             //总页数
+        "result": {                                 //Returned business data set  
+        	"pageNumber":1,                         //page number         
+        	"pageSize":10,                          //Amount of data per page
+        	"total":100,                            //Total data volume
+        	"pages",10,                             //total pages
         	"data":[
                 {
-                    "type",，                        //惩罚类型
-                    "address",""，                   //出块地址
-                    "time",""，                      //惩罚时间
-                    "height",，                      //区块高度
-                    "roundIndex",，                  //轮次               
-                    "reasonCode",""                  //惩罚原因
+                    "type",，                        
+                    "address",""，                   
+                    "time",""，                      
+                    "height",，                     
+                    "roundIndex",，                              
+                    "reasonCode",""                 
                 }，{
                    ......
                 }
@@ -1686,69 +1692,68 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-    失败
-
+    fail
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     data:
 
-    | parameter  |     type     | description  |
-    | :--------: | :----------: | :----------: |
-    | pageNumber |     int      |     页码     |
-    |  pageSize  |     int      |  每页数据量  |
-    |   total    |     int      |   数据总量   |
-    |   pages    |     int      |  数据总页数  |
-    |    data    | List<Punish> | 惩罚列表数据 |
+    | parameter  |     type     |       description       |
+    | :--------: | :----------: | :---------------------: |
+    | pageNumber |     int      |       page number       |
+    |  pageSize  |     int      | Amount of data per page |
+    |   total    |     int      |       Total data        |
+    |   pages    |     int      |       total pages       |
+    |    data    | List<Punish> |    Penalty list data    |
 
     Punish:
 
-    | parameter  |  type  |   description    |
-    | :--------: | :----: | :--------------: |
-    |    type    |  byte  |     惩罚类型     |
-    |  address   | String |       地址       |
-    |    time    | String |     惩罚时间     |
-    |   height   |  long  | 惩罚所在区块高度 |
-    | roundIndex |  long  |       轮次       |
-    | reasonCode | String |     惩罚原因     |
+    | parameter  |  type  |          description           |
+    | :--------: | :----: | :----------------------------: |
+    |    type    |  byte  |       Type of punishment       |
+    |  address   | String |            address             |
+    |    time    | String |        punishment time         |
+    |   height   |  long  | Punish the height of the block |
+    | roundIndex |  long  |             round              |
+    | reasonCode | String |     Reason for punishment      |
 
-#### 2.2.20 查询委托列表（根据委托人、根据节点）
+#### 2.2.20 Query the list of delegates (according to the principal, according to the agent)
 
-- 功能说明：
-
-  ```
-  1.查询指定地址参与的所有委托信息列表
-  2.查询指定账户参与的指定共识节点的委托信息
-  3.查询指定共识节点受托列表信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证参数正确性
-  - 获取本地主链上参与共识信息列表
-  - 过滤共识列表，获取指定账户参与的共识列表或指定节点受委托的共识列表信息
+  1. Query the list of all delegation information participating in the specified 	      address
+  2. Query the delegation information of the specified consensus agent participating      in the specified account
+  3. Query the specified consensus agent trust list information
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Verify parameter correctness
+  - Get a list of participating consensus information on the local primary chain
+  - Filter the consensus list to get the consensus list of the specified account       participation or the consensus list information of the specified agent
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    获取指定账户参与的或指定共识节点接受的共识列表信息，当查询指定账户参与的所有共识列表时agentHash字段传"",当需要查询指定节点的所有受委托列表时address字段传""
+    	Obtain the consensus list information accepted by the specified account or specified by the consensus agent. When querying all the consensus lists of the specified account, the agentHash field is passed "". When all the delegated lists of the specified agent need to be queried, the address field is passed "".
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1758,42 +1763,42 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter  | required |  type  |                      description                       |
-    | :---: | :--------: | :------: | :----: | :----------------------------------------------------: |
-    |   0   | pageNumber |   true   |  int   |                          页码                          |
-    |   1   |  pageSize  |   true   |  int   |                       每页数据量                       |
-    |   2   |  address   |  false   | String |  参与委托的账户地址（查询节点受委托信息是该指定传""）  |
-    |   3   | agentHash  |  false   | String | 指定代理节点标识（当查询账户所有委托信息时该字段传""） |
-    |   4   |  chainId   |   true   | String |                          链ID                          |
+    | index | parameter  | required |  type  |                         description                          |
+    | :---: | :--------: | :------: | :----: | :----------------------------------------------------------: |
+    |   0   | pageNumber |   true   |  int   |                         page number                          |
+    |   1   |  pageSize  |   true   |  int   |                   Amount of data per page                    |
+    |   2   |  address   |  false   | String | The account address of the participating delegation (the entrusted information of the query agent is the designated pass "") |
+    |   3   | agentHash  |  false   | String | Specify the proxy agent ID (this field is passed "" when querying all account delegation information) |
+    |   4   |  chainId   |   true   | String |                           chain ID                           |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
-        	"pageNumber":1,                         //页码         
-        	"pageSize":10,                          //每页数据量
-        	"total":100,                            //总数据量
-        	"pages",10,                             //总页数
+        "result": {                                 //Returned business data set  
+        	"pageNumber":1,                         //page number         
+        	"pageSize":10,                          //Amount of data per page
+        	"total":100,                            //Total data volume
+        	"pages",10,                             //total pages
         	"data":[
                 {
-                    "agentHash":"",                  //节点hash
-                    "address";""，                   //申请加入共识账户地址
-                    "deposit";，                     //委托金额
-                    "time";，                        //委托时间
-                    "blockHeight";，                 //委托所在区块高度
-                    "delHeight":，                   //共识节点被删除的区块高度         
-                    "txHash":""，                    //交易hash
-                    "status":,                       //共识节点状态（待共识，共识中）
-                    "agentName":"",                  //共识节点名称
-                    "agentAddress":""                //共识节点地址
+                    "agentHash":"",                  
+                    "address";""，                   
+                    "deposit";，                     
+                    "time";，                        
+                    "blockHeight";，                 
+                    "delHeight":，                         
+                    "txHash":""，                    
+                    "status":,                       
+                    "agentName":"",                  
+                    "agentAddress":""  
                 }，{
                     
                 }
@@ -1802,72 +1807,72 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     data:
 
-    | parameter  |     type      |       description        |
-    | :--------: | :-----------: | :----------------------: |
-    | pageNumber |      int      |           页码           |
-    |  pageSize  |      int      |        每页数据量        |
-    |   total    |      int      |         数据总量         |
-    |   pages    |      int      |          总页码          |
-    |    data    | List<Deposit> | 共识数据列表的json字符串 |
+    | parameter  |     type      |            description             |
+    | :--------: | :-----------: | :--------------------------------: |
+    | pageNumber |      int      |            page number             |
+    |  pageSize  |      int      |      Amount of data per page       |
+    |   total    |      int      |             otal data              |
+    |   pages    |      int      |            page number             |
+    |    data    | List<Deposit> | Json string of consensus data list |
 
     Deposit:
 
-    |  parameter   |  type  |          description           |
-    | :----------: | :----: | :----------------------------: |
-    |  agentHash   | String |          共识节点hash          |
-    |   address    | String |      申请加入共识账户地址      |
-    |   deposit    |  long  |            委托金额            |
-    |     time     |  long  |            委托时间            |
-    | blockHeight  |  long  |      委托交易所在区块高度      |
-    |  delHeight   |  long  |      退出委托交易所在高度      |
-    |    txHash    | String |            交易hash            |
-    |    status    |  int   | 共识节点状态（待共识，共识中） |
-    |  agentName   | String |          共识节点名称          |
-    | agentAddress | String |          共识节点地址          |
+    |  parameter   |  type  |                       description                        |
+    | :----------: | :----: | :------------------------------------------------------: |
+    |  agentHash   | String |                        agent hash                        |
+    |   address    | String |       Apply to join the consensus account address        |
+    |   deposit    |  long  |                    Commission amount                     |
+    |     time     |  long  |                     Commission time                      |
+    | blockHeight  |  long  | The height of the block where the transaction is located |
+    |  delHeight   |  long  |       Exit the height of the commissioned exchange       |
+    |    txHash    | String |                         tx hash                          |
+    |    status    |  int   |     Consensus agent status (to be agreed, consensus)     |
+    |  agentName   | String |                        agent name                        |
+    | agentAddress | String |                      agent address                       |
 
-#### 2.2.21 查询全网共识状态
+#### 2.2.21 Query the consensus status of the entire network
 
-- 功能说明：
-
-  ```
-  查询全网共识总体信息，包括节点数量，总抵押，参与共识账户总数量等信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 获取全网共识节点列表
-  - 过滤共识节点列表，等到合法的共识节点列表
-  - 获取当前打包轮次信息
-  - 根据当前打包轮次信息获取，当前网络参与共识的账户总量及委托金额总量
+  	Query the overall information of the network consensus, including the number of agents, total mortgage, total number of participating consensus accounts, etc.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Get a list of network-wide consensus agents
+  - Filter the list of consensus agents and wait until the list of valid consensus       agents
+  - Get current package round information
+  - According to the current package round information, the total amount of accounts   and the total amount of entrusted funds that the current network participates in   the consensus
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    查询全网节点数量，总委托金额，参与共识的账户两及满足打包条件的共识节点数量
+    	Query the number of agents in the whole network, the total commission amount, the accounts participating in the consensus, and the number of consensus agents that meet the packaging conditions.
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1877,83 +1882,84 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter | required |  type  | description |
     | :---: | :-------: | :------: | :----: | :---------: |
-    |   0   |  chainId  |   true   | String |    链ID     |
+    |   0   |  chainId  |   true   | String |  chain ID   |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	"data":{
-                "agentCount":,                      //节点数量
-                "totalDeposit":,                    //委托金额总量
-                "rewardOfDay":,                     //24小时内的奖励金额
-                "consensusAccountNumber":,          //参与共识的账户数量
-                "packingAgentCount":                //当前轮次打包共识节点数量
+                "agentCount":,                     
+                "totalDeposit":,                    
+                "rewardOfDay":,                   
+                "consensusAccountNumber":,          
+                "packingAgentCount":     
         	}
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    |       parameter        | type |       description        |
-    | :--------------------: | :--: | :----------------------: |
-    |       agentCount       | int  |         节点数量         |
-    |      totalDeposit      | long |       委托金额总量       |
-    |      rewardOfDay       | long |    24小时内的奖励金额    |
-    | consensusAccountNumber | int  |    参与共识的账户数量    |
-    |   packingAgentCount    | int  | 当前轮次打包共识节点数量 |
+    |       parameter        | type |                    description                    |
+    | :--------------------: | :--: | :-----------------------------------------------: |
+    |       agentCount       | int  |                 Number of agents                  |
+    |      totalDeposit      | long |         Total amount of entrusted amount          |
+    |      rewardOfDay       | long |           Reward amount within 24 hours           |
+    | consensusAccountNumber | int  | Number of accounts participating in the consensus |
+    |   packingAgentCount    | int  |    Current rounded number of consensus agents     |
 
-#### 2.2.22 查询单个账户共识状态
+#### 2.2.22 Query individual account consensus status
 
-- 功能说明：
-
-  ```
-  查询指定账户共识信息，包括该账户自己创建的共识节点个数及节点hash，参与共识的总金额，该账户参与的共识节点个数，可用余额，共识奖金，24小时内获取的共识奖金
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 获取全网网络共识节点列表
-  - 查看共识节点列表中是否有该账户创建的共识节点
-  - 获取当前网络委托列表
-  - 从委托列表中获取该账户参与的委托列表
-  - 从该账户的委托列表获取该账户的委托信息
+  Query the consensus information of the specified account, including the number of consensus nodes created by the account and the node hash, the total amount of participation in the consensus, the number of consensus nodes participating in the account, the available balance, the consensus bonus, and the consensus bonus obtained within 24 hours.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+   - Get a list of network-wide consensus nodes
+  ```
+   - Check if there is a consensus node created by the account in the consensus node list
+   - Get the current network delegate list
+   - Get the list of delegates participating in the account from the delegate list
+   - Obtain commission information for the account from the delegate list of the account
+  ```
 
+- Interface definition
+
+  - Interface Description
+
+  ```
+    Query the consensus information of the specified account, including the number of consensus nodes created by the account and the node hash, the total amount of participation in the consensus, the number of consensus nodes participating in the account, the available balance, the consensus bonus, and the consensus bonus obtained within 24 hours.
     ```
-    查询指定账户共识信息，包括该账户自己创建的共识节点个数及节点hash，参与共识的总金额，该账户参与的共识节点个数，可用余额，共识奖金，24小时内获取的共识奖金
-    ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -1963,90 +1969,91 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter | required |  type  | description |
-    | :---: | :-------: | :------: | :----: | :---------: |
-    |   0   |  address  |   true   | String |  账户地址   |
-    |   1   |  chainId  |   true   | String |    链ID     |
+    | index | parameter | required |  type  |   description   |
+    | :---: | :-------: | :------: | :----: | :-------------: |
+    |   0   |  address  |   true   | String | Account address |
+    |   1   |  chainId  |   true   | String |    chain ID     |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	"data":{
-                "agentCount":,                      //该账户创建的节点个数
-                "totalDeposit":,                    //该账户总的委托金额
-                "joinAgentCount":,                  //该账户参与的共识节点个数
-                "usableBalance":,                   //账户可用余额
-                "reward":,                          //账户参与共识的所有奖励
-                "rewardOfDay":,                     //账户24小时内获取的共识奖励
-                "agentHash":""                      //账户创建的节点的hash
+                "agentCount":,                      
+                "totalDeposit":,                    
+                "joinAgentCount":,                 
+                "usableBalance":,                   
+                "reward":,                          
+                "rewardOfDay":,                     
+                "agentHash":""                    
         	}
         }
     }
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                         //error code
+       	 "msg" :"错误Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    |   parameter    |  type  |        description         |
-    | :------------: | :----: | :------------------------: |
-    |      data      | Object |          共识信息          |
-    |   agentCount   |  int   |    该账户创建的节点个数    |
-    |  totalDeposit  |  long  |     该账户总的委托金额     |
-    | joinAgentCount |  int   |  该账户参与的共识节点个数  |
-    | usableBalance  |  long  |          可用余额          |
-    |     reward     |  long  |   账户参与共识的所有奖励   |
-    |  rewardOfDay   |  long  | 账户24小时内获取的共识奖励 |
-    |   agentHash    | String |    账户创建的节点的hash    |
+    |   parameter    |  type  |                         description                         |
+    | :------------: | :----: | :---------------------------------------------------------: |
+    |      data      | Object |                    Consensus information                    |
+    |   agentCount   |  int   |        The number of agents created by this account         |
+    |  totalDeposit  |  long  |         The total commission amount of the account          |
+    | joinAgentCount |  int   | The number of consensus agents participating in the account |
+    | usableBalance  |  long  |                      Available Balance                      |
+    |     reward     |  long  |       All rewards for account participation consensus       |
+    |  rewardOfDay   |  long  |  Consensus rewards obtained within 24 hours of the account  |
+    |   agentHash    | String |        The hash of the agent created by the account         |
 
-#### 2.2.23 验证区块正确性
+#### 2.2.23 Verify block correctness
 
-- 功能说明：
-
-  ```
-  验证区块轮次信息，打包人，区块中交易信息，CoinBase是否正确，并验证是否有红黄牌交易生成
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 验证分叉（调用区块管理模块接口），有分叉则生成红牌交易
-  - 验证双花（调用交易模块接口），有双花则生成红牌交易并直接返回验证失败
-  - 生成红牌交易，将红牌交易放入待打包交易池
-  - 验证区块轮次信息及打包人是否正确
-  - 验证区块中交易正确性（调用交易模块接口）
-  - 验证CoinBase交易
+  Verify the block round information, package the person, the transaction information in the block, whether the CoinBase is correct, and verify whether there is red and yellow card transaction generation.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+   - Verify fork (call block management module interface), generate red card trade with fork
+  ```
+   - Verify double flower (call transaction module interface), generate double card transaction with double flower and return to verify fail directly
+   - Generate red card trades and place red card trades in the trading pool to be packaged
+   - Verify block rotation information and packager correct
+   - Verify transaction correctness in the block (call transaction module interface)
+   - Verify CoinBase transactions
+  ```
 
+- Interface definition
+
+  - Interface Description
+
+  ```
+    This interface is mainly to verify the block round information, the packager, the transaction in the block and whether the CoinBase is correct, and verify whether there is a red and yellow card penalty.
     ```
-    这个接口主要是验证区块轮次信息，打包人，区块中的交易以及CoinBase是否正确，并验证是否有红黄牌惩罚
-    ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2056,72 +2063,73 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index | parameter  | required |  type  |      description       |
-    | :---: | :--------: | :------: | :----: | :--------------------: |
-    |   0   | smallBlock |   true   | String | SmallBlock的序列化数据 |
-    |   1   |  chainId   |   true   | String |          链ID          |
+    | index | parameter  | required |  type  |          description          |
+    | :---: | :--------: | :------: | :----: | :---------------------------: |
+    |   0   | smallBlock |   true   | String | SmallBlock serialization data |
+    |   1   |  chainId   |   true   | String |           chain ID            |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message                          
+        "result": {                                 //Returned business data set  
       		
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.24 共识模块批量验证
+#### 2.2.24 Consensus module batch verification
 
-- 功能说明：
-
-  ```
-  共识模块交易批量验证，验证每笔交易正确性，验证交易冲突
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 循环验证每笔交易是否正确
-  - 验证交易列表的是否存在冲突交易
+  Consensus module transaction batch verification, verify the correctness of each transaction, verify transaction conflict
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+   - Cycle to verify that each transaction is correct
+  ```
+   - Verify that there is a conflicting transaction in the transaction list
+  ```
 
+- Interface definition
+
+  - Interface Description
+
+  ```
+    Loop to verify that each transaction in the incoming transaction list is correct and verify that there is a conflicting transaction in the transaction list
     ```
-    循环验证传入的交易列表中的每笔交易是否正确，并验证交易列表中是否存在冲突交易
-    ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2131,22 +2139,22 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
-    | index |     parameter     | required |  type  |   description    |
-    | :---: | :---------------: | :------: | :----: | :--------------: |
-    |   0   | tx1,tx2,tx3...... |   true   | String | 交易的序列化数据 |
-    |   1   |      chainId      |   true   | String |       链id       |
+    | index |     parameter     | required |  type  |           description            |
+    | :---: | :---------------: | :------: | :----: | :------------------------------: |
+    |   0   | tx1,tx2,tx3...... |   true   | String | Serialized data for transactions |
+    |   1   |      chainId      |   true   | String |             chain id             |
 
-  - 返回示例
+  - Return example
 
     ```
     {
         "version":"1.0",  
-        "code": 0,                                  //错误码
-        "msg": "提示信息",                           //提示信息                          
-        "result": {                                 //返回的业务数据集  
-      		"data":[							 //验证不通过的交易列表
+        "code": 0,                                  //error code
+        "msg": "Prompt message",                    //Prompt message                          
+        "result": {                                 //Returned business data set  
+      		"data":[							 
       				"tx1_hash",
       				"tx2_hash",
       				"tx3_hash"
@@ -2155,36 +2163,36 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     }
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    |            parameter            |  type  |      description       |
-    | :-----------------------------: | :----: | :--------------------: |
-    |              data               | String |  验证不通过的交易列表  |
-    | tx1_hash,tx2_hash,tx3_hash..... | String | 验证没通过的交易的hash |
+    |            parameter            |  type  |                  description                   |
+    | :-----------------------------: | :----: | :--------------------------------------------: |
+    |              data               | String |  Verify the list of transactions that failed   |
+    | tx1_hash,tx2_hash,tx3_hash..... | String | Verify the hash of the transaction that failed |
 
-#### 2.2.25 获取当前轮次信息
+#### 2.2.25 Get current round information
 
-- 功能说明：
-
-  ```
-  查询当前网络共识节点的打包轮次信息，包括当前网络有多少处于打包状态的共识节点，本轮次打包的开始结束时间，本轮次所有打包节点的基本信息
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  无
+  Query the package round information of the current network consensus node, including the consensus node of the current network in the packed state, the start end time of the current round of packaging, and the basic information of all the packed nodes in the current round.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  nothing
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    查询当前网络共识节点打包轮次信息
+    Query the current network consensus node packaging round information
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2195,22 +2203,22 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter | required |  type  | description |
     | :---: | :-------: | :------: | :----: | :---------: |
-    |   0   |  chainId  |   true   | String |    链ID     |
+    |   0   |  chainId  |   true   | String |  chain ID   |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	"data":{
                 "totalWeight":,                      
                 "index":,                    
@@ -2247,13 +2255,13 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                         //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2261,57 +2269,57 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     data
 
-    |  parameter  |        type         |        description         |
-    | :---------: | :-----------------: | :------------------------: |
-    | totalWeight |       double        | 总权重（用于计算共识奖励） |
-    |    index    |        long         |        当前轮次下标        |
-    |  startTime  |        long         |    当前轮次开始打包时间    |
-    |   endTime   |        long         |    当前伦次打包结束时间    |
-    | memberCount |         int         |  当前打包轮次打包节点数量  |
-    | memberList  | List<MeetingMember> |  当前轮次打包节点打包信息  |
-    |  myMember   |    MeetingMember    |      当前节点打包信息      |
+    |  parameter  |        type         |                    description                     |
+    | :---------: | :-----------------: | :------------------------------------------------: |
+    | totalWeight |       double        | Total weight (used to calculate consensus rewards) |
+    |    index    |        long         |              Current round subscript               |
+    |  startTime  |        long         |          Current round start packing time          |
+    |   endTime   |        long         |           Current end of packaging time            |
+    | memberCount |         int         |        Current number of packaged packages         |
+    | memberList  | List<MeetingMember> |   Current round packed agent packing information   |
+    |  myMember   |    MeetingMember    |         Current agent packing information          |
 
     MeetingMember
 
-    |      parameter      |  type  |              description              |
-    | :-----------------: | :----: | :-----------------------------------: |
-    |    agentAddress     | String |               节点地址                |
-    |   packingAddress    | String |               打包地址                |
-    |      agentHash      | String |                节点ID                 |
-    | packingIndexOfRound |  int   |     共识节点在当前轮次中打包下标      |
-    |      creditVal      | double |                信用值                 |
-    |    packStartTime    |  long  |         共识节点打包开始时间          |
-    |     packEndTime     |  long  |         共识节点打包结束时间          |
-    |       weight        | double | 当前共识节点权重（总委托金额*信用值） |
+    |      parameter      |  type  |                         description                          |
+    | :-----------------: | :----: | :----------------------------------------------------------: |
+    |    agentAddress     | String |                        agent address                         |
+    |   packingAddress    | String |                        Packed address                        |
+    |      agentHash      | String |                           agent ID                           |
+    | packingIndexOfRound |  int   | The consensus agent packs the subscript in the current round |
+    |      creditVal      | double |                         Credit value                         |
+    |    packStartTime    |  long  |             Consensus agent packaging start time             |
+    |     packEndTime     |  long  |              Consensus agent packaging end time              |
+    |       weight        | double | Current consensus agent weight (total commission amount * credit value) |
 
-#### 2.2.26 指定共识节点状态查询
+#### 2.2.26 Specify consensus agent status query
 
-- 功能说明：
-
-  ```
-  查询指定共识节点当前状态（共识中，打包中）
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 查询节点是否存在
-  - 查询节点状态
+  Query the current status of the specified consensus agent (consensus, packaged)
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Query whether the agent exists
+  - Query agent status
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    查询指定共识节点当前状态
+    Query the current status of the specified consensus agent
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2322,38 +2330,38 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter | required |  type  | description |
     | :---: | :-------: | :------: | :----: | :---------: |
-    |   0   | agentHash |   true   | String |   节点ID    |
-    |   1   |  chainId  |   true   | String |    链ID     |
+    |   0   | agentHash |   true   | String |  agnet ID   |
+    |   1   |  chainId  |   true   | String |  chain ID   |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	"data":{
-                "status":1                          //节点状态       
+                "status":1                            
         	}
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2361,35 +2369,35 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-    | parameter | type |         description          |
-    | :-------: | :--: | :--------------------------: |
-    |  status   | int  | 节点状态（0共识中，1打包中） |
+    | parameter | type |              description              |
+    | :-------: | :--: | :-----------------------------------: |
+    |  status   | int  | agent status (0 consensus, 1 package) |
 
-#### 2.2.27 修改节点打包状态
+#### 2.2.27 Modify agent packing status
 
-- 功能说明：
-
-  ```
-  本地节点启动时当区块管理模块同步完区块之后通知共识模块打包
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  - 修改节点打包状态
+  	When the local agent starts, notify the consensus module to package after the block management module synchronizes the block.
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  - Modify agent packing status
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    修改节点打包状态
+    Modify agent packing status
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2400,35 +2408,35 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter | required |  type  | description |
     | :---: | :-------: | :------: | :----: | :---------: |
-    |   0   |  chainId  |   true   | String |    链ID     |
+    |   0   |  chainId  |   true   | String |  chain ID   |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2436,35 +2444,35 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.28 停止链
+#### 2.2.28 Stop chain 
 
-- 功能说明：
-
-  ```
-  暂停某条正在运行的链
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  无
+  Pause a running chain
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  nothing
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    暂停某条正在运行的链
+    Pause a running chain
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2475,35 +2483,35 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 请求参数说明
+  - Request parameter description
 
     | index | parameter | required | type   | description |
     | ----- | --------- | -------- | ------ | ----------- |
-    | 0     | chainId   | true     | String | 链ID        |
+    | 0     | chainId   | true     | String | chain ID    |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	
         }
     }
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2511,35 +2519,35 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
     ```
-    无
+    nothing
     ```
 
-#### 2.2.29 运行链
+#### 2.2.29 Run a new chain 
 
-- 功能说明：
-
-  ```
-  在本地运行一条新的子链
-  ```
-
-- 流程描述
+- Function Description:
 
   ```
-  无
+  Run a new subchain locally 
   ```
 
-- 接口定义
+- Process description
 
-  - 接口说明
+  ```
+  nothing
+  ```
+
+- Interface definition
+
+  - Interface Description
 
     ```
-    在本地运行一条新的子链
+    Run a new subchain locally
     ```
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -2547,55 +2555,36 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
         "version:"1.0",
         "params":["chainId",1999,8000,12131,24274727,54646,12.5,80.5,200000,700000,2000,500000]
     }
-    
-    打包间隔时间
-    packing_interval
-    出块最小金额
-    packing_amount
-    奖励金锁定块数
-    coinbase_lockHeight
-    获得红牌保证金锁定时间
-    redPublish_lockTime
-    注销节点保证金锁定时间
-    stopAgent_lockTime
-    佣金比例的最大值和最小值
-    commissionRate_min
-    commissionRate_max
-    创建节点的保证金最大值最小值
-    deposit_min
-    deposit_max
-    委托最大值最小值
-    commission_min
-    Commission_max
+
     ```
 
-  - 请求参数说明（待完善）
+  - Request parameter description（待完善）
 
-    | index | parameter           | required | type   | description                       |
-    | ----- | ------------------- | -------- | ------ | --------------------------------- |
-    | 0     | chainId             | true     | String | 链ID                              |
-    | 1     | packing_interval    | true     | long   | 打包间隔时间（单位：s）           |
-    | 2     | packing_amount      | true     | long   | 出块最小金额                      |
-    | 3     | coinbase_lockHeight | true     | long   | 奖励金锁定块数                    |
-    | 4     | redPublish_lockTime | true     | long   | 获得红牌保证金锁定时间（单位：s） |
-    | 5     | stopAgent_lockTime  | true     | long   | 注销节点保证金锁定时间（单位：s） |
-    | 6     | commissionRate_min  | true     | double | 佣金比列最小值                    |
-    | 7     | commissionRate_max  | true     | double | 佣金比列最大值                    |
-    | 8     | deposit_min         | true     | int    | 创建节点保证金最小金额            |
-    | 9     | deposit_max         | true     | int    | 创建节点保证金最大金额            |
-    | 10    | commission_min      | true     | int    | 委托共识最小金额                  |
-    | 11    | Commission_max      | true     | int    | 委托共识最大金额                  |
+    | index | parameter           | required | type   | description                              |
+    | ----- | ------------------- | -------- | ------ | ---------------------------------------- |
+    | 0     | chainId             | true     | String | chain ID                                 |
+    | 1     | packing_interval    | true     | long   | Packing interval (unit: s)               |
+    | 2     | packing_amount      | true     | long   | Minimum amount of the block              |
+    | 3     | coinbase_lockHeight | true     | long   | Bonus lock block number                  |
+    | 4     | redPublish_lockTime | true     | long   | Get red card margin lock time (unit: s)  |
+    | 5     | stopAgent_lockTime  | true     | long   | Logout agent margin lock time (unit: s)  |
+    | 6     | commissionRate_min  | true     | double | Commission ratio minimum                 |
+    | 7     | commissionRate_max  | true     | double | Commission ratio maximum                 |
+    | 8     | deposit_min         | true     | int    | Create a agent margin minimum amount     |
+    | 9     | deposit_max         | true     | int    | Create a agent margin maximum amount     |
+    | 10    | commission_min      | true     | int    | Commissioned consensus minimum amount    |
+    | 11    | Commission_max      | true     | int    | Maximum amount of commissioned consensus |
 
-  - 返回示例
+  - Return example
 
-    成功
+    success
 
     ```
     {
-        "code": 0,                                  //错误码
-        "msg": "success",                           //错误提示信息
+        "code": 0,                                  //error code
+        "msg": "success",                           //Prompt message
         "version":"1.0",                            
-        "result": {                                 //返回的业务数据集  
+        "result": {                                 //Returned business data set  
         	
         }
     }
@@ -2603,13 +2592,13 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-    失败
+    fail
 
     ```
     {
          "version": 1.0,
-       	 "code":1,                         //错误码
-       	 "msg" :"错误提示信息",             //提示信息
+       	 "code":1,                            //error code
+       	 "msg" :"Prompt message",             //Prompt message
          "result":{
             
       	  }
@@ -2618,37 +2607,37 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
     
     ```
 
-  - 返回参数说明
+  - Return parameter description
 
-### 2.3 模块内部功能
+### 2.3 Module internal function
 
-​	POC共识机制是由参与共识出块的节点轮流出块，达成共识，共同维护一套账本。但由于网络原因或者是有的共识节点作恶（向不同的节点发送不同的打包块），会出现分叉的情况，对于这种恶意节点系统会根据恶劣程度给与不同的处罚，当轮到某节点出块时未按规定时间出块时系统会给与节点黄牌处罚，该处罚会降低节点的信用值，当节点信用值降到-1时，该节点会被处以红牌惩罚；对于作恶程度恶劣的节点会直接处以红牌惩罚，获得红牌惩罚的节点将会停止打包且该节点永久不能再创建共识节点，且保证金会被冻结一定时间，其他委托该节点的委托金额会返还给委托人；当节点正常出块时，节点会获得出块奖励，委托该节点的账户也会根据委托金额的多少获取相应比例的奖励金。
+​	The POC consensus mechanism is to take the agent round out of the block that participates in the consensus, reach a consensus, and jointly maintain a set of books. However, due to network reasons or some consensus agents do evil (send different packing blocks to different agents), there will be bifurcation. For this malicious agent system, different penalties will be given according to the severity, when it is a turn When the agent fails to issue the block at the specified time, the system will give the agent a yellow card penalty. The penalty will lower the credit value of the agent. When the agent credit value drops to -1, the agent will be punished with a red card; The agent will be directly punished with a red card. The agent that receives the red card penalty will stop packing and the agent will never be able to create a consensus agent again, and the margin will be frozen for a certain period of time. The other commissioned amount of the agent will be returned to the client; When a normal block is issued, the agent will receive a block reward, and the account entrusted to the agent will also receive a corresponding proportion of the bonus according to the amount of the commission.
 
-​	共识模块除了提供打包出块外，还会做奖励金的统计工作，统计24小时内发放的总的奖励金额，24小时内本地账户累计的奖励金额，24小时内的奖励明细等
+​	In addition to providing packaged blocks, the consensus module will also do the statistical work of bonuses, statistics on the total amount of rewards issued within 24 hours, the amount of rewards accumulated in local accounts within 24 hours, and the details of rewards within 24 hours.
 
-- 共识模块启动流程
+- Consensus module startup process
 
-  初始化：
+  initialization：
 
-  - 1.加载共识模块配置信息（出块间隔时间，奖励金锁定块数）
-  - 2.注册共识模块交易、交易验证器、交易处理器（向交易模块注册）
-  - 3.注册共识模块服务接口（向核心模块注册）
-  - 4.注册共识模块事件（向事件总线模块注册）
+  - Load consensus module configuration information (out of block interval, bonus lock block number)
+  - Register Consensus Module Transaction, Transaction Verifier, Transaction Processor (registered with Transaction Module)
+  -  Register Consensus Module Service Interface (registered with the core module)
+  - Register consensus module event (register with event bus module)
 
-  启动：
+  start up：
 
-  - 获取数据库最新一轮区块信息，计算轮次信息
-  - 获取当前协议版本信息并缓存
-  - 启动各个相关线程
+  - Get the latest round of block information in the database and calculate the round information
+  - Get current protocol version information and cache
+  - Start each relevant thread
 
-- 打包出块流程
-  - 判断节点是否满足成为打包节点要求
-  - 计算打包轮次信息
-  - 等待打包出块
-  - 接收最新区块，如果等待5秒还没有收到最新的区块，则默认上一个出块节点没有出块，当前节点继续执行打包操作
-  - 校验需打包的交易，剔除重复打包交易后打包新区块
-  - 校验打包的新区块，并保存相关数据到数据库
-  - 广播区块
+- Package out process
+  - Determine if the agent meets the requirements for becoming a packed agent
+  - Calculate packaging round information
+  - Waiting for packing out
+  - Receive the latest block. If you wait for 5 seconds and have not received the latest block, the default last block agent does not have a block, and the current agent continues to perform the packing operation.
+  - Verify the transactions that need to be packaged, and eliminate the new package after the duplicate package transaction
+  - Verify the packaged new block and save the relevant data to the database
+  - Broadcast block
 
 
 
@@ -2656,23 +2645,23 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
 
 
 
-- 共识奖励统计
+- Consensus reward statistics
 
   ![](./image/consensus-module/statics_en.png)
 
-  - 获取本地账户列表
-  - 获取24小时内的区块列表
-  - 遍历区块列表获取CoinBase交易
-  - 根据CoinBase交易，更新24小时内总的奖励金额，24小时内本地账户累计的奖励金额，24小时内的奖励明细
+  - Get a list of local accounts
+  - Get a list of blocks within 24 hours
+  - Traverse block list to get CoinBase transactions
+  - According to the CoinBase transaction, update the total reward amount within 24 hours, the accumulated bonus amount of the local account within 24 hours, and the reward details within 24 hours.
 
-## 四、事件说明
+## 4、Event description
 
-### 4.1 发布的事件
+### 4.1 Published event
 
-#### 4.1.1 区块打包成功事件
+#### 4.1.1 Block packaging success event
 
 ```
-说明：当一个新区快打包成功之后发布该事件
+Description: This event is released when a new zone is successfully packaged successfully.
 ```
 
 ```
@@ -2682,16 +2671,16 @@ NULS的主网采用自主的POC共识机制，要实现POC，首先需要知道P
 ```
 data:{
     "chainId":88,
-    "smallBlock":"smallBlock对象序列化成十六进制字符串"
+    "smallBlock":"Serialize a smallBlock object into a hex string"
 }
 ```
 
 
 
-#### 4.1.2 创建节点
+#### 4.1.2 Create agent
 
 ```
-说明：当创建节点交易被确认并打包进块之后发布该事件
+Description: Issue the event after the create agent transaction is confirmed and packaged into the block
 ```
 
 ```
@@ -2701,8 +2690,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "agentList":{    //打包区块中创建的共识节点列表
-        "agent1",    //Agent对象的序列化为十六进制字符串
+    "agentList":{    //List of consensus agents created in the packaging block
+        "agent1",    //Serialization of the Agent object to a hex string
         "agent2",
         "agent3"
     }
@@ -2711,10 +2700,10 @@ data:{
 
 
 
-#### 4.1.3 注销节点
+#### 4.1.3 Logout agent
 
 ```
-说明：当注销节点交易被确认并打包进块之后发布该事件
+Description: Issue the event after the logout agent transaction is confirmed and packaged into the block
 ```
 
 ```
@@ -2724,8 +2713,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "agentList":{    //打包区块中注销的共识节点列表
-        "agent1",    //Agent对象的序列化为十六进制字符串
+    "agentList":{    //List of consensus agents that are logged out in the packaging block
+        "agent1",    //Serialization of the Agent object to a hex string
         "agent2",
         "agent3"
     }
@@ -2734,10 +2723,10 @@ data:{
 
 
 
-#### 4.1.4 共识节点状态改变（共识中，出块中）
+#### 4.1.4 Consensus agent state change (in the consensus, out of the block)
 
 ```
-说明：当共识节点状态改变时发布该事件
+Description: Issue the event when the consensus agent status changes
 ```
 
 ```
@@ -2747,8 +2736,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "agentList":{    //打包区块中状态该表的共识节点列表
-        "agent1",    //Agent对象的序列化为十六进制字符串
+    "agentList":{    //The list of consensus agents for the table in the state of the packed block
+        "agent1",    //Serialization of the Agent object to a hex string
         "agent2",
         "agent3"
     }
@@ -2757,10 +2746,10 @@ data:{
 
 
 
-#### 4.1.5 委托共识
+#### 4.1.5Commission consensus
 
 ```
-说明：当委托共识交易被确认并打包进块之后发布该事件
+Description: Issue the event after the delegate consensus transaction is confirmed and packaged into the block
 ```
 
 ```
@@ -2770,8 +2759,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "depositList":{     //打包区块中委托列表
-        "deposit1",     //Deposit对象序列化为十六进制字符串
+    "depositList":{     //Delegate list in the packaging block
+        "deposit1",     /Deposit object serialized to a hex string
         "deposit2"
     }
 }
@@ -2779,10 +2768,10 @@ data:{
 
 
 
-#### 4.1.6 退出共识
+#### 4.1.6 Exit consensus
 
 ```
-说明：当退出共识交易被确认并打包进块之后发布该事件
+Description: Issue the event after the exit consensus transaction is confirmed and packaged into the block
 ```
 
 ```
@@ -2792,8 +2781,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "depositList":{     //打包区块中退出委托列表
-        "deposit1",     //Deposit对象序列化为十六进制字符串
+    "depositList":{     //Exit the delegation list in the packaging block
+        "deposit1",     //The deposit object is serialized as a hex string
         "deposit2"
     }
 }
@@ -2801,10 +2790,10 @@ data:{
 
 
 
-#### 4.1.7 黄牌惩罚
+#### 4.1.7 Yellow card penalty
 
 ```
-说明：当有共识节点获得黄牌惩罚是发布该事件
+Description: When there is a consensus agent to get a yellow card penalty is to issue the event
 ```
 
 ```
@@ -2814,8 +2803,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "yellowPublishList":{    //打包区块中黄牌列表
-        "yellowPublish1",    //YellowPublish对象序列化为十六进制字符串
+    "yellowPublishList":{    //Yellow card list in the packing block
+        "yellowPublish1",    //YellowPublish object serialized to a hex string
         "yellowPublish2"
     }
 }
@@ -2823,10 +2812,10 @@ data:{
 
 
 
-#### 4.1.8 红牌惩罚
+#### 4.1.8 Red card penalty
 
 ```
-说明：当有共识节点获得红牌交易时获得该事件
+Description: Obtain the event when there is a consensus agent to get a red card transaction
 ```
 
 ```
@@ -2836,8 +2825,8 @@ data:{
 ```
 data:{
     "chainId":88,
-    "redPublishList":{    //打包区块中红牌列表
-        "redPublish1",    //RedPublish对象序列化为十六进制字符串
+    "redPublishList":{    //Red card list in the package block
+        "redPublish1",    //Serializing a RedPublish object to a hex string
         "redPublish2"
     }
 }
@@ -2845,62 +2834,111 @@ data:{
 
 
 
-### 4.2 订阅的事件
+### 4.2 Subscribed event
 
 ```
-无
+nothing
 ```
 
 
-## 五、协议
+## 五、protocol
 
-### 5.1 网络通讯协议
+### 5.1 Network communication protocol
 
 #### broadBlock
 
-- 发送新区块（SmallBlock）
-- 根据hash获取区块
-- 发送完整区块
-- 根据高度获取多个区块
-- 根据交易hash列表获取交易列表
-- 发送交易列表
-- 根据hash获取SmallBlock
-- 根据高度区间获取区块hash列表
-- 根据高度区间获取SmallBlock列表
+- Send a new block (SmallBlock)
+- Get blocks based on hash
+- Send a full block
+- Get multiple blocks based on height
+- Get a list of transactions based on the trade hash list
+- Send a list of transactions
+- Get SmallBlock based on hash
+- Get block hash list based on height interval
+- Get the SmallBlock list based on the height interval
 
-用于广播打包的新区快
+New area for broadcast packaging
 
-| Length | Fields     | Type   | Remark                               |
-| ------ | ---------- | ------ | ------------------------------------ |
-| 4      | chainId    | int    | 链ID                                 |
-| ??     | smallBlock | String | SmallBlock对象序列化的十六进制字符串 |
+| Length | Fields     | Type   | Remark                                  |
+| ------ | ---------- | ------ | --------------------------------------- |
+| 4      | chainId    | int    | chain ID                                |
+| ??     | smallBlock | String | SmallBlock object serialized hex string |
 
 
-## 六、模块配置
+## 六、Module configuration
 
 ```
-打包间隔时间
-packing_interval
-出块最小金额
-packing_amount
-奖励金锁定块数
-coinbase_unlock_height
-获得红牌保证金锁定时间
-redPublish_lockTime
-注销节点保证金锁定时间
-stopAgent_lockTime
-佣金比例的最大值和最小值
-commissionRate_min
-commissionRate_max
-创建节点的保证金最大值最小值
-deposit_min
-deposit_max
-委托最大值最小值
-commission_min
-Commission_max
+{
+    {
+        "name": "packing_interval",
+        "remark": “packaging interval”,
+        "changable": "true",
+        "default": "10秒"
+    },
+    {
+    	"name": "packing_amount",
+        "remark": “minimum amount of the block”,
+        "changable": "true",
+        "default": "200000"
+    },
+    {
+    	"name": "coinbase_unlock_height",
+        "remark": “Number of bonus lock blocks”,
+        "changable": "true",
+        "default": "100"
+    },
+    {
+    	"name": "redPublish_lockTime",
+        "remark": “Get red card margin lock time”,
+        "changable": "true",
+        "default": "3 months"
+    },
+    {
+    	"name": "stopAgent_lockTime",
+        "remark": “Logout agent margin lock time”,
+        "changable": "true",
+        "default": "3 days"
+    },
+    {
+    	"name": "commissionRate_min",
+        "remark": “minimum and minimum commission ratio”,
+        "changable": "true",
+        "default": "10"
+    },
+    {
+    	"name": "commissionRate_max",
+        "remark": “Maximum commission ratio”,
+        "changable": "true",
+        "default": "80"
+    },
+    {
+    	"name": "deposit_min",
+        "remark": “Create the minimum margin for the agent”,
+        "changable": "true",
+        "default": "20000"
+    },
+    {
+    	"name": "deposit_max",
+        "remark": “Create the maximum margin for the agent”,
+        "changable": "true",
+        "default": "700000"
+    },
+    {
+    	"name": "commission_min",
+        "remark": “trust the maximum amount”,
+        "changable": "true",
+        "default": "2000"
+    },
+    {
+    	"name": "commission_max",
+        "remark": “delegate the minimum amount”,
+        "changable": "true",
+        "default": "680000"
+    }
+}
 ```
 
-## 七、Java特有的设计
+## 七、Java-specific design
 
-## 八、补充内容
+## 八、to add on
 
