@@ -498,6 +498,11 @@ public class CmKernelCmd implements KernelCmd {
 
 ```
 /*
+* 从kernel获取所有接口列表
+*/
+CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
+
+/*
 * 参数说明：
 * 1. 调用的命令
 * 2. 调用的命令的最低版本号
