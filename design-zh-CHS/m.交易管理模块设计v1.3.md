@@ -8,11 +8,11 @@
 
 #### 1.1.1 为什么要有《交易管理》模块
 
-​	在NULS2.0的生态体系中，交易会在各条的链中或者链与链之间流转，各自链中的节点不仅要处理链内的交易，可能还会处理跨链的交易，于是每个节点需要处理的交易会越来越多，并且更复杂，因此我们需要一个但单独的模块来统一处理各种交易。而从NULS2.0的架构设计来看，我们需要一个独立的模块来统一处理交易的收集、验证、存储以及转发等功能，对于所有交易来说这些功能具有共用性、统一性，因此我们把交易管理作为一个独立的模块来运行。
+​	在NULS2.0的生态体系中，交易会在链中或者链与链之间流转，各条链的节点不仅要处理链内的交易，可能还会处理跨链的交易，于是每个节点需要处理的交易会越来越多，并且更复杂，因此我们需要一个但单独的模块来统一处理各种交易。而从NULS2.0的架构设计来看，我们需要一个独立的模块来处理交易的收集、验证、存储以及转发等功能，对于所有交易来说，这些功能具有共用性、统一性，因此我们把交易管理作为一个独立的模块来运行。
 
 #### 1.1.2《交易管理》模块要做什么
 
-交易管理最核心的工作，主要从两个方面来看：
+交易管理最核心的工作主要从两个方面来看：
 
 **一、对本地交易进行处理**
 
@@ -96,7 +96,7 @@
 
 模块启动时需要获得其他模块的基础数据
 
-- 维护连管理模块中所有链的基础数据
+- 维护链管理模块中所有链的基础数据
 
   获取数据的方式：
 
@@ -112,7 +112,7 @@
 
 - 由本节点各模块新创建的交易
 
-  各模块新创建的交易（包含跨链交易），通过交易管理模块提供的接口[tx_newtx](#232-接收本地新交易)进行收集，模块收到一个新交易后将会进行基本的验证，然后放到待验证本地交易队列中，等待进行验证流程。
+  各模块新创建的交易（包含跨链交易），通过交易管理模块提供的接口[newtx](#232-接收本地新交易)进行收集，模块收到一个新交易后将会进行基本的验证，然后放到待验证本地交易队列中，等待进行验证流程。
 
   注意：待验证本地交易队列中也会存在跨链交易，这是所有交易的本地验证流程。
 
@@ -120,10 +120,9 @@
 
   其他节点广播的跨链交易（前提是该跨链交易在创建该交易的链中已打包确认一定的高度），将会通过网络消息的方式进行发送，首先发送的是交易的hash，交易管理模块收到后再发送索取完整交易的消息，之后才会接收到完整的跨链交易。收到后同样会进行基础的验证，然后放入待验证跨链交易队列中，等待进行验证流程。
 
-
 #### 2.2.3 跨链交易详细流程
 
-例如：***从链A的a地址发起一笔交易atx，转移aCoin到B链b地址中 (A -->NULS主网 --> B)***
+例如：***从A链的a地址发起一笔交易atx，转移aCoin到B链b地址中 (A -->NULS主网 --> B)***
 
 - A链中a地址以A链链id(ChainId)起始的NULS体系格式的地址
 - B链中b地址是以B链链id起始的NULS体系格式的地址
@@ -133,43 +132,11 @@
 
 **(1) 跨链交易在A链中的本地流程**
 
-1. **atx**转账交易在A链中生成后，发送到交易管理模块中，通过[tx_newtx](#232-接收本地新交易)接口对交易数据的基本格式以及合法性进行基础验证，然后存放到待验证本地交易队列中。
+1. 账本模块生成转账交易**atx**，如果生成的是跨链交易，需要同时调用跨链模块生成NULS主网协议的**atx_trans**并签名。
 
-   + 接收交易对交易数据反序列化成Transaction
+   - 根据NULS主网协议，从**atx**提取type、time、remark、scriptSig，txData放入新生成的**atx_trans**中。
 
-   + 对Transaction 数据的基本格式，合法性，和完整性进行校验
-
-   + 对coinData中链和资产的基本格式，合法性，和完整性进行校验
-
-2. 验证交易的定时任务Task将会从该队列中取出交易，首先通过账本模块验证coinData，验证通过之后跟交易类型从缓存中找到对应的交易验证器，再调用验证接口进行验证，验证通过的交易将放入交易管理模块待打包交易内存池，等待共识打包。
-
-   + 定时取出待确认交易
-
-   + 通过调用账本模块接口对CoinData进行验证
-
-   + 通过调用交易的验证器接口对交易进行验证
-
-   + 验证通过的交易放入待打包交易内存池
-
-3. 当共识需要打包的时候会根据链id、规定的结束打包时间、交易数据最大容量值来调用[tx_packableTxs](#233-获取可打包交易集合)接口获取可打包交易集合，这时交易管理模块将从待打包交易内存池中获取交易，再进行验证。
-
-   + 首先从待打包交易内存池中拿出一个交易，再进行单独的验证流程(与步骤2基本一致)，然后按模块放对应的集合。
-
-   + 重复这个过程直到达到规定结束打包时间或交易最大容量值。
-
-4. 根据账本模块的统一验证器一次性验证所有交易的CoinData，得到未通过验证的交易，过滤掉未通过验证的交易；再根据各模块统一交易验证器来验证各自模块的交易集合，得到未通过验证的交易再汇总结果，然后返回可打包的交易集合给共识模块。
-
-5. 当打包的区块在验证通过后，区块管理模块将调用交易对应的[tx_commit](#234-交易确认提交)提交接口，调用账本模块接口更新余额等账本数据，最后再调用保存交易接口[tx_saveTx](#236-保存交易)，完成后则意味着交易被区块链确认。
-
-   PS：如果一个交易为非跨链交易，到这一步时正常交易流程已完成。
-
-**(2) 跨链交易进入跨链流程**
-
-6. A链节点的交易管理模块将会一直扫描区块链中的跨链交易，当发现**atx**交易被区块链确认n个高度后，取出**atx**交易利用***跨链模块***(独立于A链功能之外的基本模块，负责普通链协议与NULS主网协议之间的转换)的跨链协议转换生成一个NULS主网的交易**atx_trans**。
-
-   + 根据NULS主网协议，从**atx**提取type、time、remark、scriptSig，txData放入新生成的**atx_trans**中。
-
-   + 提取CoinData数据，如果是UTXO模型，则需要根据资产、input、output以及手续费，计算出实际的支付金额，生成NULS主网协议(账户余额模型)的from。
+   - 提取CoinData数据，如果是UTXO模型，则需要根据资产、input、output以及手续费，计算出实际的支付金额，生成NULS主网协议(账户余额模型)的from。
 
      from总额 = input_utxo总额 - output_utxo(非找零部分) - 手续费
 
@@ -193,42 +160,73 @@
 
      最终结果必须满足：from总额 <= input_utxo总额、to总额 = output_utxo(非找零部分之和)。
 
-   + 如果是账户余额模型，则提取对应的from和to，生成NULS主网协议的CoinData
+   - 如果是账户余额模型，则提取对应的from和to，生成NULS主网协议的CoinData
 
-7. A链节点交易管理模块发送消息将**atx_trans**交易发送给连接的NULS主网节点(多个)
+2. **atx_trans**跨链交易通过接口[newCrossTx](#2322-接收本地新的主网协议的跨链交易)发送到交易管理模块等待广播； **atx**转账交易在A链中生成后，发送到交易管理模块中，通过[newtx](#232-接收本地新交易)接口对交易数据的基本格式以及合法性进行基础验证，然后存放到待验证本地交易队列中。
+
+   + 接收交易对交易数据反序列化成Transaction
+
+   + 对Transaction 数据的基本格式，合法性，和完整性进行校验
+
+   + 对coinData中链和资产的基本格式，合法性，和完整性进行校验
+
+3. 验证交易的定时任务Task将会从该队列中取出交易，首先通过账本模块验证coinData，验证通过之后跟交易类型从缓存中找到对应的交易验证器，再调用验证接口进行验证，验证通过的交易通过[BroadcastTxMessage](#59_BroadcastTxMessage)广播给链内其他节点，同时广播主网协议的交易**atx_trans**，将放入交易管理模块待打包交易内存池，等待共识打包。
+
+   + 定时取出待确认交易
+
+   + 通过调用账本模块接口对CoinData进行验证
+
+   + 通过调用交易的验证器接口对交易进行验证
+
+   + 验证通过的交易放入待打包交易内存池
+
+4. 当共识需要打包的时候会根据链id、规定的结束打包时间、交易数据最大容量值来调用[tx_packableTxs](#233-获取可打包交易集合)接口获取可打包交易集合，这时交易管理模块将从待打包交易内存池中获取交易，再进行验证。
+
+   + 首先从待打包交易内存池中拿出一个交易，再进行单独的验证流程(与步骤2基本一致)，然后按模块放对应的集合。
+
+   + 重复这个过程直到达到规定结束打包时间或交易最大容量值。
+
+5. 根据账本模块的统一验证器一次性验证所有交易的CoinData，得到未通过验证的交易，过滤掉未通过验证的交易；再根据各模块统一交易验证器来验证各自模块的交易集合，得到未通过验证的交易再汇总结果，然后返回可打包的交易集合给共识模块。
+
+6. 当打包的区块在验证通过后，区块管理模块将调用交易对应的[tx_commit](#234-交易确认提交)提交接口，调用账本模块接口更新余额等账本数据，最后再调用保存交易接口[tx_saveTx](#236-保存交易)，完成后则意味着交易被区块链确认。
+
+   PS：如果一个交易为非跨链交易，到这一步时正常交易流程已完成。
+
+**(2) 跨链交易进入跨链流程**
+
+7. A链节点的交易管理模块将会一直扫描区块链中的跨链交易，当发现**atx**交易被区块链确认n个高度后，A链节点交易管理模块发送消息将**atx_trans**交易发送给连接的NULS主网节点(多个)
 
    ​	*发送跨链交易流程*：
 
-   1. A链节点Anode1先通过消息[BroadcastCrossTxHashMessage](#51-broadcastcrosstxhashmessage)广播**atx_trans**交易的hash给连接的NULS主网节点，NULS主网节点Mn网络模块接收到该消息后，通过交易管理模块的接口[tx_rncTxHash](#2311-接收新的跨链交易hash)将消息体发送给交易管理模块。
+   1. A链节点Anode1先通过消息[BroadcastCrossTxHashMessage](#51-broadcastcrosstxhashmessage)广播**atx_trans**交易的hash给连接的NULS主网节点，NULS主网节点Mn网络模块接收到该消息后，通过交易管理模块的接口[rncTxHash](#2311-接收新的跨链交易hash)将消息体发送给交易管理模块。
    2. 交易管理模块获得的交易hash，再通过[ReceiveCrossTxMessage]( #52-receivecrosstxmessage)发送获取完整跨链交易的消息到A链节点Anode1。
-   3. A链节点Anode1的网络模块收到该消息后，通过交易管理模块的[tx_gtCrossTx](#2314-接收索取完整跨链交易的交易hash)收到该请求，再将完整的**atx_trans**跨链交易和**atx**交易的hash（协议转换之前的hash）通过[SendHashCrossTxMessage](#53-sendhashcrosstxmessage)发送给主网节点Mn，主网节点网络模块收到该消息后，通过交易管理接口[tx_rncTx](#2312-接收友链新的完整跨链交易)发送给交易管理模块，由交易管理模块解析处理**atx_trans**交易。
+   3. A链节点Anode1的网络模块收到该消息后，通过交易管理模块的[gtcrossTx](#2314-接收索取完整跨链交易的交易hash)收到该请求，再将完整的**atx_trans**跨链交易和**atx**交易的hash（协议转换之前的hash）通过[SendHashCrossTxMessage](#53-sendhashcrosstxmessage)发送给主网节点Mn，主网节点网络模块收到该消息后，通过交易管理接口[rncTx](#2312-接收友链新的完整跨链交易)发送给交易管理模块，由交易管理模块解析处理**atx_trans**交易。
 
 8. NULS主网节点交易管理模块先反序列化**atx_trans**交易，然后进行校验。
 
-   + 对交易数据的基本格式，合法性，和完整性进行校验；
-
-   + 对coinData里链和资产的基本格式，合法性，和完整性进行校验。
+   - 对交易数据的基本格式，合法性，和完整性进行校验；
+   - 对coinData里链和资产的基本格式，合法性，和完整性进行校验。
 
 9. 进行跨链验证，NULS主网节点Mn将通过消息[VerifyCrossWithFCMessage](#54-verifycrosswithfcmessage)发送atx_hash(协议转换前的交易hash)、atx_trans_hash(NULS主网收到的协议转换后的完整交易hash)给与A链连接的节点中**除Anode1之外的节点**验证**atx_trans**交易。
 
    ​	*A链中执行验证的节点Anode2的验证逻辑*：
 
-   1. 网络模块接收到[VerifyCrossWithFCMessage](#54-verifycrosswithfcmessage)消息后，通过交易管理模块接口[tx_cfmdFcTx](#2315-根据原始交易和跨链交易hash向友链节点验证该交易是否被确认)将消息发送给交易管理，交易管理模块先通过atx_hash从数据库中查询对应的atx交易，并且验证该交易所在的区块已经被确认n个区块高度。
+   1. 网络模块接收到[VerifyCrossWithFCMessage](#54-verifycrosswithfcmessage)消息后，通过交易管理模块接口[cfmdFcTx](#2315-根据原始交易和跨链交易hash向友链节点验证该交易是否被确认)将消息发送给交易管理，交易管理模块先通过atx_hash从数据库中查询对应的atx交易，并且验证该交易所在的区块已经被确认n个区块高度。
    2. 将atx交易进行协议转换生成新的**Anode2_atx_trans**，再验证接收到的atx_trans_hash与**Anode2_atx_trans_hash**一致。
 
    通过以上两个验证之后，节点Anode2将通过[VerifyCrossResultMessage](#55-verifycrossresultmessage)将atx_trans_hash和确认高度发送给NULS主网节点Mn。
 
    ***注意***：NULS主网节点通过网络模块向A链节点组发送跨链验证消息[VerifyCrossWithFCMessage](#54-verifycrosswithfcmessage)时，交易管理将会缓存发送成功和失败的节点信息，如果成功发送的节点数小于S(Mn与A链连接的节点数的51%)，则重新发送给失败的节点，直到S不小于51%。
 
-10. NULS主网节点Mn(共识节点)收到A链节点Anode2对交易**atx_trans**的验证结果的消息，通过交易管理[tx_crossRs](#2317-接收跨链验证结果)接口发送到交易管理中，交易管理会将验证结果与发送的成功的节点对应着缓存起来。Mn收到所有自己发出的求证的回应结果后，计算出验证通过的百分比，如果超过全部链接节点51%的节点验证通过（发送失败的节点视为不通过），则节点Mn判定交易**atx_trans**的验证通过。
+10. NULS主网节点Mn(共识节点)收到A链节点Anode2对交易**atx_trans**的验证结果的消息，通过交易管理[crossTxRs](#2317-接收跨链验证结果)接口发送到交易管理中，交易管理会将验证结果与发送的成功的节点对应着缓存起来。Mn收到所有自己发出的求证的回应结果后，计算出验证通过的百分比，如果超过全部链接节点51%的节点验证通过（发送失败的节点视为不通过），则节点Mn判定交易**atx_trans**的验证通过。
 
     小结：节点Mn收到的验证结果数量不能小于S，如果小于S则重新发送[VerifyCrossWithFCMessage](#54-verifycrosswithfcmessage)给未回应结果的节点，NULS主网的普通节点询问A链任意个节点，主网共识节点询问A链全部节点，普通节点在任意3个节点确认的情况下就视为该交易验证通过并转发该交易。
 
 11. 共识节点Mn对跨链交易atx_trans_hash签名，并将hash和签名数据通过[BroadcastCrossNodeRsMessage](#58-broadcastcrossnodersmessage)广播到NULS主网网络中。
 
-12. NULS主网共识节点互相收到所有其他共识节点发出的消息，由交易管理模块接口[tx_csNodeRs](#2318-接收跨链交易的链内节点验证结果)进行收集汇总，当一个交易的签名者超过共识节点总数的80%，判定该跨链交易通过NULS主网的验证，放入待打包交易内存池，等待打包确认。
+12. NULS主网共识节点互相收到所有其他共识节点发出的消息，由交易管理模块接口[csNodeRs](#2318-接收跨链交易的链内节点验证结果)进行收集汇总，当一个交易的签名者超过共识节点总数的80%，判定该跨链交易通过NULS主网的验证，放入待打包交易内存池，等待打包确认。
 
-13. NULS主网节点共识模块打包的时，交易模块先取出交易(与***步骤 3***)一致，再次验证跨链交易atx_trans的签名数量(PS：由于提取出来的交易集合包含NULS主网创建的交易，这类交易没有验证签名数量步骤)，然后通过账本模块验证CoinData(转出资产总余额等)，符合要求则将交易发送共识模块打包进区块。
+13. NULS主网节点共识模块打包的时，交易模块先取出交易(与 ***步骤 3*** 类似)，再次验证跨链交易atx_trans的签名数量(PS：由于提取出来的交易集合包含NULS主网创建的交易，这类交易没有验证签名数量步骤)，然后通过账本模块验证CoinData(转出资产总余额等)，符合要求则将交易发送共识模块打包进区块。
 
     区块确认逻辑：验证区块中包含的跨链交易时，验证签名数量和转出链的资产余额，符合要求就确认该交易。
 
@@ -236,33 +234,26 @@
 
 14. NULS主网节点的交易管理模块将会一直扫描区块链中的跨链交易，当发现**atx_trans**交易被区块链确认n个高度后，取出**atx_trans**交易通过交易管理模块发送消息将**atx_trans**交易发送给连接的B链节点(多个)
 
-    ​	*发送跨链交易流程*(类似**步骤 7**)：
+    ​	*发送跨链交易流程*(与 ***步骤 7*** 类似)：
 
-    1. NULS主网节点Mn先通过消息[BroadcastCrossTxHashMessage](#51-broadcastcrosstxhashmessage)广播**atx_trans**交易的hash给连接的B链节点，B链节点Bnode1网络模块接收到该消息后，通过交易管理模块的接口[tx_rncTxHash](#2311-接收新的跨链交易hash)将消息体发送给交易管理模块。
+    1. NULS主网节点Mn先通过消息[BroadcastCrossTxHashMessage](#51-broadcastcrosstxhashmessage)广播**atx_trans**交易的hash给连接的B链节点，B链节点Bnode1网络模块接收到该消息后，通过交易管理模块的接口[rncTxHash](#2311-接收新的跨链交易hash)将消息体发送给交易管理模块。
     2. 交易管理模块获得的交易hash，再通过[ReceiveCrossTxMessage](#52-receivecrosstxmessage)发送获取完整跨链交易的消息到NULS主网节点Mn。
-    3. Mn的网络模块收到该消息后，通过交易管理模块的[tx_gtCrossTx](#2314-接收索取完整跨链交易的交易hash)收到该请求，再将完整的**atx_trans**跨链交易通过[SendCrossTxMessage](#56-sendcrosstxmessage)发送给Bnode1，Bnode1网络模块收到该消息后，通过交易管理接口[tx_rnmcTx](#2313-接收主网新的完整跨链交易)发送给交易管理模块，交易管理模块需要借助***跨链模块***来处理**atx_trans**交易。
+    3. Mn的网络模块收到该消息后，通过交易管理模块的[gtcrossTx](#2314-接收索取完整跨链交易的交易hash)收到该请求，再将完整的**atx_trans**跨链交易通过[SendCrossTxMessage](#56-sendcrosstxmessage)发送给Bnode1，Bnode1网络模块收到该消息后，通过交易管理接口[rnmcTx](#2313-接收主网新的完整跨链交易)发送给交易管理模块，交易管理模块需要借助***跨链模块***来处理**atx_trans**交易。
 
 15. B链节点Bnode1交易管理模块通过消息[VerifyCrossWithMainMessage](#57-verifycrosswithmainmessage)发送 **atx_trans**的交易hash(步骤14-2已获得)给与NULS主网连接的节点中**除Mn之外的节点**验证**atx_trans**交易。
 
     ​	*NULS主网中执行验证的节点Mn2的验证逻辑*：
 
-    1. 网络模块接收到[VerifyCrossWithMainMessage](#57-verifycrosswithmainmessage)消息后，通过交易管理模块接口[tx_cfmdMnTx](#2316-根据跨链交易hash向主网验证该交易是否被确认)将消息发送给交易管理，交易管理模块先通过atx_hash从数据库中查询对应的atx交易，并且验证该交易所在的区块已经被确认n个区块高度。
+    1. 网络模块接收到[VerifyCrossWithMainMessage](#57-verifycrosswithmainmessage)消息后，通过交易管理模块接口[cfmdMnTx](#2316-根据跨链交易hash向主网验证该交易是否被确认)将消息发送给交易管理，交易管理模块先通过atx_hash从数据库中查询对应的atx交易，并且验证该交易所在的区块已经被确认n个区块高度。
 
     通过验证之后，节点Mn2将通过[VerifyCrossResultMessage](#55-verifycrossresultmessage)将atx_trans_hash和确认高度发送给B链节点Bnode1。
 
 16. B链节点通过网络模块向NULS主网节点组发送跨链验证消息[VerifyCrossWithMainMessage](#57-verifycrosswithmainmessage)时，交易管理将会缓存发送成功和失败的节点信息，如果成功发送的节点数小于S(节点Bnode1与NULS主网连接的节点数的51%)，则重新发送给失败的节点，直到S不小于51%。
-
-17. （与**步骤10**类似）B链节点Bnode1收到主网节点Mn对交易**atx_trans**的验证结果的消息，通过交易管理[tx_crossRs](#2317-接收跨链验证结果)接口发送到交易管理中，交易管理会将验证结果与发送的成功的节点对应着缓存起来。Bnode1收到所有自己发出的求证的回应结果后，计算出验证通过的百分比，如果超过51%的节点验证通过（发送失败的节点视为不通过），则节点Bnode1判定交易**atx_trans**的验证通过。
-
+17. （与 ***步骤10*** 类似）B链节点Bnode1收到主网节点Mn对交易**atx_trans**的验证结果的消息，通过交易管理[crossTxRs](#2317-接收跨链验证结果)接口发送到交易管理中，交易管理会将验证结果与发送的成功的节点对应着缓存起来。Bnode1收到所有自己发出的求证的回应结果后，计算出验证通过的百分比，如果超过51%的节点验证通过（发送失败的节点视为不通过），则节点Bnode1判定交易**atx_trans**的验证通过。
 18. 验证通过后，交易管理模块调用**跨链模块**将**atx_trans**交易通过协议转换生成B链协议的交易**btx**并通过[BroadcastCrossNodeRsMessage](#58-broadcastcrossnodersmessage)广播到B链网络中，如果Bnode1节点是B链最近x块的出块者(POW需要适配)，则需要对该交易进行签名，通过[BroadcastCrossNodeRsMessage](#58-broadcastcrossnodersmessage)广播到B链网络中。
-
-19. B链节点收到其他节点发出的消息，由交易管理模块接口[tx_csNodeRs](#2318-接收跨链交易的链内节点验证结果)进行收集汇总，统计该交易的签名，当签名者达到了最近20块的出块者的80%时，该交易可以被打包(打包者也要确认该交易且打包的交易中包含所有签名)，放入待打包交易内存池，等待打包确认。
-
+19. B链节点收到其他节点发出的消息，由交易管理模块接口[csNodeRs](#2318-接收跨链交易的链内节点验证结果)进行收集汇总，统计该交易的签名，当签名者达到了最近20块的出块者的80%时，该交易可以被打包(打包者也要确认该交易且打包的交易中包含所有签名)，放入待打包交易内存池，等待打包确认。
 20. (与**步骤 13**类似)B链节点共识模块打包的时，交易模块先取出交易(与***步骤 3***)一致，再次验证交易**btx**的签名数量，然后通过账本模块验证CoinData，符合要求则将交易发送共识模块打包进区块。
-
 21. 当新区块验证通过得到最终确认后，整个跨链交易流程结束。
-
-
 
 ### 2.3 模块服务
 
@@ -284,7 +275,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_registertx",
         "minVersion": "1.0",
@@ -411,7 +402,7 @@
 
      -  result说明：返回不合法的交易列表
 
-     ```json
+     ```
      {
      	"version": 1.0,
      	"code":0,
@@ -429,7 +420,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "",
         "minVersion": "1.0",
@@ -448,7 +439,7 @@
 
     - result说明：提交成功返回true，失败返回错误信息
 
-    ```json
+    ```
     {
     	"version": 1.0,
     	"code":0,
@@ -466,7 +457,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "",
         "minVersion": "1.0",
@@ -485,7 +476,7 @@
 
     - result说明：回滚成功返回true，失败返回错误信息
 
-    ```json
+    ```
     {
     	"version": 1.0,
     	"code":0,
@@ -517,15 +508,15 @@
 
 - 接口定义
 
-  - method: `tx_newtx`
+  - method: `newtx`
 
     接口说明：接收一个新的交易
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_newtx",
+        "cmd": "newtx",
         "minVersion": "1.0",
         "params": [chainId, "txHex"]
     }
@@ -542,7 +533,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -579,7 +570,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_packableTxs",
         "minVersion": "1.0",
@@ -599,7 +590,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -640,7 +631,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_commit",
         "minVersion": "1.0",
@@ -660,7 +651,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -697,7 +688,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_Rollback",
         "minVersion": "1.0",
@@ -717,7 +708,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -769,7 +760,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -800,7 +791,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_getTx",
         "minVersion": "1.0",
@@ -819,7 +810,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -852,7 +843,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_delTx",
         "minVersion": "1.0",
@@ -904,7 +895,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_verifyTx",
         "minVersion": "1.0",
@@ -923,7 +914,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -950,15 +941,15 @@
 
 - 接口定义
 
-  - method:`tx_rnTxHash` Receive new transaction hash message
+  - method:`rnTxHash` Receive new transaction hash message
 
     接口说明：接收交易hash序列化数据
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_rnTxHash",
+        "cmd": "rnTxHash",
         "minVersion": "1.0",
         "params": [chainId, txHashHex]
     }
@@ -975,7 +966,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1006,15 +997,15 @@
 
 - 接口定义
 
-  - method: `tx_rncTxHash` Receive new cross transaction hash
+  - method: `rncTxHash` Receive new cross transaction hash
 
     接口说明：接收一个新的交易hash
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_rncTxHash", 
+        "cmd": "rncTxHash", 
         "minVersion": "1.0",
         "params": [chainId, nodeId, txHash]
     }
@@ -1032,7 +1023,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1063,15 +1054,15 @@
 
 - 接口定义
 
-  - method: `tx_rncTx` Receive new cross transaction
+  - method: `rncTx` Receive new cross transaction
 
     接口说明：接收一个新的完整跨链交易，和该交易原始hash（友链协议转换前该交易的hash值）
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_rncTx",
+        "cmd": "rncTx",
         "minVersion": "1.0",
         "params": [chainId, nodeId, txHex]
     }
@@ -1089,7 +1080,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1120,15 +1111,15 @@
 
 - 接口定义
 
-  - method: `tx_rnmcTx` Receive new mainnet cross transaction
+  - method: `rnmcTx` Receive new mainnet cross transaction
 
     接口说明：接收一个主网发送的新的完整跨链交易
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_rnmcTx",
+        "cmd": "rnmcTx",
         "minVersion": "1.0",
         "params": [chainId, nodeId, txHex]
     }
@@ -1146,7 +1137,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1177,15 +1168,15 @@
 
 - 接口定义
 
-  - method: `tx_gtCrossTx` send cross transaction
+  - method: `gtcrossTx` send cross transaction
 
     接口说明：接收网络节点发送的交易hash，通过网络消息发送完整交易回去
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_gtCrossTx",
+        "cmd": "gtcrossTx",
         "minVersion": "1.0",
         "params": [chainId, nodeId, txHash]
     }
@@ -1203,7 +1194,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1234,15 +1225,15 @@
 
 - 接口定义
 
-  - method: `tx_cfmdFcTx` 
+  - method: `cfmdFcTx` 
 
   - 接口说明：接收跨链交易hash和该交易原始hash，通过网络消息返回确认结果
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_cfmdFcTx",
+        "cmd": "cfmdFcTx",
         "minVersion": "1.0",
         "params": [chainId, nodeId, txHash]
     }
@@ -1260,7 +1251,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1291,15 +1282,15 @@
 
 - 接口定义
 
-  - method: `tx_cfmdMnTx` 
+  - method: `cfmdMnTx` 
 
   - 接口说明：接收跨链交易hash，通过网络消息返回确认结果
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_cfmdMnTx",
+        "cmd": "cfmdMnTx",
         "minVersion": "1.0",
         "params": [chainId, nodeId, txHash]
     }
@@ -1317,7 +1308,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1348,15 +1339,15 @@
 
 - 接口定义
 
-  - method: `tx_crossRs` cross result
+  - method: `crossTxRs` cross result
 
   - 接口说明：接收跨链交易验证结果
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_crossRs",
+        "cmd": "crossTxRs",
         "minVersion": "1.0",
         "params": [chainId, nodeId, rsHex]
     }
@@ -1374,7 +1365,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1403,15 +1394,15 @@
 
 - 接口定义
 
-  - method: `tx_csNodeRs` cross tx node result
+  - method: `csNodeRs` cross tx node result
 
   - 接口说明：接收发出者的签名、跨链交易的hash、节点验证结果
 
   - 请求示例
 
-    ```json
+    ```
     {
-        "cmd": "tx_csNodeRs",
+        "cmd": "csNodeRs",
         "minVersion": "1.0",
         "params": [chainId, nodeId, nodeRsHex]
     }
@@ -1429,7 +1420,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1462,11 +1453,11 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_getTxsInfo",
         "minVersion": "1.0",
-        "params": []
+        "params": [chainId]
     }
     ```
 
@@ -1480,7 +1471,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1517,7 +1508,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_getTxProcessors",
         "minVersion": "1.0",
@@ -1555,7 +1546,134 @@
     | 0         | String | commit处理器接口   |
     | 1         | String | rollback处理器接口 |
 
-#### 2.3.21 运行链
+
+
+#### 2.3.21 查询根据账户地址查询交易记录
+
+- 功能说明：
+
+  根据账户、链、资产、分页信息等条件查询交易列表
+
+- 接口定义
+
+  - method: `tx_getTxs` 
+
+  - 接口说明：返回 `Page<Transaction>` 
+
+  - 请求示例
+
+    ```
+    {
+        "cmd": "tx_getTxProcessors",
+        "minVersion": "1.0",
+        "params": [
+        	ChainId,
+        	assetId,
+        	type,
+        	"Nse7PfBkqtByKJ6AuxY151n1CM2xxxx",
+        	pageSize,
+        	pageNumber
+        ]
+    }
+    ```
+
+  - 请求参数说明
+
+    | index | type   | description              |
+    | ----- | ------ | ------------------------ |
+    | 0     | int    | 交易类型（不填返回全部） |
+    | 1     | int    | 资产Id标识               |
+    | 2     | int    | 交易类型                 |
+    | 3     | String | 账户地址                 |
+    | 4     | int    | 每一页数据条数           |
+    | 5     | int    | 页码                     |
+
+  - 返回示例
+
+    Success
+
+    ```
+    {
+      "code":0,
+      "version": 1.0,
+      "msg": "Success",
+      "result": {
+         "pageNumber": 1,
+         "pageSize": 10,
+         "total": 31,
+         "pages": 4,
+         "list": [
+            Transaction,
+            Transaction
+            ...
+         ]
+      }
+    }
+    ```
+
+  - 返回结果说明
+
+    | parameter  | type              | description      |
+    | ---------- | ----------------- | ---------------- |
+    | pageNumber | int               | 页码             |
+    | pageSize   | int               | 每页显示条数     |
+    | total      | int               | 数据总数         |
+    | pages      | int               | 总页数           |
+    | list       | Page<Transaction> | 交易记录数据集合 |
+
+
+
+#### 2.3.22 接收本地新的主网协议的跨链交易
+
+- 功能说明：
+
+  收集新的NULS主网协议的完整交易用于广播
+
+- 接口定义
+
+  - method: `newCrossTx` 
+
+  - 请求示例
+
+    ```
+    {
+        "cmd": "newCrossTx",
+        "minVersion": "1.0",
+        "params": [chainId, txHex]
+    }
+    ```
+
+  - 请求参数说明
+
+    | index | type   | description    |
+    | ----- | ------ | -------------- |
+    | 0     | int    | 链Id           |
+    | 1     | String | 交易序列化数据 |
+
+  - 返回示例
+
+    Success
+
+    ```
+    {
+      "code":0,
+      "version": 1.0,
+      "msg": "Success",
+      "result": {
+      	value:true
+      }
+    }
+    ```
+
+  - 返回结果说明
+
+    | parameter | type    | description |
+    | --------- | ------- | ----------- |
+    | value     | boolean | 成功        |
+
+
+
+#### 2.3.23 运行链
 
 - 功能说明：
 
@@ -1603,7 +1721,7 @@
     | --------- | ---- | ----------- |
     |           |      |             |
 
-#### 2.3.22 停止链
+#### 2.3.24 停止链
 
 - 功能说明：
 
@@ -1617,7 +1735,7 @@
 
   - 请求示例
 
-    ```json
+    ```
     {
         "cmd": "tx_stopChain",
         "minVersion": "1.0",
@@ -1635,7 +1753,7 @@
 
     Success
 
-    ```json
+    ```
     {
       "code":0,
       "version": 1.0,
@@ -1674,8 +1792,8 @@
 
 - 广播新的跨链交易hash
 
-- 消息说明：用于跨链交易在本链确认后需要广播给其他链时发送的消息
-- cmd：tx_rncTxHash
+- 消息说明：用于跨链交易在本链确认后需要广播给其他节点或其他链的节点时发送的消息
+- cmd：rncTxHash
 
 | Length | Fields        | Type   | Remark       |
 | ------ | ------------- | ------ | ------------ |
@@ -1686,13 +1804,13 @@
 
 - 消息处理
 
-  - 收到该消息后tx_rncTxHash将会发送GetcrossTxMessage来获取完整的跨链交易
+  - 收到该消息后rncTxHash将会发送GetcrossTxMessage来获取完整的跨链交易
 
 
 ### 5.2 ReceiveCrossTxMessage
 
 - 消息说明：请求获取完整的跨链交易的消息，例如NULS主网收到友链新的跨链交易hash，主网节点将向友链节点获取完整的交易。
-- cmd：tx_gtcrossTx
+- cmd：gtcrossTx
 
 | Length | Fields        | Type   | Remark       |
 | ------ | ------------- | ------ | ------------ |
@@ -1702,14 +1820,14 @@
 | ?      | hash          | byte[] | hash         |
 
 - 消息处理
-  - 该消息由tx_gtcrossTx处理将会发送SendcrossTxMessage/SendHashcrossTxMessage消息来传送完整的交易
+  - 该消息由gtcrossTx处理将会发送SendcrossTxMessage/SendHashcrossTxMessage消息来传送完整的交易
 
 
 
 ### 5.3 SendHashCrossTxMessage
 
 - 消息说明：友链向NULS主网发送经过协议转换的完整跨链交易，和原始交易hash
-- cmd：tx_rncTx
+- cmd：rncTx
 
 | Length | Fields                    | Type      | Remark                       |
 | ------ | ------------------------- | --------- | ---------------------------- |
@@ -1725,12 +1843,12 @@
 | ?      | originalHash              | byte[]    | originalHash友链原始交易hash |
 
 - 消息处理
-  - tx_rncTx接收消息后将会处理该交易，然后通过消息进行跨链验证
+  - rncTx接收消息后将会处理该交易，然后通过消息进行跨链验证
 
 ### 5.4 VerifyCrossWithFCMessage
 
 - 消息说明：发送协议转换前的交易hash、协议转换后的交易hash，向友链节点验证跨链交易
-- cmd：tx_cfmdFCTx
+- cmd：cfmdFcTx
 
 | Length | Fields                    | Type   | Remark                     |
 | ------ | ------------------------- | ------ | -------------------------- |
@@ -1743,12 +1861,12 @@
 | ?      | originalHash              | byte[] | 友链原始交易hash           |
 
 - 消息处理
-  - tx_cfmdFCTx处理该消息，验证后将结果通过VerifyCrossResultMessage发送回去
+  - cfmdFcTx处理该消息，验证后将结果通过VerifyCrossResultMessage发送回去
 
 ### 5.5 VerifyCrossResultMessage
 
 - 消息说明：节点收到跨链验证请求后，将验证结果发送回去
-- cmd：tx_crossRs
+- cmd：crossTxRs
 
 | Length | Fields        | Type    | Remark       |
 | ------ | ------------- | ------- | ------------ |
@@ -1760,14 +1878,14 @@
 | ?      | signature     | varByte | 签名？       |
 
 - 消息处理
-  - tx_crossRs接收到跨链验证结果后会计算出自己节点的结果
+  - crossTxRs接收到跨链验证结果后会计算出自己节点的结果
 
 
 
 ### 5.6 SendCrossTxMessage
 
 - 消息说明：发送完整的跨链交易的消息
-- cmd：tx_rnmcTx
+- cmd：rnmcTx
 
 | Length | Fields    | Data Type | Remark             |
 | ------ | --------- | --------- | ------------------ |
@@ -1779,14 +1897,14 @@
 | ？     | scriptSig | VarByte   | 数字脚本与交易签名 |
 
 - 消息处理
-  - tx_rnmcTx接收交易后将会进行一系列的验证，包括跨链验证
+  - rnmcTx接收交易后将会进行一系列的验证，如果不是交易原产地链的节点收到该交易后会进行跨链验证
 
 
 
 ### 5.7 VerifyCrossWithMainMessage
 
 - 消息说明：友链节点发送协议转换后的跨链交易hash，向主网节点验证跨链交易
-- cmd：tx_cfmdMnTx
+- cmd：cfmdMnTx
 
 | Length | Fields        | Type   | Remark               |
 | ------ | ------------- | ------ | -------------------- |
@@ -1796,14 +1914,14 @@
 | ?      | hash          | byte[] | 转换后的跨链交易hash |
 
 - 消息处理
-  - tx_cfmdMnTx处理该消息验证NULS主网中该交易是否被确认，将结果通过VerifyCrossResultMessage消息发送回去。
+  - cfmdMnTx处理该消息验证NULS主网中该交易是否被确认，将结果通过VerifyCrossResultMessage消息发送回去。
 
 
 
 ### 5.8 BroadcastCrossNodeRsMessage
 
 - 消息说明：向链内其他节点广播本节点对于某个跨链交易的验证结果
-- cmd：tx_csNodeRs
+- cmd：csNodeRs
 
 | Length | Fields        | Type    | Remark                   |
 | ------ | ------------- | ------- | ------------------------ |
@@ -1815,14 +1933,14 @@
 | 2      | result        | boolean | 验证结果                 |
 
 - 消息处理
-  - tx_csNodeRs接收该消息，同时统计其他所有节点的结果，最后计算本链对该交易的验证结果。
+  - csNodeRs接收该消息，同时统计其他所有节点的结果，最后计算本链对该交易的验证结果。
 
 
 
 ### 5.9 BroadcastTxMessage
 
 - 消息说明：本节点创建的交易完成本地验证后广播hash给其他节点
-- cmd：tx_rnTxHash
+- cmd：rnTxHash
 
 | Length | Fields        | Type   | Remark       |
 | ------ | ------------- | ------ | ------------ |
@@ -1832,14 +1950,12 @@
 | ?      | hash          | byte[] | hash         |
 
 - 消息处理
-  - tx_rnTxHash接口处理该消息，发送完整交易回去
-
-
+  - rnTxHash接口处理该消息，发送完整交易回去
 
 ### 5.10 SendTxMessage
 
 - 消息说明：向链内其他节点发送的完整交易
-- cmd：tx_newtx
+- cmd：newtx
 
 | Length | Fields    | Data Type | Remark             |
 | ------ | --------- | --------- | ------------------ |
@@ -1853,16 +1969,10 @@
 - 消息处理
   - 进入新的交易流程
 
-
-
 ## 六、模块配置项
 
 ```
 [tx-manager]
 bootstrap=io.satellite.module.TxManagerModuleBootstrap
 ```
-
-
-
-## 七、Java特有的设计
 
