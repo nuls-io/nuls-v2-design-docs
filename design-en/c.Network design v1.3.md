@@ -310,27 +310,21 @@ certain nodes (which can be 1 node) send messages.
 
 #### 2.2.3 Create a node group
 
-- Function Description：
+In addition to  its own satellite network, the satellite chain also has n cross-chain  networks. In addition to its own network, there is also a cross-chain  network.
 
-   In addition to  its own satellite network, the satellite chain also has n cross-chain  networks. In addition to its own network, there is also a cross-chain  network.
+   Node groups are used to manage different network information. The network module isolates and maintains different networks through node groups.
 
-  Node groups are used to manage different network information. The network module isolates and maintains different networks through node groups.
+   Node  group type: 1> own network 2> cross-chain network (satellite  chain cross-chain network & friend chain cross-chain network)
 
-  Node group type: 
+   The network module is a call to receive an external module to create a node group. The basic network configuration information of the cross-chain is mainly obtained through two ways:
 
-  1> own network 
+   1> The own configuration file is loaded to create its own network group.
 
-  2> friend chain cross-chain network 
+   2> Cross-chain network:
 
-  3> satellite chain cross-chain network
+   As  a satellite chain node, after the registration is registered by the  chain management module, the system generates a transaction verification  confirmation and then calls to generate a cross-chain network group.
 
-  The network module is a call to receive an external module to create a node group. The basic network configuration information of the cross-chain is mainly obtained through two ways:
-
-  1>  As a satellite chain node, after the registration is registered by the  chain management module, the system generates a transaction verification  confirmation and then calls it.
-
-  2> As a friend  chain node, when started by the cross-chain protocol module, the  cross-chain protocol module obtains cross-chain configuration  information from the module configuration for calling.
-
-  PS:  In actual use, nodes only get information from one way, because the  role of a node can only be a satellite chain node or a friend chain  node.  
+   As  a friend chain node, when started by the cross-chain protocol module,  the cross-chain protocol module obtains cross-chain configuration  information from the module configuration, and notifies the network  module,The network module triggers a cross-chain connection.  
 
 * Process description
 
@@ -340,17 +334,47 @@ certain nodes (which can be 1 node) send messages.
 
   2> Call by external module: Create a network group as confirmed by registering cross-chain transactions.  
 
-  ![](./image/network-module/createNodeGroup.png)
+##### 2.2.3.1  Create a node group with its own network
+
+- Function Description：
+
+  ​     The own network corresponds to its own chainId, and a magic parameter, through the configuration initialization to create a node group.
+
+- Process description
+
+  Create a node group by loading the configuration file
+
+- Interface definition
+
+​      Created internally, no external interface。
+
+- Dependent service
+
+​        none
+
+#####  2.2.3.2 Create a cross-chain node group
+
+- Function Description：
+
+  The cross-chain node group on the satellite chain is triggered by the cross-chain registration of the friend chain in the satellite chain. The friend chain obtains cross-chain configuration information, and the cross-chain status of the own network group is updated by the cross-chain protocol.
+
+- Process description
+
+ 1> The satellite chain is triggered by the chain management module to trigger the creation of a cross-link node group.
+
+ 2> The friend chain updates the cross-chain status of its own network group through the cross-chain protocol module.  
+
+![](./image/network-module/createNodeGroup.png)
 
 * interface definition
 
-  - 接口说明
+  - Interface Description
 
-    接收外部模块的调用，创建节点组
+    Receive a call to an external module to create a node group
 
     method : nw_createNodeGroup
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -363,8 +387,7 @@ certain nodes (which can be 1 node) send messages.
             100,
             20，
             "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003",
-            0,
-            8008
+            0
         ]}
     ```
 
@@ -379,7 +402,6 @@ certain nodes (which can be 1 node) send messages.
     | 4     | minAvailableCount | true     | int    | Minimum number of links in the friend chain |
     | 5     | seedIps           | true     | String |    Seed section group comma segmentation    |
     | 6     | isMoonNode        | true     | int    |   Whether satellite chain node, default 0   |
-    | 7     | serverPort        | true     | int    |                 Server port                 |
 
   - Return example
 
