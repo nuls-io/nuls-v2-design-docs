@@ -428,7 +428,11 @@ public class MyCmd extends BaseCmd {
      */
     @CmdAnnotation(cmd = "cm_exColdField", version = 1.0, preCompatible = true)
     public CmdResult methodName(List params) {       
-        return result(BaseCode.SUCCESS_CODE, 1.0, "hello nuls", null);
+        // 成功
+        return success(version_code, "hello nuls", "Object if necessary");
+        
+        // 失败
+        return failed(Constants.INTERNAL_ERROR, version_code, "Object if necessary");
     }
 }
 ```
@@ -504,6 +508,21 @@ String response = CmdDispatcher.call("cm_exColdField", 1.0, new Object[]{});
 ```
 
 
+
+#### 7.1.6 自定义错误
+
+默认定义了如下错误，放在常量类Constants中：
+
+```
+Code	Message
+-32700, "Parse error"
+-32600, "Invalid Request"
+-32601, "Method not found"
+-32602, "Invalid params"
+-32603, "Internal error"
+```
+
+自定义错误使用类：ErrorInfo
 
 
 
