@@ -92,7 +92,7 @@
 
 [^说明]: 说明模块的功能设计，可以有层级关系，可以通过图形的形式展示，并用文字进行说明。
 
-![](image/chainModule/structure.png)
+![](./image/chainModule/structure.png)
 
 ### 2.2 模块服务
 
@@ -106,7 +106,7 @@
 
 * 流程描述
 
-  ![](image/chainModule/chainRegister.png)
+  ![](./image/chainModule/chainRegister.png)
 
 * 依赖服务
 
@@ -128,7 +128,7 @@
 
 - 流程描述
 
-  ![](E:/tony/nuls/nuls_2.0_docs/design-zh-CHS/image/chainModule/chainDestroy.png)
+  ![](./image/chainModule/chainDestroy.png)
 
 - 依赖服务
 
@@ -166,7 +166,7 @@
 
 - 流程描述
 
-  ![](E:/tony/nuls/nuls_2.0_docs/design-zh-CHS/image/chainModule/assetRegister.png)
+  ![](./image/chainModule/assetRegister.png)
 
 - 依赖服务
 
@@ -185,7 +185,7 @@
 
 - 流程描述
 
-  ![](E:/tony/nuls/nuls_2.0_docs/design-zh-CHS/image/chainModule/assetDestroy.png)
+  ![](./image/chainModule/assetDestroy.png)
 
 - 依赖服务
 

@@ -1944,6 +1944,7 @@ The above is a functional analysis of the implementation of the consensus module
 
   ```
    - Get a list of network-wide consensus nodes
+  ```
    - Check if there is a consensus node created by the account in the consensus node list
    - Get the current network delegate list
    - Get the list of delegates participating in the account from the delegate list
@@ -1954,7 +1955,7 @@ The above is a functional analysis of the implementation of the consensus module
 
   - Interface Description
 
-    ```
+  ```
     Query the consensus information of the specified account, including the number of consensus nodes created by the account and the node hash, the total amount of participation in the consensus, the number of consensus nodes participating in the account, the available balance, the consensus bonus, and the consensus bonus obtained within 24 hours.
     ```
 
@@ -2036,6 +2037,7 @@ The above is a functional analysis of the implementation of the consensus module
 
   ```
    - Verify fork (call block management module interface), generate red card trade with fork
+  ```
    - Verify double flower (call transaction module interface), generate double card transaction with double flower and return to verify fail directly
    - Generate red card trades and place red card trades in the trading pool to be packaged
    - Verify block rotation information and packager correct
@@ -2047,7 +2049,7 @@ The above is a functional analysis of the implementation of the consensus module
 
   - Interface Description
 
-    ```
+  ```
     This interface is mainly to verify the block round information, the packager, the transaction in the block and whether the CoinBase is correct, and verify whether there is a red and yellow card penalty.
     ```
 
@@ -2115,6 +2117,7 @@ The above is a functional analysis of the implementation of the consensus module
 
   ```
    - Cycle to verify that each transaction is correct
+  ```
    - Verify that there is a conflicting transaction in the transaction list
   ```
 
@@ -2122,7 +2125,7 @@ The above is a functional analysis of the implementation of the consensus module
 
   - Interface Description
 
-    ```
+  ```
     Loop to verify that each transaction in the incoming transaction list is correct and verify that there is a conflicting transaction in the transaction list
     ```
 
@@ -2865,17 +2868,74 @@ New area for broadcast packaging
 ## 六、Module configuration
 
 ```
-Packing_interval                    //packaging interval
-Packing_amount 						//minimum amount of the block
-Coinbase_unlock_height 				//Number of bonus lock blocks
-redPublish_lockTime 				//Get red card margin lock time
-stopAgent_lockTime 					//Logout agent margin lock time
-commissionRate_min 					// minimum and minimum commission ratio
-commissionRate_max				 	//Maximum commission ratio
-Deposit_min 						//Create the minimum margin for the agent
-Deposit_max 						//Create the maximum margin for the agent
-Commission_min 						//trust the maximum amount
-Commission_max 						// delegate the minimum amount
+{
+    {
+        "name": "packing_interval",
+        "remark": “packaging interval”,
+        "changable": "true",
+        "default": "10秒"
+    },
+    {
+    	"name": "packing_amount",
+        "remark": “minimum amount of the block”,
+        "changable": "true",
+        "default": "200000"
+    },
+    {
+    	"name": "coinbase_unlock_height",
+        "remark": “Number of bonus lock blocks”,
+        "changable": "true",
+        "default": "100"
+    },
+    {
+    	"name": "redPublish_lockTime",
+        "remark": “Get red card margin lock time”,
+        "changable": "true",
+        "default": "3 months"
+    },
+    {
+    	"name": "stopAgent_lockTime",
+        "remark": “Logout agent margin lock time”,
+        "changable": "true",
+        "default": "3 days"
+    },
+    {
+    	"name": "commissionRate_min",
+        "remark": “minimum and minimum commission ratio”,
+        "changable": "true",
+        "default": "10"
+    },
+    {
+    	"name": "commissionRate_max",
+        "remark": “Maximum commission ratio”,
+        "changable": "true",
+        "default": "80"
+    },
+    {
+    	"name": "deposit_min",
+        "remark": “Create the minimum margin for the agent”,
+        "changable": "true",
+        "default": "20000"
+    },
+    {
+    	"name": "deposit_max",
+        "remark": “Create the maximum margin for the agent”,
+        "changable": "true",
+        "default": "700000"
+    },
+    {
+    	"name": "commission_min",
+        "remark": “trust the maximum amount”,
+        "changable": "true",
+        "default": "2000"
+    },
+    {
+    	"name": "commission_max",
+        "remark": “delegate the minimum amount”,
+        "changable": "true",
+        "default": "680000"
+    }
+}
 ```
 
 ## 七、Java-specific design
