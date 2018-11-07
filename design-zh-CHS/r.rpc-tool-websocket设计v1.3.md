@@ -395,6 +395,7 @@ Websocket-Tool会做成JAR包供各模块引用
 public void kernel() throws Exception {
     int port = 8887;
     WsServer s = new WsServer(port);
+    // 注意，下面这句话不要改，模拟实现在"io.nuls.rpc.cmd.kernel"中
     s.init("kernel", null, "io.nuls.rpc.cmd.kernel");
     s.start();
 
@@ -455,6 +456,11 @@ WsServer s = new WsServer(HostInfo.randomPort());
 * 3. 本模块提供的对外接口所在的包路径
 */
 s.init("m1", new String[]{"m2", "m3"}, "io.nuls.rpc.cmd");
+
+/*
+* 如果你的接口不在一个包里面，可以通过下面这句话单独注册
+*/
+RuntimeInfo.scanPackage("full_package_path");
 
 /*
 * 启动服务
