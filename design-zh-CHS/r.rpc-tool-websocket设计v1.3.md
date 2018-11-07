@@ -390,7 +390,7 @@ Websocket-Tool会做成JAR包供各模块引用
 
 测试之前，先启动此模拟kernel。
 
-```json
+```java
 @Test
 public  void kernel() throws Exception {
     int port = 8887;
@@ -408,7 +408,7 @@ public  void kernel() throws Exception {
 
 #### 7.1.2 自定义cmd
 
-```json
+```java
 /*
  * 该类所在的包需要通过7.1.3中的方法进行扫描
  */
@@ -441,7 +441,7 @@ public class MyCmd extends BaseCmd {
 
 #### 7.1.3 启动Server
 
-```
+```java
 /*
 * 初始化websocket服务器，供其他模块调用本模块接口
 * 端口随机，会自动分配未占用端口
@@ -475,7 +475,7 @@ CmdDispatcher.syncLocalToKernel("kernel url");
 
 这是供kernel调用的接口，可以最后kernel完全确认之后再实现。非必需。
 
-```
+```java
 /*
  * 1. 该类所在的包需要通过7.1.3中的方法进行扫描
  * 2. 一个模块只需要有一个类实现该接口
@@ -496,7 +496,7 @@ public class CmKernelCmd implements KernelCmd {
 
 #### 7.1.5 调用cmd
 
-```
+```java
 /*
 * 从kernel获取所有接口列表
 */
