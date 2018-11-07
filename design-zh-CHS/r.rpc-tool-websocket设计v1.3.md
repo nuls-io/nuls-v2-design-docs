@@ -392,13 +392,13 @@ Websocket-Tool会做成JAR包供各模块引用
 
 ```java
 @Test
-public  void kernel() throws Exception {
+public void kernel() throws Exception {
     int port = 8887;
     WsServer s = new WsServer(port);
     s.init("kernel", null, "io.nuls.rpc.cmd.kernel");
     s.start();
 
-    CmdDispatcher.syncLocalToKernel("ws://127.0.0.1:8887");
+    CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
 
     Thread.sleep(Integer.MAX_VALUE);
 }
@@ -427,7 +427,7 @@ public class MyCmd extends BaseCmd {
      * 4. 返回的对象，由接口自己约定
      */
     @CmdAnnotation(cmd = "cm_exColdField", version = 1.0, preCompatible = true)
-    public CmdResult methodName(List params) {       
+    public CmdResponse methodName(List params) {       
         // 成功
         return success(version_code, "hello nuls", "Object if necessary");
         
@@ -464,7 +464,7 @@ s.start();
 /*
 * 向核心模块汇报本模块信息
 */
-CmdDispatcher.syncLocalToKernel("kernel url");
+CmdDispatcher.syncKernel("kernel url");
 ```
 
 
@@ -485,7 +485,7 @@ public class CmKernelCmd implements KernelCmd {
 	@Override
     @CmdAnnotation(cmd = Constants.SHUTDOWN, version = 1.0, preCompatible = true)
     public CmdResponse shutdown(List params) {
-        return result(1.0);
+        return success(1.0);
     }
     
     ......
@@ -509,25 +509,10 @@ CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
 * 3. 调用的命令所需要的参数
 * 返回值为json格式
 */
-String response = CmdDispatcher.call("cm_exColdField", 1.0, new Object[]{});
+String response = CmdDispatcher.call("cm_exColdField", new Object[]{"params"}, 1.0);
 ```
 
 
-
-#### 7.1.6 自定义错误
-
-默认定义了如下错误，放在常量类Constants中：
-
-```
-Code	Message
--32700, "Parse error"
--32600, "Invalid Request"
--32601, "Method not found"
--32602, "Invalid params"
--32603, "Internal error"
-```
-
-自定义错误使用类：ErrorInfo
 
 
 
