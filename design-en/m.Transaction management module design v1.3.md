@@ -347,7 +347,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Request
 
-    ```json
+    ```
     {
         "cmd": "",
         "minVersion": "1.0",
@@ -366,7 +366,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     - result：Verify the failed transaction list
 
-    ```json
+    ```
     {
     	"version": 1.0,
     	"code":0,
@@ -380,11 +380,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
     | --------- | --------- | ------------------------------------------------------ |
     | list      | jsonArray | Verify the failed transaction serialization data array |
 
-- **Transaction validator interface uniform specification **
+- **Transaction validator interface uniform specification**
 
   - Request
 
-    ```json
+    ```
     {
         "cmd": "",
         "minVersion": "1.0",
@@ -608,9 +608,9 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Result
 
-    | parameter | type        | description  |
-    | --------- | ----------- | ------------ |
-    | list      | Transaction | 返回交易集合 |
+    | parameter | type        | description      |
+    | --------- | ----------- | ---------------- |
+    | list      | Transaction | Transaction list |
 
 
 
@@ -1016,8 +1016,8 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description               |
     | ----- | ------ | ------------------------- |
-    | 0     | int    | chainId Chain Id          |
-    | 1     | int    | nodeId 节点id             |
+    | 0     | int    | Chain Id                  |
+    | 1     | int    | Node Id                   |
     | 2     | String | Transaction hash hex data |
 
   - Response
@@ -1073,8 +1073,8 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description                                                  |
     | ----- | ------ | ------------------------------------------------------------ |
-    | 0     | Int    | chainId Chain Id                                             |
-    | 1     | int    | nodeId 节点id                                                |
+    | 0     | Int    | Chain Id                                                     |
+    | 1     | int    | Node Id                                                      |
     | 2     | String | Original transaction hash，and transaction serialization data of NULS mainnet protocol after protocol conversion |
 
   - Response
@@ -1130,8 +1130,8 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description                    |
     | ----- | ------ | ------------------------------ |
-    | 0     | Int    | chainId Chain Id               |
-    | 1     | int    | nodeId 节点id                  |
+    | 0     | Int    | Chain Id                       |
+    | 1     | int    | Node Id                        |
     | 2     | String | Transaction serialization data |
 
   - Response
@@ -1301,7 +1301,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description               |
     | ----- | ------ | ------------------------- |
-    | 0     | Int    | chainId Chain Id          |
+    | 0     | Int    | Chain Id                  |
     | 1     | int    | Node Id                   |
     | 2     | String | Transaction hash hex data |
 
@@ -1358,7 +1358,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description                                                 |
     | ----- | ------ | ----------------------------------------------------------- |
-    | 0     | Int    | chainId Chain Id                                            |
+    | 0     | Int    | Chain Id                                                    |
     | 1     | int    | Node Id                                                     |
     | 2     | String | Transaction hash and confirmation of highly serialized data |
 
@@ -1413,7 +1413,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description                                                  |
     | ----- | ------ | ------------------------------------------------------------ |
-    | 0     | Int    | chainId Chain Id                                             |
+    | 0     | Int    | Chain Id                                                     |
     | 1     | int    | Node Id                                                      |
     | 2     | String | Sender's signature, cross-chain transaction hash, node verification result Serialization data |
 
