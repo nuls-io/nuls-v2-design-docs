@@ -397,9 +397,8 @@ public void kernel() throws Exception {
     WsServer s = new WsServer(port);
     // 注意，下面这句话不要改，模拟实现在"io.nuls.rpc.cmd.kernel"中
     s.init("kernel", null, "io.nuls.rpc.cmd.kernel");
-    s.start();
-
-    CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
+    
+    s.startAndSyncKernel("ws://127.0.0.1:8887");
 
     Thread.sleep(Integer.MAX_VALUE);
 }
@@ -435,7 +434,7 @@ public class MyCmd extends BaseCmd {
         return success(version_code, "hello nuls", "Object if necessary");
         
         // 失败
-        return failed(Constants.INTERNAL_ERROR, version_code, "Object if necessary");
+        return failed(ErrorCode.init("-100"), version_code, "Object if necessary");
     }
 }
 ```
@@ -462,17 +461,12 @@ s.init("m1", new String[]{"m2", "m3"}, "io.nuls.rpc.cmd");
 /*
 * 如果你的接口不在一个包里面，可以通过下面这句话单独注册
 */
-RuntimeInfo.scanPackage("full_package_path");
+// RuntimeInfo.scanPackage("full_package_path");
 
 /*
 * 启动服务
 */
-s.start();
-
-/*
-* 向核心模块汇报本模块信息
-*/
-CmdDispatcher.syncKernel("kernel url");
+s.startAndSyncKernel("kernel url[ws://127.0.0.1:8887]");
 ```
 
 
@@ -506,7 +500,10 @@ public class CmKernelCmd implements KernelCmd {
 
 ```java
 /*
-* 从kernel获取所有接口列表（实际使用中不需要每次都调用这句话，同步一次即可）
+* 1. 汇报本地接口给kernel
+* 2. 从kernel获取所有接口列表
+* 注意：实际使用中不需要这句话，因为在模块启动的时候RPC已经封装了
+* 但是在单元测试的时候只有一个方法，没有模块，因此需要显示调用
 */
 CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
 
