@@ -172,7 +172,7 @@
 
    + 对coinData中链和资产的基本格式，合法性，和完整性进行校验
 
-3. 验证交易的定时任务Task将会从该队列中取出交易，首先通过账本模块验证coinData，验证通过之后跟交易类型从缓存中找到对应的交易验证器，再调用验证接口进行验证，验证通过的交易通过[newHash](#59_BroadcastTxMessage)广播给链内其他节点，同时通过[newCrossHash](#51-broadcastcrosstxhashmessage)广播主网协议的交易**atx_trans**，并将放入交易管理模块待打包交易内存池，等待共识打包。
+3. 验证交易的定时任务Task将会从该队列中取出交易，首先通过账本模块验证coinData，验证通过之后跟交易类型从缓存中找到对应的交易验证器，再调用验证接口进行验证，验证通过的交易通过[newHash](#59-BroadcastTxMessage)广播给链内其他节点，同时通过[newCrossHash](#51-broadcastcrosstxhashmessage)广播主网协议的交易**atx_trans**，并将放入交易管理模块待打包交易内存池，等待共识打包。
 
    + 定时取出待确认交易
 
