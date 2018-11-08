@@ -398,7 +398,7 @@ public void kernel() throws Exception {
     // 注意，下面这句话不要改，模拟实现在"io.nuls.rpc.cmd.kernel"中
     s.init("kernel", null, "io.nuls.rpc.cmd.kernel");
     
-    s.moduleStart("ws://127.0.0.1:8887");
+    s.startAndSyncKernel("ws://127.0.0.1:8887");
 
     Thread.sleep(Integer.MAX_VALUE);
 }
@@ -466,7 +466,7 @@ s.init("m1", new String[]{"m2", "m3"}, "io.nuls.rpc.cmd");
 /*
 * 启动服务
 */
-s.moduleStart("kernel url[ws://127.0.0.1:8887]");
+s.startAndSyncKernel("kernel url[ws://127.0.0.1:8887]");
 ```
 
 
