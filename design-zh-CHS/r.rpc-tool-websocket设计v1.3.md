@@ -421,6 +421,8 @@ public class MyCmd extends BaseCmd {
      * 2. 调用的命令的版本
      * 3. 调用的命令是否兼容前一个版本
      *
+     * 参数：List，即使该接口不需要参数，也要这样定义
+     *
      * 返回的结果包含：
      * 1. 内置编码
      * 2. 真正调用的版本号
@@ -504,7 +506,7 @@ public class CmKernelCmd implements KernelCmd {
 
 ```java
 /*
-* 从kernel获取所有接口列表
+* 从kernel获取所有接口列表（实际使用中不需要每次都调用这句话，同步一次即可）
 */
 CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
 
