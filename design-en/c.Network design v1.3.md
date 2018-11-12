@@ -616,16 +616,18 @@ Relies on remote service interface data provided by the kernel module.
         "minVersion":1.1,
         "params":[
             1234，
+            1，
            "10.20.23.02:5006,53.26.65.58:8003"
         ]}
     ```
 
   - Request parameter description
 
-    | index | parameter | required | type   | description |
-    | ----- | --------- | -------- | ------ | :---------: |
-    | 0     | chainId   | true     | int    |   chainId   |
-    | 1     | nodes     | true     | String |    nodes    |
+    | index | parameter | required | type   |  description   |
+    | ----- | --------- | -------- | ------ | :------------: |
+    | 0     | chainId   | true     | int    |    chainId     |
+    | 1     | isCross   | true     | int    | 0 false 1 true |
+    | 2     | nodes     | true     | String |     nodes      |
 
   - Return example
 
@@ -835,7 +837,7 @@ none
 
     ```
     {
-        "method":"nw_reconnect",
+        "method":"nw_getGroups",
         "minVersion":1.1,
         "params":[
             1,
@@ -1077,7 +1079,8 @@ none
               blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
                        ea1a960f207778150ffb9f2c173ff", 
               isActive：1，
-              isCrossChain:1 
+              isCrossActive:1，
+              isMoonNet:0
       }
   }
   
@@ -1085,16 +1088,18 @@ none
 
      - Return field description
 
-  | parameter    | type   | description                                           |
-  | ------------ | ------ | ----------------------------------------------------- |
-  | chainId      | int    | chainId                                               |
-  | magicNumber  | int    | magicNumber                                           |
-  | blockHeight  | long   | latest block height                                   |
-  | blockHash    | String | latest block hash                                     |
-  | isActive     | int    | 0 is not activated, 1 is activated                    |
-  | isCrossChain | int    | 0 is not a cross-chain network, 1 cross-chain network |
-  | outCount     | int    | active connection count                               |
-  | inCount      | int    | passive connection count                              |
+  | parameter     | type   | description                                           |
+  | ------------- | ------ | ----------------------------------------------------- |
+  | chainId       | int    | chainId                                               |
+  | magicNumber   | int    | magicNumber                                           |
+  | totalCount    | int    | total connect                                         |
+  | blockHeight   | long   | latest block height                                   |
+  | blockHash     | String | latest block hash                                     |
+  | isActive      | int    | 0 is not activated, 1 is activated                    |
+  | isCrossActive | int    | 0 is not a cross-chain network, 1 cross-chain network |
+  | outCount      | int    | active connection count                               |
+  | inCount       | int    | passive connection count                              |
+  | isMoonNet     | int    | 0 not moon node，1 moon node                          |
 
 
 
@@ -1434,3 +1439,190 @@ broadcast to other nodes.
 ​      3> Own network, add addr>0, store and broadcast forwarding (except receiving peer)  
 
 - Dependent service
+
+  none
+
+## 3、Event description
+
+  ### 3.1 Published event
+
+[^remark]: Here is the topic of the event, the format protocol of the event (accurate to byte), and the occurrence of the event.
+
+
+
+
+  #### 3.1.1 NodeGroup reaches the lower limit of the number of nodes
+
+  Description: The NodeGroup reaches the lower limit of the number of nodes and the event is advertised.
+
+     event_topic : "evt_nw_inNodeLimit",
+
+  ```
+    data:{
+        chainId
+        magicNumber
+        nodeCount
+        nodeLimit
+        time
+    }
+    
+  
+  ```
+
+  #### 3.1.2 NodeGroup is less than the minimum number of nodes
+
+   Description: The NodeGroup is less than the lower limit of the number of nodes. The event is advertised.  
+
+     event_topic : "evt_nw_lessNodeLimit",
+
+  ```
+    data:{
+        chainId
+        magicNumber
+        nodeCount
+        nodeLimit
+        time
+    }
+    
+  
+  ```
+
+  #### 3.1.3 Node handshake succeeded
+
+   Description: The node handshake is successful and the event is advertised.  
+
+     event_topic : "evt_nw_connectSuccess",
+
+  ```
+    data:{
+        chainId
+        magicNumber
+        nodeId
+        time
+        version
+    }
+    
+  
+  ```
+
+  #### 3.1.4 Node disconnected
+
+   Description: The node is disconnected and the event is published   
+
+     event_topic : "evt_nw_nodeDisconnect",
+
+  ```
+    data:{
+        chainId
+        magicNumber
+        nodeId
+        time
+        version
+    }
+    
+  
+  ```
+
+
+
+
+
+  ### 3.2 Subscribed event
+
+    ​     none
+
+  - 
+
+  ## 4、protocol
+
+  ### 4.1 Network communication protocol
+
+  #### version
+
+  Used to establish a connection (handshake)
+
+| Length | Fields       | Type     | Remark                                                       |
+| ------ | ------------ | -------- | ------------------------------------------------------------ |
+| 4      | version      | uint32   | Protocol version identifier used by the node                 |
+| 20     | addr_you     | byte[20] | The peer network address [IP+PORT1+PORT2] PORT2 is a cross-chain server port.                                                                               For example: [10.32.12.25 8003 9003] 16byte+2byte+2byte |
+| 20     | addr_me      | byte[20] | The self network address [IP+PORT1+PORT2] PORT2 is a cross-chain server port.                                                                               For example: [20.32.12.25 8003 9003] 16byte+2byte+2byte |
+| 4      | block_height | uint32   | node latest block height                                     |
+| ？     | block_hash   | varInt   | node latest block hash                                       |
+| 6      | network_time | uint48   | Network time                                                 |
+| ??     | extend       | VarByte  | extended field, no more than 10 bytes                        |
+
+  #### verack
+
+  Used to answer version
+
+
+
+| Length | Fields   | Type  | Remark                                                      |
+| ------ | -------- | ----- | ----------------------------------------------------------- |
+| 1      | ack_code | uint8 | Return code, 1 means normal, 2 means the connection is full |
+
+  #### ping
+
+    Used to maintain the connection. After receiving a message for a certain node for a 
+  period of time, the message is sent. If the pong message is received, the node remains connected. Otherwise, the connection is closed and the  node is deleted.
+
+| Length | Fields     | Type   | Remark        |
+| ------ | ---------- | ------ | ------------- |
+| 4      | randomCode | uint32 | random number |
+
+  #### pong
+
+    reply for ping
+
+| Length | Fields     | Type                | Remark |
+| ------ | ---------- | ------------------- | ------ |
+| 4      | randomCode | uint32random number |        |
+
+  #### getaddr
+
+   Used to obtain connection information of available nodes in the network, no message body
+
+  #### addr
+
+  Used to reply getaddr, or announce the existence of itself to the network. After receiving the message, the node determines whether the node is known. If it is an unknown node, it propagates the message to the network.
+
+| Length | Fields    | Type            | Remark                                          |
+| ------ | --------- | --------------- | ----------------------------------------------- |
+| ??     | addr_list | network address | 18 bytes per node (16 bytes IP + 2 bytes port） |
+
+
+
+  ### 4.2 Transaction agreement
+
+    ​        none
+
+  ## 5、Module configuration
+
+
+
+  ```
+    [network]
+    network.self.server.port=8003
+    network.self.chainId=9861
+    network.self.magic=68866996
+    network.self.max.in=100
+    network.self.max.out=10
+    network.self.seed.ip=127.0.0.1:8003
+    #Satellite chain configuration information
+    network.moon.node=true
+    network.moon.server.port=8004
+    network.moon.max.in=100
+    network.moon.max.out=10
+    network.moon.seed.ip=215.159.216.58:8003,215.159.69.140:8003,223.206.200.74:8003
+    
+  
+  ```
+
+  ## 6、Java-specific design
+
+[^remark]: Core object class definition, storing data structures，......
+
+  ## 7、 to add on
+
+[^remark]: Required content not covered above
+
