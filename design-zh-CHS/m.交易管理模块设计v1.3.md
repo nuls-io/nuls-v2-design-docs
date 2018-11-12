@@ -1566,7 +1566,7 @@
 
     ```
     {
-        "cmd": "tx_getTxProcessors",
+        "cmd": "tx_getTxs",
         "minVersion": "1.0",
         "params": [
         	ChainId,

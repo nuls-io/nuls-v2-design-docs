@@ -1565,7 +1565,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     ```
     {
-        "cmd": "tx_getTxProcessors",
+        "cmd": "tx_getTxs",
         "minVersion": "1.0",
         "params": [
         	ChainId,
