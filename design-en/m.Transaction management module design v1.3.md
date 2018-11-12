@@ -271,7 +271,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
 - Interface definition
 
-  - method: `tx_registertx`
+  - method: `tx_register`
 
     Interface description：The registration transaction needs to pass the transaction type, the verifier name, and the processor name to return whether the registration is successful.
 
@@ -279,7 +279,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     ```
     {
-        "cmd": "tx_registertx",
+        "cmd": "tx_register",
         "minVersion": "1.0",
         "params":[
             moduleCode, 

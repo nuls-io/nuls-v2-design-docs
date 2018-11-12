@@ -271,7 +271,7 @@
 
 - 接口定义
 
-  - method: `tx_registertx`
+  - method: `tx_register`
 
     接口说明：注册交易需要传交易类型、验证器名称、处理器名称，返回是否注册成功。
 
@@ -279,7 +279,7 @@
 
     ```
     {
-        "cmd": "tx_registertx",
+        "cmd": "tx_register",
         "minVersion": "1.0",
         "params":[
             moduleCode, 
