@@ -310,41 +310,71 @@ certain nodes (which can be 1 node) send messages.
 
 #### 2.2.3 Create a node group
 
-- Function Description：
+In addition to  its own satellite network, the satellite chain also has n cross-chain  networks. In addition to its own network, there is also a cross-chain  network.
 
-   In addition to  its own satellite network, the satellite chain also has n cross-chain  networks. In addition to its own network, there is also a cross-chain  network.
+   Node groups are used to manage different network information. The network module isolates and maintains different networks through node groups.
 
-  Node groups are used to manage different network information. The network module isolates and maintains different networks through node groups.
+   Node  group type: 1> own network 2> cross-chain network (satellite  chain cross-chain network & friend chain cross-chain network)
 
-  Node group type: 
+   The network module is a call to receive an external module to create a node group. The basic network configuration information of the cross-chain is mainly obtained through two ways:
 
-  1> own network 
+   1> The own configuration file is loaded to create its own network group.
 
-  2> friend chain cross-chain network 
+   2> Cross-chain network:
 
-  3> satellite chain cross-chain network
+   As  a satellite chain node, after the registration is registered by the  chain management module, the system generates a transaction verification  confirmation and then calls to generate a cross-chain network group.
 
-  The network module is a call to receive an external module to create a node group. The basic network configuration information of the cross-chain is mainly obtained through two ways:
-
-  1>  As a satellite chain node, after the registration is registered by the  chain management module, the system generates a transaction verification  confirmation and then calls it.
-
-  2> As a friend  chain node, when started by the cross-chain protocol module, the  cross-chain protocol module obtains cross-chain configuration  information from the module configuration for calling.
-
-  PS:  In actual use, nodes only get information from one way, because the  role of a node can only be a satellite chain node or a friend chain  node.  
+   As  a friend chain node, when started by the cross-chain protocol module,  the cross-chain protocol module obtains cross-chain configuration  information from the module configuration, and notifies the network  module,The network module triggers a cross-chain connection.  
 
 * Process description
 
-  ![](./image/network-module/createNodeGroup.png)
+   The actual creation of a NodeGroup also has two kinds of logic:
+
+  1> Generate your own network group (or data load call) by loading the configuration file.
+
+  2> Call by external module: Create a network group as confirmed by registering cross-chain transactions.  
+
+##### 2.2.3.1  Create a node group with its own network
+
+- Function Description：
+
+  ​     The own network corresponds to its own chainId, and a magic parameter, through the configuration initialization to create a node group.
+
+- Process description
+
+  Create a node group by loading the configuration file
+
+- Interface definition
+
+​      Created internally, no external interface。
+
+- Dependent service
+
+​        none
+
+#####  2.2.3.2 Create a cross-chain node group
+
+- Function Description：
+
+  The cross-chain node group on the satellite chain is triggered by the cross-chain registration of the friend chain in the satellite chain. The friend chain obtains cross-chain configuration information, and the cross-chain status of the own network group is updated by the cross-chain protocol.
+
+- Process description
+
+ 1> The satellite chain is triggered by the chain management module to trigger the creation of a cross-link node group.
+
+ 2> The friend chain updates the cross-chain status of its own network group through the cross-chain protocol module.  
+
+![](./image/network-module/createNodeGroup.png)
 
 * interface definition
 
-  - 接口说明
+  - Interface Description
 
-    接收外部模块的调用，创建节点组
+    Receive a call to an external module to create a node group
 
     method : nw_createNodeGroup
 
-  - 请求示例
+  - Request example
 
     ```
     {
@@ -357,8 +387,7 @@ certain nodes (which can be 1 node) send messages.
             100,
             20，
             "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003",
-            0,
-            8008
+            0
         ]}
     ```
 
@@ -373,7 +402,6 @@ certain nodes (which can be 1 node) send messages.
     | 4     | minAvailableCount | true     | int    | Minimum number of links in the friend chain |
     | 5     | seedIps           | true     | String |    Seed section group comma segmentation    |
     | 6     | isMoonNode        | true     | int    |   Whether satellite chain node, default 0   |
-    | 7     | serverPort        | true     | int    |                 Server port                 |
 
   - Return example
 
@@ -416,9 +444,7 @@ Relies on remote service interface data provided by the kernel module.
 
    Receive a call from an external module and unregister the cross-chain node group.
 
-  1>  As a satellite chain node, the chain management module performs  deregistration, and the system generates a transaction verification  confirmation and then calls it.
-
-  2> As a  friend chain node, the registration cross-chain request is not accepted n  minutes after the cross-chain protocol is started, and the timeout node  group is cancelled.  
+   As a satellite chain node, the chain management module performs  deregistration, and the system generates a transaction verification  confirmation and then calls it.  
 
 - Process description
 
@@ -590,16 +616,18 @@ Relies on remote service interface data provided by the kernel module.
         "minVersion":1.1,
         "params":[
             1234，
+            1，
            "10.20.23.02:5006,53.26.65.58:8003"
         ]}
     ```
 
   - Request parameter description
 
-    | index | parameter | required | type   | description |
-    | ----- | --------- | -------- | ------ | :---------: |
-    | 0     | chainId   | true     | int    |   chainId   |
-    | 1     | nodes     | true     | String |    nodes    |
+    | index | parameter | required | type   |  description   |
+    | ----- | --------- | -------- | ------ | :------------: |
+    | 0     | chainId   | true     | int    |    chainId     |
+    | 1     | isCross   | true     | int    | 0 false 1 true |
+    | 2     | nodes     | true     | String |     nodes      |
 
   - Return example
 
@@ -724,7 +752,9 @@ Relies on remote service interface data provided by the kernel module.
 
    After receiving the command, disconnect all the peers under the specified nodeGroup and reconnect to the network.
 
-  (Do you want to delete the peer node under the nodeGroup and re-discover the peer?)  
+​       Refresh the peer connection under nodegroup and restart the network connection.
+
+​       If  the peer connection is owned by multiple network services, you only  need to cancel the association. If only the service is used by itself,  you can disconnect.  
 
 - Interface definition
 
@@ -807,7 +837,7 @@ none
 
     ```
     {
-        "method":"nw_reconnect",
+        "method":"nw_getGroups",
         "minVersion":1.1,
         "params":[
             1,
@@ -1049,7 +1079,8 @@ none
               blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
                        ea1a960f207778150ffb9f2c173ff", 
               isActive：1，
-              isCrossChain:1 
+              isCrossActive:1，
+              isMoonNet:0
       }
   }
   
@@ -1057,16 +1088,18 @@ none
 
      - Return field description
 
-  | parameter    | type   | description                                           |
-  | ------------ | ------ | ----------------------------------------------------- |
-  | chainId      | int    | chainId                                               |
-  | magicNumber  | int    | magicNumber                                           |
-  | blockHeight  | long   | latest block height                                   |
-  | blockHash    | String | latest block hash                                     |
-  | isActive     | int    | 0 is not activated, 1 is activated                    |
-  | isCrossChain | int    | 0 is not a cross-chain network, 1 cross-chain network |
-  | outCount     | int    | active connection count                               |
-  | inCount      | int    | passive connection count                              |
+  | parameter     | type   | description                                           |
+  | ------------- | ------ | ----------------------------------------------------- |
+  | chainId       | int    | chainId                                               |
+  | magicNumber   | int    | magicNumber                                           |
+  | totalCount    | int    | total connect                                         |
+  | blockHeight   | long   | latest block height                                   |
+  | blockHash     | String | latest block hash                                     |
+  | isActive      | int    | 0 is not activated, 1 is activated                    |
+  | isCrossActive | int    | 0 is not a cross-chain network, 1 cross-chain network |
+  | outCount      | int    | active connection count                               |
+  | inCount       | int    | passive connection count                              |
+  | isMoonNet     | int    | 0 not moon node，1 moon node                          |
 
 
 
@@ -1253,6 +1286,10 @@ The criteria for the stability of network module start-up connection are: no new
 
   ![](./image/network-module/connection.png)
 
+ PS: In order to meet the  requirements of one process carrying multiple-chain services at the same  time, after a node peer connection is established, multiple NodeGroup  services should be satisfied.
+
+That is, the node peer connection and the nodeGroup object are many-to-many, n:n relationships.  
+
 
 
   - Dependent service
@@ -1344,6 +1381,9 @@ broadcast to other nodes.
 
   - Process description
 
+    Constraint: The address broadcast is not carried out between peers in the cross-chain 
+    network, that is, the nodes in the satellite chain are not broadcast to the sub-chain, and the nodes in the same sub-chain are found not to be broadcast to the satellite chain. The satellite chain and the sub-chain need to establish a connection. The initial peer node can send a getAdrr message to request the connection address.
+
   ![](./image/network-module/connectSelf-recieve.png)
 
 
@@ -1352,102 +1392,134 @@ broadcast to other nodes.
 
    none
 
-  #### 2.3.10 Cross-chain server port delivery
+#### 2.3.10 Request/reply getaddr protocol message
 
-  - Function Description：
+- Function Description：
 
-     A node can have two roles, one is to maintain its own internal chain network. The other is to maintain a cross-chain network as a cross-chain role.
+  Request an address protocol message for more network connections
 
-    Therefore,  in the server definition, we distinguish the port listeners of the two  networks so that they are relatively independent. The own chain defines a serverPort1, and the cross-chain part defines a serverPort2.  
+- Process description
 
-  - Process description
+   Request getaddr:
 
-    As shown in the figure below, our satellite chain network and the friend chain network generate
-    a cross-chain connection. When there is a node 2 in the satellite chain connected to node 1, it is the connection established through the internal service Port1, and node 1 can send node 2 When 
-    node A of the friend chain is connected with node B, the information sent to the friend chain at this time should be serverPort2, so serverPort2 needs to be transferred in the internal interaction of the 
-    satellite chain. We define this part of the data in the version protocol for delivery.
+  1>  When a connection in a nodeGroup does not reach the network service  required threshold minAvailableCount, the address list is requested from  the seed node.
 
-  ​      ![](./image/network-module/crossPortDeliver.png)
+  2> The cross-chain nodeGroup in  the satellite chain node can directly request the obtained address from  the connected peer node.
 
-  - Dependent service
+  Reply getaddr:
 
-​       none
+  1>peer cross-link connection, node reply address list (IP+cross-chain port)
 
-  ## 3、Event description
+  2>peer own network connection, the node will reply to the address list (IP+ own chain port)  
+
+- Dependent service
+
+
+
+#### 2.3.11  send/receive address logic
+
+- Function Description：
+
+  Send & Receive network protocol addr protocol message processing logic
+
+- Process description
+
+  Send addr：
+
+​    1> When a new node is accessed, an addr message is broadcast to other peers of the same nodegroup.
+
+​    2> When the getaddr message is requested, the addr message will be replied.
+
+​     Receive addr:
+
+​      1> Determine whether the address is already owned locally. If you do not forward it, get the new addr.
+
+​      2>PEER is not cross-chain network forwarding
+
+​      3> Own network, add addr>0, store and broadcast forwarding (except receiving peer)  
+
+- Dependent service
+
+  none
+
+## 3、Event description
 
   ### 3.1 Published event
 
-[^说明]: Here is the topic of the event, the format protocol of the event (accurate to byte), and the occurrence of the event.
+[^remark]: Here is the topic of the event, the format protocol of the event (accurate to byte), and the occurrence of the event.
 
-[参考<事件总线>]: ./
 
 
 
   #### 3.1.1 NodeGroup reaches the lower limit of the number of nodes
 
-Description: The NodeGroup reaches the lower limit of the number of nodes and the event is advertised.
+  Description: The NodeGroup reaches the lower limit of the number of nodes and the event is advertised.
 
-   event_topic : "evt_nw_inNodeLimit",
+     event_topic : "evt_nw_inNodeLimit",
 
   ```
-  data:{
-      chainId
-      magicNumber
-      nodeCount
-      nodeLimit
-      time
-  }
+    data:{
+        chainId
+        magicNumber
+        nodeCount
+        nodeLimit
+        time
+    }
+    
   
   ```
 
   #### 3.1.2 NodeGroup is less than the minimum number of nodes
 
- Description: The NodeGroup is less than the lower limit of the number of nodes. The event is advertised.  
+   Description: The NodeGroup is less than the lower limit of the number of nodes. The event is advertised.  
 
-   event_topic : "evt_nw_lessNodeLimit",
+     event_topic : "evt_nw_lessNodeLimit",
 
   ```
-  data:{
-      chainId
-      magicNumber
-      nodeCount
-      nodeLimit
-      time
-  }
+    data:{
+        chainId
+        magicNumber
+        nodeCount
+        nodeLimit
+        time
+    }
+    
   
   ```
 
   #### 3.1.3 Node handshake succeeded
 
- Description: The node handshake is successful and the event is advertised.  
+   Description: The node handshake is successful and the event is advertised.  
 
-   event_topic : "evt_nw_connectSuccess",
+     event_topic : "evt_nw_connectSuccess",
 
   ```
-  data:{
-      chainId
-      magicNumber
-      nodeId
-      time
-      version
-  }
+    data:{
+        chainId
+        magicNumber
+        nodeId
+        time
+        version
+    }
+    
   
   ```
 
   #### 3.1.4 Node disconnected
 
- Description: The node is disconnected and the event is published   
+   Description: The node is disconnected and the event is published   
 
-   event_topic : "evt_nw_nodeDisconnect",
+     event_topic : "evt_nw_nodeDisconnect",
 
   ```
-  data:{
-      chainId
-      magicNumber
-      nodeId
-      time
-      version
-  }
+    data:{
+        chainId
+        magicNumber
+        nodeId
+        time
+        version
+    }
+    
   
   ```
 
@@ -1457,7 +1529,7 @@ Description: The NodeGroup reaches the lower limit of the number of nodes and th
 
   ### 3.2 Subscribed event
 
-  ​     none
+    ​     none
 
   - 
 
@@ -1467,7 +1539,7 @@ Description: The NodeGroup reaches the lower limit of the number of nodes and th
 
   #### version
 
-Used to establish a connection (handshake)
+  Used to establish a connection (handshake)
 
 | Length | Fields       | Type     | Remark                                                       |
 | ------ | ------------ | -------- | ------------------------------------------------------------ |
@@ -1481,12 +1553,18 @@ Used to establish a connection (handshake)
 
   #### verack
 
-Used to answer version, no message body
+  Used to answer version
+
+
+
+| Length | Fields   | Type  | Remark                                                      |
+| ------ | -------- | ----- | ----------------------------------------------------------- |
+| 1      | ack_code | uint8 | Return code, 1 means normal, 2 means the connection is full |
 
   #### ping
 
-  Used to maintain the connection. After receiving a message for a certain node for a 
-period of time, the message is sent. If the pong message is received, the node remains connected. Otherwise, the connection is closed and the  node is deleted.
+    Used to maintain the connection. After receiving a message for a certain node for a 
+  period of time, the message is sent. If the pong message is received, the node remains connected. Otherwise, the connection is closed and the  node is deleted.
 
 | Length | Fields     | Type   | Remark        |
 | ------ | ---------- | ------ | ------------- |
@@ -1494,7 +1572,7 @@ period of time, the message is sent. If the pong message is received, the node r
 
   #### pong
 
-  reply for ping
+    reply for ping
 
 | Length | Fields     | Type                | Remark |
 | ------ | ---------- | ------------------- | ------ |
@@ -1502,11 +1580,11 @@ period of time, the message is sent. If the pong message is received, the node r
 
   #### getaddr
 
- Used to obtain connection information of available nodes in the network, no message body
+   Used to obtain connection information of available nodes in the network, no message body
 
   #### addr
 
-Used to reply getaddr, or announce the existence of itself to the network. After receiving the message, the node determines whether the node is known. If it is an unknown node, it propagates the message to the network.
+  Used to reply getaddr, or announce the existence of itself to the network. After receiving the message, the node determines whether the node is known. If it is an unknown node, it propagates the message to the network.
 
 | Length | Fields    | Type            | Remark                                          |
 | ------ | --------- | --------------- | ----------------------------------------------- |
@@ -1516,26 +1594,27 @@ Used to reply getaddr, or announce the existence of itself to the network. After
 
   ### 4.2 Transaction agreement
 
-  ​        none
+    ​        none
 
   ## 5、Module configuration
 
 
 
   ```
-  [network]
-  network.self.server.port=8003
-  network.self.chainId=9861
-  network.self.magic=68866996
-  network.self.max.in=100
-  network.self.max.out=10
-  network.self.seed.ip=127.0.0.1:8003
-  #Satellite chain configuration information
-  network.moon.node=true
-  network.moon.server.port=8004
-  network.moon.max.in=100
-  network.moon.max.out=10
-  network.moon.seed.ip=215.159.216.58:8003,215.159.69.140:8003,223.206.200.74:8003
+    [network]
+    network.self.server.port=8003
+    network.self.chainId=9861
+    network.self.magic=68866996
+    network.self.max.in=100
+    network.self.max.out=10
+    network.self.seed.ip=127.0.0.1:8003
+    #Satellite chain configuration information
+    network.moon.node=true
+    network.moon.server.port=8004
+    network.moon.max.in=100
+    network.moon.max.out=10
+    network.moon.seed.ip=215.159.216.58:8003,215.159.69.140:8003,223.206.200.74:8003
+    
   
   ```
 

@@ -92,7 +92,7 @@
 
 [^说明]: 说明模块的功能设计，可以有层级关系，可以通过图形的形式展示，并用文字进行说明。
 
-![](image/chainModule/structure.png)
+![](./image/chainModule/structure.png)
 
 ### 2.2 模块服务
 
@@ -106,7 +106,7 @@
 
 * 流程描述
 
-  ![](image/chainModule/chainRegister.png)
+  ![](./image/chainModule/chainRegister.png)
 
 * 依赖服务
 
@@ -128,7 +128,7 @@
 
 - 流程描述
 
-  ![](E:/tony/nuls/nuls_2.0_docs/design-zh-CHS/image/chainModule/chainDestroy.png)
+  ![](./image/chainModule/chainDestroy.png)
 
 - 依赖服务
 
@@ -166,7 +166,7 @@
 
 - 流程描述
 
-  ![](E:/tony/nuls/nuls_2.0_docs/design-zh-CHS/image/chainModule/assetRegister.png)
+  ![](./image/chainModule/assetRegister.png)
 
 - 依赖服务
 
@@ -185,7 +185,7 @@
 
 - 流程描述
 
-  ![](E:/tony/nuls/nuls_2.0_docs/design-zh-CHS/image/chainModule/assetDestroy.png)
+  ![](./image/chainModule/assetDestroy.png)
 
 - 依赖服务
 
@@ -266,37 +266,37 @@
                   "port":8001
               }
           ],
-          "supportInflowAsset":true
+          "assetInflow":true
       }
   }
     ```
 
 - 返回字段说明  
 
-  | parameter          | type                  | description                                  |
-  | ------------------ | --------------------- | -------------------------------------------- |
-  | hash               | int                   | 链的哈希值                                   |
-  | chainId            | int                   | 链标识                                       |
-  | name               | string                | 链名称                                       |
-  | addressType        | int                   | 链上创建的账户的地址类型                     |
-  | assets             | jsonArray【资产对象】 | 数组成员：资产对象                           |
-  | magicNumber        | int                   | 魔法参数                                     |
-  | seeds              | jsonArray             | 【ip->种子节点ip地址】【port->种子节点端口】 |
-  | supportInflowAsset | boolean               | 是否支持资产流入                             |
+  | parameter   | type        | description                                  |
+  | ----------- | ----------- | -------------------------------------------- |
+  | hash        | Int         | 链的哈希值                                   |
+  | chainId     | Int         | 链标识                                       |
+  | name        | String      | 链名称                                       |
+  | addressType | AddressType | 链上创建的账户的地址类型                     |
+  | assetList   | List<Asset> | 数组成员：资产对象                           |
+  | magicNumber | Int         | 魔法参数                                     |
+  | seedList    | List<Seed>  | 【ip->种子节点ip地址】【port->种子节点端口】 |
+  | assetInflow | Boolean     | 是否支持资产流入                             |
 
     
 
   资产对象   
 
-  | parameter   | type    | description                    |
-  | ----------- | ------- | ------------------------------ |
-  | assetId     | int     | 资产标识                       |
-  | symbol      | string  | 资产单位                       |
-  | name        | string  | 资产名称                       |
-  | depositNuls | int     | 抵押的nuls总量                 |
-  | initTotal   | long    | 资产发行总量                   |
-  | minUnit     | byte    | 最小单位（代表小数点后多少位） |
-  | flag        | boolean | 资产是否可用                   |
+  | parameter       | type    | description                    |
+  | --------------- | ------- | ------------------------------ |
+  | assetId         | Int     | 资产标识                       |
+  | symbol          | String  | 资产单位                       |
+  | name            | String  | 资产名称                       |
+  | depositNuls     | Int     | 抵押的nuls总量                 |
+  | initCirculation | Long    | 资产发行总量                   |
+  | decimalPlaces   | Byte    | 最小单位（代表小数点后多少位） |
+  | available       | Boolean | 资产是否可用                   |
 
 
 
