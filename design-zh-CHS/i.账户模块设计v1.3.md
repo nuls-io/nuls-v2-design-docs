@@ -154,11 +154,11 @@
 
   - 请求参数说明
 
-    | index | parameter | required | type    | description                        |
-    | ----- | --------- | -------- | ------- | ---------------------------------- |
-    | 0     | chainId   | true     | Integer | 链ID，说明该账户属于哪个链         |
-    | 1     | count     | false    | Integer | 要创建账户数量，约束条件：1-10000. |
-    | 2     | password  | true     | String  | 账户初始密码，可为空               |
+    | index | parameter | required | type    | description                      |
+    | ----- | --------- | -------- | ------- | -------------------------------- |
+    | 0     | chainId   | true     | Integer | 链ID，说明该账户属于哪个链       |
+    | 1     | count     | false    | Integer | 要创建账户数量，约束条件：1-100. |
+    | 2     | password  | false    | String  | 账户初始密码，可为空             |
 
   - 返回示例
 
@@ -236,11 +236,11 @@
 
   - 请求参数说明
 
-    | index | parameter | required | type    | description                        |
-    | ----- | --------- | -------- | ------- | ---------------------------------- |
-    | 0     | chainId   | true     | Integer | 链ID，说明该账户属于哪个链         |
-    | 1     | count     | false    | Integer | 要创建账户数量，约束条件：1-10000. |
-    | 2     | password  | true     | String  | 账户初始密码，可为空               |
+    | index | parameter | required | type    | description                      |
+    | ----- | --------- | -------- | ------- | -------------------------------- |
+    | 0     | chainId   | true     | Integer | 链ID，说明该账户属于哪个链       |
+    | 1     | count     | false    | Integer | 要创建账户数量，约束条件：1-100. |
+    | 2     | password  | false    | String  | 账户初始密码，可为空             |
 
   - 返回示例
 
@@ -250,19 +250,38 @@
         "msg": "success",
         "version":1.0,
         "result": {
-        	"list":["address","",""]
+        	"list":[
+        	{
+        	"address":"LgkSxjwficqMwnMVXpdA3kntVjXDm3930",
+        	"pubKey":"0253aa17b27482261cc9e91d5ff6f4820130055ad092629e6981bff78c545c6289",
+        	"priKey":"0253aa17b27482261cc9e91d5ff6f4820130055ad092629e6981bff78c545c6111",	
+       		"encryptedPriKey":"e447b8427ce96b49e0fcf167f31635b93c8e8acf15e48c01e6753e23a",
+      		"extend":null,
+      		"createTime":1542003713441,
+      		"encrypted":true,
+      		"remark":null
+      		},{}
+        	]
         }
     }
     ```
 
   - 返回字段说明
 
-    | parameter | type      | description  |
-    | :-------- | :-------- | :----------- |
-    | code      | Integer   | 返回结果状态 |
-    | msg       | String    | 失败时的信息 |
-    | result    | jsonObj   | 业务数据     |
-    | list      | jsonArray | 账户地址列表 |
+    | parameter       | type      | description                              |
+    | :-------------- | :-------- | :--------------------------------------- |
+    | code            | Integer   | 返回结果状态                             |
+    | msg             | String    | 失败时的信息                             |
+    | result          | jsonObj   | 业务数据                                 |
+    | list            | jsonArray | 账户地址列表                             |
+    | address         | String    | 账户地址                                 |
+    | pubKey          | String    | 公匙16进制编码                           |
+    | priKey          | String    | 私匙16进制编码                           |
+    | encryptedPriKey | String    | 加密私匙16进制编码，与priKey不会同时为空 |
+    | extend          | String    | 扩展字段16进制编码                       |
+    | createTime      | long      | 账户创建时间                             |
+    | encrypted       | boolean   | 账户是否加密                             |
+    | remark          | String    | 备注                                     |
 
 - 依赖服务
 
@@ -363,7 +382,7 @@
   ```
   1、验证账户地址格式是否正确
   2、验证账户存在
-  3、验证账户是否加密，如果加密且账户已解锁，则需要验证密码
+  3、验证账户是否加密，如果加密，则需要验证密码
   3.1、根据账户已加密私匙+密码得到未加密私匙
   3.2、根据未加密私匙得到公匙
   3.3、将解密出的公匙与查询出的账户公匙比较是否相等
@@ -399,7 +418,7 @@
     | ----- | --------- | -------- | ------- | ---------------- |
     | 0     | chainId   | true     | Integer | 链ID             |
     | 1     | address   | true     | Integer | 要删除的账户地址 |
-    | 2     | password  | true     | String  | 账户密码，可为空 |
+    | 2     | password  | false    | String  | 账户密码，可为空 |
 
   - 返回示例
 
@@ -530,7 +549,7 @@
 
     ```
     1、验证keystore和密码是否匹配
-    2、根据密码解密keystore中的私钥
+    2、根据密码解密keystore中的私钥,keyStore包括json格式(address,encryptedPrivateKey,pubKey,prikey)
     3、根据私钥生成公私
     4、获取chainId和账户类型
     5、拼接字节数组组成地址
@@ -550,7 +569,7 @@
 
       ```
       {
-        "cmd": "ac_importAccountByPriKey",
+        "cmd": "ac_importAccountByKeystore",
         "minVersion":1.0,
         "params": [
               1234,
@@ -563,12 +582,12 @@
 
     - 请求参数说明
 
-      | index | parameter | required | type        | description            |
-      | ----- | --------- | -------- | ----------- | ---------------------- |
-      | 0     | chainId   | true     | Integer     | 链ID                   |
-      | 1     | keyStore  | true     | InputStream | 导入的keyStore HEX编码 |
-      | 2     | password  | false    | String      | 账户密码               |
-      | 3     | overwrite | true     | Boolean     | 账户存在时是否覆盖     |
+      | index | parameter | required | type    | description        |
+      | ----- | --------- | -------- | ------- | ------------------ |
+      | 0     | chainId   | true     | Integer | 链ID               |
+      | 1     | keyStore  | true     | String  | keyStore HEX编码   |
+      | 2     | password  | false    | String  | 账户密码           |
+      | 3     | overwrite | true     | Boolean | 账户存在时是否覆盖 |
 
     - 返回示例
 
@@ -673,7 +692,7 @@
 
 - 功能说明：
 
-  导出账户私匙十六进制编码
+  导出账户私匙十六进制编码，与查询账户私钥功能重叠，作废
 
 - 流程描述
 
@@ -696,7 +715,7 @@
 
       ```
       {
-        "cmd": "ac_importMultiSigAccount",
+        "cmd": "ac_exportAccountPriKey",
         "minVersion":1.0,
         "params": [
               1234,
@@ -769,17 +788,19 @@
               1234,
               "ABCMUi1q9TefkXUcaysAuvFjj4NbTEST",
               "123456"
+              "backup"
           ]
       }
       ```
 
     - 请求参数说明
 
-      | index | parameter | required | type    | description |
-      | ----- | --------- | -------- | ------- | ----------- |
-      | 0     | chainId   | true     | Integer | 链ID        |
-      | 1     | address   | true     | String  | 账户地址    |
-      | 2     | password  | true     | String  | 账户密码    |
+      | index | parameter | required | type    | description  |
+      | ----- | --------- | -------- | ------- | ------------ |
+      | 0     | chainId   | true     | Integer | 链ID         |
+      | 1     | address   | true     | String  | 账户地址     |
+      | 2     | password  | false    | String  | 账户密码     |
+      | 3     | path      | false    | String  | 文件备份地址 |
 
     - 返回示例
 
@@ -788,22 +809,18 @@
               "msg": "success",
               "version":1.0,
               "result": {
-              	"address":"NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
-                  "encryptedPrivateKey":"",
-                  "pubKey":"1cb336b834494fb7eef070cf9c3e60a5a49e762ca1f81cb2592593047235f308"
+              	"path":"backup/TTax8wqxALqjyhrL8Wv1tQiqswAshAnX.keystore"
               }
           }
 
     - 返回字段说明
 
-      | parameter           | type    | description  |
-      | :------------------ | :------ | :----------- |
-      | code                | Integer | 返回结果状态 |
-      | msg                 | String  | 失败时的信息 |
-      | result              | jsonObj | 业务数据     |
-      | address             | String  | 地址         |
-      | encryptedPrivateKey | String  | 加密私匙     |
-      | pubKey              | String  | 公匙十六进制 |
+      | parameter | type    | description  |
+      | :-------- | :------ | :----------- |
+      | code      | Integer | 返回结果状态 |
+      | msg       | String  | 失败时的信息 |
+      | result    | jsonObj | 业务数据     |
+      | path      | String  | 文件备份地址 |
 
 #### 2.2.10 查询全部账户
 
@@ -964,7 +981,7 @@
         "minVersion":1.0,
         "params": [
               1234,
-              0,
+              1,
               10
           ]
       }
@@ -1020,7 +1037,7 @@
 
       ```
       {
-        "cmd": "ac_getAddressList",
+        "cmd": "ac_getAddressByAlias",
         "minVersion":1.0,
         "params": [
               1234,
@@ -1068,7 +1085,7 @@
     ```
     1、校验地址是否正确，使用Base58解码，分别校验链ID、地址类型、校验位
     2、验证账户是否存在
-    3、如果账户加过密(有密码)并且没有解锁, 就通过AES解密并验证密码是否正确，获得未加密私匙
+    3、如果账户加过密(有密码), 就通过AES解密并验证密码是否正确，获得未加密私匙
     4、使用十六进制编码，并返回账户私匙
     ```
 - ac_getPriKeyByAddress接口
@@ -1154,10 +1171,10 @@
 
     - 请求参数说明
 
-      | index | parameter | required | type    | description |
-      | ----- | --------- | -------- | ------- | ----------- |
-      | 0     | chainId   | true     | Integer | 链ID        |
-      | 2     | password  | false    | String  | 账户密码    |
+      | index | parameter | required | type    | description                 |
+      | ----- | --------- | -------- | ------- | --------------------------- |
+      | 0     | chainId   | false    | Integer | 链ID，默认为0查询所有链账户 |
+      | 2     | password  | false    | String  | 账户密码                    |
 
     - 返回示例
 
@@ -1950,7 +1967,7 @@
   ```
   1、验证账户地址是否正确
   2、数据库中删除多签账户
-  8、返回删除是否成功
+  3、返回删除是否成功
   ```
 
 - ac_removeMultiSigAccount接口
@@ -2002,6 +2019,408 @@
     | result    | jsonObj | 业务数据     |
     | value     | boolean | 是否移除成功 |
 
+
+#### 2.2.29 交易统一验证
+
+- 功能说明：
+
+  账户模块所有交易统一验证接口，目前只有别名交易
+
+- 流程描述
+
+  ```
+  1、交易列表是否为空
+  2、循环所有交易列表，针对别名交易进行处理
+  3、检测当前交易列表中，是否存在设置相同的别名
+  4、检测当前交易列表中，是否存在账户重复设置别名
+  5、如果交易列表中没有冲突，则验证通过
+  ```
+
+- ac_accountTxValidate接口
+
+  - 接口说明
+
+    该接口用于批量验证账户模块所有交易。
+
+  - 请求示例
+
+    ```
+    {
+      "cmd": "ac_accountTxValidate",
+      "minVersion":1.0,
+      "params": [chianId, ["txHex","txHex","txHex", ...]]
+    }
+    
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type  | description            |
+    | ----- | --------- | -------- | ----- | ---------------------- |
+    | 0     | chainId   | true     | Short | 链ID                   |
+    | 1     | txHex     | true     | array | 别名交易序列化数据数组 |
+
+    txHex说明
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+
+  - 返回示例
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "list":["txHex", "txHex", "txHex", ...]
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter | type      | description              |
+    | :-------- | :-------- | :----------------------- |
+    | code      | Integer   | 返回结果状态             |
+    | msg       | String    | 失败时的信息             |
+    | result    | jsonObj   | 业务数据                 |
+    | list      | jsonArray | 不合法交易序列化数据数组 |
+
+
+#### 2.2.30 别名交易验证
+
+- 功能说明：
+
+  别名交易验证接口
+
+- 流程描述
+
+  ```
+  1、反序列化txHex别名交易数据
+  2、验证别名格式
+  3、验证别名是否已被占用
+  4、验证该账户是否已设置别名
+  5、验证coinData输入输出
+  6、验证脚本签名格式
+  7、验证签名中是否包含设置别名的地址，如果不包含则属于恶意犯规，否则验证通过
+  ```
+
+- ac_aliasTxValidate接口
+
+  - 接口说明
+
+    该接口用于单个别名交易。
+
+  - 请求示例
+
+    ```
+    {
+      "cmd": "ac_aliasTxValidate",
+      "minVersion":1.0,
+      "params": [chainId,"txHex"]
+    }
+    
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type   | description        |
+    | ----- | --------- | -------- | ------ | ------------------ |
+    | 0     | chainId   | true     | Short  | 链ID               |
+    | 1     | txHex     | true     | String | 别名交易序列化数据 |
+
+    txHex说明
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+
+  - 返回示例
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "value":true
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter | type    | description  |
+    | :-------- | :------ | :----------- |
+    | code      | Integer | 返回结果状态 |
+    | msg       | String  | 失败时的信息 |
+    | result    | jsonObj | 业务数据     |
+    | value     | boolean | 是否验证成功 |
+
+
+#### 2.2.31 别名交易提交
+
+- 功能说明：
+
+  别名交易提交，保存别名
+
+- 流程描述
+
+  ```
+  1、反序列化txHex别名交易数据
+  2、保存别名alias至数据库
+  3、将别名设置到account然后保存至数据库
+  4、将修改后的account重新进行缓存
+  5、返回别名保存是否成功
+  ```
+
+- ac_aliasTxCommit接口
+
+  - 接口说明
+
+    该接口用于保存别名。
+
+  - 请求示例
+
+    ```
+    {
+      "cmd": "ac_aliasTxCommit",
+      "minVersion":1.0,
+      "params": [chainId,"txHex","secondaryDataHex"]
+    }
+    
+    ```
+
+  - 请求参数说明
+
+    | index | parameter        | required | type   | description        |
+    | ----- | ---------------- | -------- | ------ | ------------------ |
+    | 0     | chainId          | true     | Short  | 链ID               |
+    | 1     | txHex            | true     | String | 别名交易序列化数据 |
+    | 2     | secondaryDataHex | true     | String | 区块头序列化数据   |
+
+    txHex说明
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+    secondaryDataHex说明
+
+    ```
+    "txData":
+        {
+            "hash":"",
+            "height":1,
+            "time":13369748564
+        }
+    ```
+
+    
+
+  - 返回示例
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "value":true
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter | type    | description      |
+    | :-------- | :------ | :--------------- |
+    | code      | Integer | 返回结果状态     |
+    | msg       | String  | 失败时的信息     |
+    | result    | jsonObj | 业务数据         |
+    | value     | boolean | 别名交易保存成功 |
+
+#### 2.2.32 别名交易回滚
+
+- 功能说明：
+
+  别名交易回滚接口
+
+- 流程描述
+
+  ```
+  1、反序列化txHex别名交易数据
+  2、从数据库删除别名对象数据
+  3、取出对应的account将别名清除,重新存入数据库
+  4、重新缓存account
+  5、返回别名回滚是否成功
+  ```
+
+- ac_aliasTxRollback接口
+
+  - 接口说明
+
+    该接口用于回滚别名。
+
+  - 请求示例
+
+    ```
+    {
+      "cmd": "ac_aliasTxRollback",
+      "minVersion":1.0,
+      "params": [chainId,"txHex","secondaryDataHex"]
+    }
+    
+    ```
+
+  - 请求参数说明
+
+    | index | parameter        | required | type   | description        |
+    | ----- | ---------------- | -------- | ------ | ------------------ |
+    | 0     | chainId          | true     | Short  | 链ID               |
+    | 1     | txHex            | true     | String | 别名交易序列化数据 |
+    | 2     | secondaryDataHex | true     | String | 区块头序列化数据   |
+
+    txHex说明
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+    secondaryDataHex说明
+
+    ```
+    "txData":
+        {
+            "hash":"",
+            "height":1,
+            "time":13369748564
+        }
+    ```
+
+    
+
+  - 返回示例
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "value":true
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter | type    | description      |
+    | :-------- | :------ | :--------------- |
+    | code      | Integer | 返回结果状态     |
+    | msg       | String  | 失败时的信息     |
+    | result    | jsonObj | 业务数据         |
+    | value     | boolean | 别名交易回滚成功 |
   
 
 ### 2.3 模块内部功能
@@ -2123,7 +2542,7 @@ server.port:8080    //提供服务的端口
 | chainId         | short   | 链ID                                        |
 | address         | String  | 账户地址（Base58(address)+Base58(chainId)） |
 | alias           | String  | 账户别名                                    |
-| status          | Integer | 账户状态                                    |
+| status          | Integer | 是否默认账户（不保存）                      |
 | pubKey          | byte[]  | 公匙                                        |
 | priKey          | byte[]  | 私匙-未加密                                 |
 | encryptedPriKey | byte[]  | 已加密私匙                                  |
