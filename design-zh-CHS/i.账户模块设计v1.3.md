@@ -121,11 +121,12 @@
   4、拼接字节数组组成地址：
   4.1、如果是NULS体系地址：address=type+hash160
   4.2、如果非NULS体系地址(比特币)：address=原始地址长度+原始地址
+  5、生成地址字符串：地址字节[]+校验位，然后执行Base58计算生成字符串
   5.1、如果是NULS体系校验位：xor=XOR(addressType+pkh)
   5.1、如果非NULS体系校验位：xor=XOR(length+address)
   6、base58计算生成地址字符串：
-     NULS体系地址：Base58(type+hash160+xor)+Base58(chainId)
-     非NULS体系地址：Base58(length+address+xor)+Base58(chainId)
+     NULS体系地址：Base58(type+hash160+xor)+Hex(chainId)
+     非NULS体系地址：Base58(length+address+xor)+Hex(chainId)
   7、根据密码对私钥进行加密，并将私钥的明文删除
   8、存储账户信息
   9、将账户加入缓存
@@ -205,11 +206,12 @@
   4、拼接字节数组组成地址：
   4.1、如果是NULS体系地址：address=type+hash160
   4.2、如果非NULS体系地址(比特币)：address=原始地址长度+原始地址
+  5、生成地址字符串：地址字节[]+校验位，然后执行Base58计算生成字符串
   5.1、如果是NULS体系校验位：xor=XOR(addressType+pkh)
   5.1、如果非NULS体系校验位：xor=XOR(length+address)
   6、base58计算生成地址字符串：
-     NULS体系地址：Base58(type+hash160+xor)+Base58(chainId)
-     非NULS体系地址：Base58(length+address+xor)+Base58(chainId)
+     NULS体系地址：Base58(type+hash160+xor)+Hex(chainId)
+     非NULS体系地址：Base58(length+address+xor)+Hex(chainId)
   7、根据密码对私钥进行加密，并将私钥的明文删除
   8、返回账户信息，并不保存到数据库
   ```
@@ -2309,12 +2311,12 @@
 
   - 返回字段说明
 
-    | parameter | type    | description      |
-    | :-------- | :------ | :--------------- |
-    | code      | Integer | 返回结果状态     |
-    | msg       | String  | 失败时的信息     |
-    | result    | jsonObj | 业务数据         |
-    | value     | boolean | 别名交易保存成功 |
+    | parameter | type    | description          |
+    | :-------- | :------ | :------------------- |
+    | code      | Integer | 返回结果状态         |
+    | msg       | String  | 失败时的信息         |
+    | result    | jsonObj | 业务数据             |
+    | value     | boolean | 别名交易保存是否成功 |
 
 #### 2.2.32 别名交易回滚
 
@@ -2415,12 +2417,12 @@
 
   - 返回字段说明
 
-    | parameter | type    | description      |
-    | :-------- | :------ | :--------------- |
-    | code      | Integer | 返回结果状态     |
-    | msg       | String  | 失败时的信息     |
-    | result    | jsonObj | 业务数据         |
-    | value     | boolean | 别名交易回滚成功 |
+    | parameter | type    | description          |
+    | :-------- | :------ | :------------------- |
+    | code      | Integer | 返回结果状态         |
+    | msg       | String  | 失败时的信息         |
+    | result    | jsonObj | 业务数据             |
+    | value     | boolean | 别名交易回滚是否成功 |
   
 
 ### 2.3 模块内部功能
