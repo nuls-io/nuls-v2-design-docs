@@ -47,7 +47,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 ## 3] Message Types
 
-目前只定义了8种类型的消息：NegotiateConnection，NegotiateConnectionResponse，Request，Unsubscribe，Response，Ack，RegisterCompoundMethod和UnregisterCompoundMethod。
+目前只定义了9种类型的消息：NegotiateConnection, NegotiateConnectionResponse, Request, Unsubscribe, Response, Ack, Notificatioin, RegisterCompoundMethod, UnregisterCompoundMethod。
 
 #### 3.1] NegotiateConnection
 
@@ -109,12 +109,10 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 它由五个字段组成：
 
-- RequestType（默认值：1）：这是一个只能有4个值的整数
+- RequestAck（默认值：false）：这是一个布尔值
 
-  - 1：发出的请求只需要Response
-  - 2：发出的请求需要Ack和Response（译者注：有的请求可能需要一段时间处理，不会立刻返回Response，但是我要确保对方接收到了我的请求）
-  - 3：发出的请求只需要一个Ack
-  - 4：发出的请求不希望得到任何回复
+  - false：发出的请求只需要一条Response消息，如果它订阅了该函数，那么它可能会有很多响应消息
+  - true：发出的请求需要Ack和Response（译者注：有的请求可能需要一段时间处理，不会立刻返回Response，但是我要确保对方接收到了我的请求），如果它订阅了该函数，那么它可能会有很多响应消息
 
 - SubscriptionEventCounter（默认值：0）：这是一个无符号整数，指定目标方法发送Response的区块间隔。不管这个值是多少，总会立刻发送一个Response。如果是0，则不再继续发送，如果是2，则每2个块都会检测是否发送。以此类推。
 
@@ -138,7 +136,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
     "TimeZone":"-4",
     "MessageType":"Request",
     "MessageData":{
-        "RequestType":"1",
+        "RequestAck":"0",
         "SubscriptionEventCounter":"3",
         "SubscriptionPeriod":"0",
         "SubscriptionRange":"0",
@@ -252,6 +250,51 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
     "MessageType":"Ack",
     "MessageData":{
         "RequestID":"sdj8jcf8899ekffEFefee"
+    }
+}
+```
+
+
+
+
+
+#### 3.7] Notification
+
+当需要将某些事件通知给连接的组件而不期望响应消息时（例如，即将对服务执行升级时），将发送此消息类型。 通知将信息推送到其他组件，因此通知只应由Manager，Controller和Connector模块使用
+
+它由四个字段组成：
+
+- NotificationAck :(默认值：false）：这是一个布尔值
+  - false：发出的通知不期望任何类型的消息作为回执
+  - true：发出的通知需要一条Ack消息
+- NotificationType：通知的类别，每个服务都可以定义自己的类型，因此不需要接收方处理此字段
+- NotificationComment：字符串注释，提供有关通知原因的更多信息
+- NotificationData：与通知相关的数据，接收方不需要处理此字段
+
+示例：
+
+```json
+{
+    "ProtocolVersion":"1.0",
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"Notification",
+    "MessageData":{
+        "NotificationAck":"1",
+        "NotificationType":"SystemUpgrade",
+        "NotificationComment":"A system upgrade is about to be performed!",
+        "NotificationData":[
+            {
+                "Date":"2018-11-11"
+            },
+            {
+                "Time":"23:00:00"
+            },
+            {
+                "NewVersion":"1.1.6"
+            }
+        ]
     }
 }
 ```
