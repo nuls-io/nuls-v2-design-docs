@@ -303,7 +303,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-#### 3.7] RegisterCompoundMethod
+#### 3.8] RegisterCompoundMethod
 
 如3.3中所述，请求可以由多个方法组成，使用此消息类型，我们注册一个虚拟方法，该方法将按顺序执行其各个实际方法，如果其子方法之一失败，则虚方法返回失败。
 
@@ -350,7 +350,7 @@ GetMyInfo的请求可以作为标准方法发送。
 
 
 
-#### 3.8] UnregisterCompoundMethod
+#### 3.9] UnregisterCompoundMethod
 
 此消息类型用于取消注册复合（虚拟）方法。
 
