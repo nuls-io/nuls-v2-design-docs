@@ -1311,7 +1311,6 @@
           "msg": "success",
           "version":1.0,
           "result": {
-          	"address":"NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
               "encryptedPriKey":""
           }
       }
