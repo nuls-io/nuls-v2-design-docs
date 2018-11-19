@@ -157,7 +157,7 @@ Community governance requires account signature
 
     | index | parameter | required | type    | description                                             |
     | ----- | --------- | -------- | ------- | ------------------------------------------------------- |
-    | 0     | chainId   | true     | Integer | Chain ID, indicating which chain the account belongs to |
+    | 0     | chainId   | true     | Short   | Chain ID, indicating which chain the account belongs to |
     | 1     | count     | false    | Integer | To create an account number, constraints:1-100.         |
     | 2     | password  | false    | String  | Account initial password, Can be empty                  |
 
@@ -240,7 +240,7 @@ Community governance requires account signature
 
     | index | parameter | required | type    | description                                             |
     | ----- | --------- | -------- | ------- | ------------------------------------------------------- |
-    | 0     | chainId   | true     | Integer | Chain ID, indicating which chain the account belongs to |
+    | 0     | chainId   | true     | Short   | Chain ID, indicating which chain the account belongs to |
     | 1     | count     | false    | Integer | To create an account number, constraints:1-100.         |
     | 2     | password  | false    | String  | Account initial password, Can be empty                  |
 
@@ -307,7 +307,7 @@ Community governance requires account signature
 
       | index | parameter | required | type      | description                                                  |
       | ----- | --------- | -------- | --------- | ------------------------------------------------------------ |
-      | 0     | chainId   | true     | Integer   | Chain ID, indicating which chain the account belongs to      |
+      | 0     | chainId   | true     | Short     | Chain ID, indicating which chain the account belongs to      |
       | 1     | pubKeys   | true     | jsonArray | Public key list that needs to be signed                      |
       | 2     | minSigns  | true     | String    | Minimum number of signatures, at least a few public key verifications are required |
 
@@ -394,7 +394,7 @@ Community governance requires account signature
 
     | index | parameter | required | type    | description               |
     | ----- | --------- | -------- | ------- | ------------------------- |
-    | 0     | chainId   | true     | Integer | Chain ID                  |
+    | 0     | chainId   | true     | Short   | Chain ID                  |
     | 1     | address   | true     | Integer | Account address to delete |
     | 2     | password  | false    | String  | account password          |
 
@@ -481,7 +481,7 @@ Community governance requires account signature
 
     | index | parameter | required | type    | description                                  |
     | ----- | --------- | -------- | ------- | -------------------------------------------- |
-    | 0     | chainId   | true     | Integer | Chain ID                                     |
+    | 0     | chainId   | true     | Short   | Chain ID                                     |
     | 1     | priKey    | true     | String  | Account private key                          |
     | 2     | password  | false    | String  | Account password                             |
     | 3     | overwrite | true     | Boolean | Whether to overwrite when the account exists |
@@ -561,7 +561,7 @@ Community governance requires account signature
 
       | index | parameter | required | type    | description                                  |
       | ----- | --------- | -------- | ------- | -------------------------------------------- |
-      | 0     | chainId   | true     | Integer | Chain ID                                     |
+      | 0     | chainId   | true     | Short   | Chain ID                                     |
       | 1     | keyStore  | true     | String  | Imported keyStore hex code                   |
       | 2     | password  | false    | String  | Account password                             |
       | 3     | overwrite | true     | Boolean | Whether to overwrite when the account exists |
@@ -637,7 +637,7 @@ Community governance requires account signature
 
     | index | parameter | required | type      | description                                                  |
     | ----- | --------- | -------- | --------- | ------------------------------------------------------------ |
-    | 0     | chainId   | true     | Integer   | Chain ID                                                     |
+    | 0     | chainId   | true     | Short     | Chain ID                                                     |
     | 1     | address   | true     | String    | Multi-sign account address                                   |
     | 2     | pubkeys   | true     | jsonArray | Public key list that needs to be signed                      |
     | 3     | minSigns  | true     | Integer   | Minimum signature number, At least a few Public key verifications are required |
@@ -705,11 +705,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 1     | address   | true     | String  | Account address  |
-      | 2     | password  | true     | String  | Account password |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 1     | address   | true     | String | Account address  |
+      | 2     | password  | true     | String | Account password |
 
     - Return example
 
@@ -772,11 +772,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 1     | address   | true     | String  | Account address  |
-      | 2     | password  | true     | String  | Account password |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 1     | address   | true     | String | Account address  |
+      | 2     | password  | true     | String | Account password |
 
     - Return example
 
@@ -833,9 +833,9 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description |
-      | ----- | --------- | -------- | ------- | ----------- |
-      | 0     | chainId   | true     | Integer | Chain ID    |
+      | index | parameter | required | type  | description |
+      | ----- | --------- | -------- | ----- | ----------- |
+      | 0     | chainId   | true     | Short | Chain ID    |
 
     - Return example
 
@@ -899,10 +899,10 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description     |
-      | ----- | --------- | -------- | ------- | --------------- |
-      | 0     | chainId   | true     | Integer | Chain ID        |
-      | 1     | address   | true     | String  | Account address |
+      | index | parameter | required | type   | description     |
+      | ----- | --------- | -------- | ------ | --------------- |
+      | 0     | chainId   | true     | Short  | Chain ID        |
+      | 1     | address   | true     | String | Account address |
 
     - Return example 
 
@@ -970,7 +970,7 @@ Community governance requires account signature
 
       | index | parameter  | required | type    | description |
       | ----- | ---------- | -------- | ------- | ----------- |
-      | 0     | chainId    | true     | Integer | Chain ID    |
+      | 0     | chainId    | true     | Short   | Chain ID    |
       | 1     | pageNumber | true     | Integer | pageNumber  |
       | 2     | pageSize   | true     | Integer | pageSize    |
 
@@ -1027,10 +1027,10 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description |
-      | ----- | --------- | -------- | ------- | ----------- |
-      | 0     | chainId   | true     | Integer | Chain ID    |
-      | 1     | alias     | true     | String  | alias       |
+      | index | parameter | required | type   | description |
+      | ----- | --------- | -------- | ------ | ----------- |
+      | 0     | chainId   | true     | Short  | Chain ID    |
+      | 1     | alias     | true     | String | alias       |
 
     - Return example
 
@@ -1089,11 +1089,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 1     | address   | true     | String  | address          |
-      | 2     | password  | false    | String  | Account password |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 1     | address   | true     | String | address          |
+      | 2     | password  | false    | String | Account password |
 
     - Return example
 
@@ -1150,10 +1150,10 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 2     | password  | false    | String  | Account password |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 2     | password  | false    | String | Account password |
 
     - Return example
 
@@ -1210,11 +1210,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 1     | address   | true     | String  | Account address  |
-      | 2     | password  | true     | String  | Account password |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 1     | address   | true     | String | Account address  |
+      | 2     | password  | true     | String | Account password |
 
     - Return example
 
@@ -1273,12 +1273,12 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description         |
-      | ----- | --------- | -------- | ------- | ------------------- |
-      | 0     | chainId   | true     | Integer | Chain ID            |
-      | 1     | address   | true     | String  | Account address     |
-      | 2     | priKey    | true     | String  | Account private key |
-      | 3     | password  | true     | String  | Account password    |
+      | index | parameter | required | type   | description         |
+      | ----- | --------- | -------- | ------ | ------------------- |
+      | 0     | chainId   | true     | Short  | Chain ID            |
+      | 1     | address   | true     | String | Account address     |
+      | 2     | priKey    | true     | String | Account private key |
+      | 3     | password  | true     | String | Account password    |
 
     - Return example
 
@@ -1340,12 +1340,12 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter   | required | type    | description          |
-      | ----- | ----------- | -------- | ------- | -------------------- |
-      | 0     | chainId     | true     | Integer | Chain ID             |
-      | 1     | address     | true     | String  | Account address      |
-      | 2     | password    | true     | String  | Account password     |
-      | 3     | newPassword | true     | String  | Account new password |
+      | index | parameter   | required | type   | description          |
+      | ----- | ----------- | -------- | ------ | -------------------- |
+      | 0     | chainId     | true     | Short  | Chain ID             |
+      | 1     | address     | true     | String | Account address      |
+      | 2     | password    | true     | String | Account password     |
+      | 3     | newPassword | true     | String | Account new password |
 
     - Return example
 
@@ -1404,13 +1404,13 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter   | required | type    | description          |
-      | ----- | ----------- | -------- | ------- | -------------------- |
-      | 0     | chainId     | true     | Integer | Chain ID             |
-      | 1     | address     | true     | String  | Account address      |
-      | 2     | priKey      | true     | String  | Private key          |
-      | 3     | password    | true     | String  | Account password     |
-      | 4     | newPassword | true     | String  | Account new password |
+      | index | parameter   | required | type   | description          |
+      | ----- | ----------- | -------- | ------ | -------------------- |
+      | 0     | chainId     | true     | Short  | Chain ID             |
+      | 1     | address     | true     | String | Account address      |
+      | 2     | priKey      | true     | String | Private key          |
+      | 3     | password    | true     | String | Account password     |
+      | 4     | newPassword | true     | String | Account new password |
 
     - Return example
 
@@ -1466,11 +1466,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 1     | address   | true     | String  | Account address  |
-      | 2     | password  | true     | String  | Account password |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 1     | address   | true     | String | Account address  |
+      | 2     | password  | true     | String | Account password |
 
     - Return example
 
@@ -1526,10 +1526,10 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description     |
-      | ----- | --------- | -------- | ------- | --------------- |
-      | 0     | chainId   | true     | Integer | Chain ID        |
-      | 1     | address   | true     | String  | Account address |
+      | index | parameter | required | type   | description     |
+      | ----- | --------- | -------- | ------ | --------------- |
+      | 0     | chainId   | true     | Short  | Chain ID        |
+      | 1     | address   | true     | String | Account address |
 
     - Return example
 
@@ -1591,12 +1591,12 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description      |
-      | ----- | --------- | -------- | ------- | ---------------- |
-      | 0     | chainId   | true     | Integer | Chain ID         |
-      | 1     | address   | true     | String  | Account address  |
-      | 2     | password  | false    | String  | Account password |
-      | 3     | alias     | true     | String  | alias            |
+      | index | parameter | required | type   | description      |
+      | ----- | --------- | -------- | ------ | ---------------- |
+      | 0     | chainId   | true     | Short  | Chain ID         |
+      | 1     | address   | true     | String | Account address  |
+      | 2     | password  | false    | String | Account password |
+      | 3     | alias     | true     | String | alias            |
 
     - Return example
 
@@ -1656,11 +1656,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description     |
-      | ----- | --------- | -------- | ------- | --------------- |
-      | 0     | chainId   | true     | Integer | Chain ID        |
-      | 1     | address   | true     | String  | Account address |
-      | 2     | alias     | true     | String  | alias           |
+      | index | parameter | required | type   | description     |
+      | ----- | --------- | -------- | ------ | --------------- |
+      | 0     | chainId   | true     | Short  | Chain ID        |
+      | 1     | address   | true     | String | Account address |
+      | 2     | alias     | true     | String | alias           |
 
     - Return example
 
@@ -1717,10 +1717,10 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description     |
-      | ----- | --------- | -------- | ------- | --------------- |
-      | 0     | chainId   | true     | Integer | Chain ID        |
-      | 1     | address   | true     | String  | Account address |
+      | index | parameter | required | type   | description     |
+      | ----- | --------- | -------- | ------ | --------------- |
+      | 0     | chainId   | true     | Short  | Chain ID        |
+      | 1     | address   | true     | String | Account address |
 
     - Return example
 
@@ -1774,10 +1774,10 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description   |
-      | ----- | --------- | -------- | ------- | ------------- |
-      | 0     | chainId   | true     | Integer | Chain ID      |
-      | 1     | alias     | true     | String  | Account alias |
+      | index | parameter | required | type   | description   |
+      | ----- | --------- | -------- | ------ | ------------- |
+      | 0     | chainId   | true     | Short  | Chain ID      |
+      | 1     | alias     | true     | String | Account alias |
 
     - Return example
 
@@ -1833,11 +1833,11 @@ Community governance requires account signature
 
     - Request parameter description
 
-      | index | parameter | required | type    | description     |
-      | ----- | --------- | -------- | ------- | --------------- |
-      | 0     | chainId   | true     | Integer | Chain ID        |
-      | 1     | address   | true     | String  | Account address |
-      | 2     | remark    | true     | String  | Account remark  |
+      | index | parameter | required | type   | description     |
+      | ----- | --------- | -------- | ------ | --------------- |
+      | 0     | chainId   | true     | Short  | Chain ID        |
+      | 1     | address   | true     | String | Account address |
+      | 2     | remark    | true     | String | Account remark  |
 
     - Return example
 
@@ -1877,7 +1877,7 @@ Community governance requires account signature
   8. return the transaction hash.
   ```
 
-- ac_setMutilSigAlias interface
+- ac_setMultiSigAlias interface
 
   - Interface Description
 
@@ -1887,7 +1887,7 @@ Community governance requires account signature
 
       ```
       {
-        "cmd": "ac_setMutilSigAlias",
+        "cmd": "ac_setMultiSigAlias",
         "minVersion":1.0,
         "params": [
               1234,
@@ -1901,13 +1901,13 @@ Community governance requires account signature
 
   - Request parameter description
 
-    | index | parameter   | required | type    | description                |
-    | ----- | ----------- | -------- | ------- | -------------------------- |
-    | 0     | chainId     | true     | Integer | Chain ID                   |
-    | 1     | address     | true     | String  | Multi-sign account address |
-    | 2     | signAddress | true     | String  | Signature address          |
-    | 3     | password    | false    | String  | Account password           |
-    | 4     | alias       | true     | String  | alias                      |
+    | index | parameter   | required | type   | description                |
+    | ----- | ----------- | -------- | ------ | -------------------------- |
+    | 0     | chainId     | true     | Short  | Chain ID                   |
+    | 1     | address     | true     | String | Multi-sign account address |
+    | 2     | signAddress | true     | String | Signature address          |
+    | 3     | password    | false    | String | Account password           |
+    | 4     | alias       | true     | String | alias                      |
 
   - Return example
 
@@ -1971,10 +1971,10 @@ Community governance requires account signature
 
   - Request parameter description
 
-    | index | parameter | required | type    | description                |
-    | ----- | --------- | -------- | ------- | -------------------------- |
-    | 0     | chainId   | true     | Integer | Chain ID                   |
-    | 1     | address   | true     | String  | Multi-sign account address |
+    | index | parameter | required | type   | description                |
+    | ----- | --------- | -------- | ------ | -------------------------- |
+    | 0     | chainId   | true     | Short  | Chain ID                   |
+    | 1     | address   | true     | String | Multi-sign account address |
 
   - Return example
 
