@@ -163,9 +163,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
    - If it is the account balance model, extract the corresponding "from" and "to", and generate CoinData of the NULS mainnet protocol.
 
+   - The txData of the **atx_trans** transaction contains the hash of the **atx** transaction.
+
    - Finally, sign the **atx_trans** transaction and set up scriptSig
 
-2.   The **atx_trans** cross-chain transaction is sent to the transaction management module via the interface [newCrossTx](#2322-receive-cross-chain-transactions-for-local-new-primary-network-protocols) for broadcast. After the atx transfer transaction is generated in the A chain, it is sent to the transaction management module, and the basic format and legality of the transaction data are basically verified by the [newTx](#232-receive-local-new-transactions) interface, and then stored in the local transaction queue to be verified.
+2. The **atx_trans** cross-chain transaction is sent to the transaction management module via the interface [newCrossTx](#2322-receive-cross-chain-transactions-for-local-new-primary-network-protocols) for broadcast. After the atx transfer transaction is generated in the A chain, it is sent to the transaction management module, and the basic format and legality of the transaction data are basically verified by the [newTx](#232-receive-local-new-transactions) interface, and then stored in the local transaction queue to be verified.
 
    + Receive transaction to deserialize data
 
@@ -203,7 +205,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
    1. The A-chain node Anode1 broadcasts the hash of the **atx_trans** transaction to the connected NULS mainnet node through the message interface[newCrossHash](#51-broadcastcrosstxhashmessage).
    2. After the transaction management module obtains the transaction hash, it sends a message to acquire the complete cross-chain transaction to the A-chain node Anode1 through [askCrossTx]( #52-receivecrosstxmessage).
-   3. The A-chain node Anode1 receives the request, and then sends the complete **atx_trans** cross-chain transaction and the hash of the **atx** transaction (the hash before the protocol conversion) to the mainnet node Mn through the[newFcTx](#53-sendhashcrosstxmessage), and the mainnet node transaction management module parses and processes the **atx_trans** transaction.
+   3. The A-chain node Anode1 receives the request, and then sends the complete **atx_trans** cross-chain transaction to the main network node Mn through [newMnTx](#56-sendcrosstxmessage), and the main network node transaction management module parses and processes the **atx_trans** transaction.       
 
 8. The NULS mainnet node transaction management module deserializes the atx_trans transaction and then performs a check.
 
@@ -271,7 +273,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
 - Interface definition
 
-  - method: `tx_registertx`
+  - method: `tx_register`
 
     Interface description：The registration transaction needs to pass the transaction type, the verifier name, and the processor name to return whether the registration is successful.
 
@@ -279,7 +281,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     ```
     {
-        "cmd": "tx_registertx",
+        "cmd": "tx_register",
         "minVersion": "1.0",
         "params":[
             moduleCode, 
@@ -408,14 +410,14 @@ That is: other chain addresses cannot initiate transactions in this chain.
      	"version": 1.0,
      	"code":0,
          "result":{
-             "list":["txHex", "txHex", "txHex", ...]
+             value:true
      	}
      }
      ```
 
-     | parameter | type      | description                                            |
-     | --------- | --------- | ------------------------------------------------------ |
-     | list      | jsonArray | Verify the failed transaction serialization data array |
+     | parameter | type    | description                     |
+     | --------- | ------- | ------------------------------- |
+     | value     | boolean | Verification passed return true |
 
 - **Transaction processor commit interface uniform specification**
 
@@ -425,7 +427,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":["txHex","secondaryDataHex"]
+        "params":[chainId"txHex","secondaryDataHex"]
     }
     ```
 
@@ -433,8 +435,9 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description                                        |
     | ----- | ------ | -------------------------------------------------- |
-    | 0     | String | Transaction serialization data                     |
-    | 1     | String | Block header hash, height, time serialization data |
+    | 0     | int    | Chain Id                                           |
+    | 1     | String | Transaction serialization data                     |
+    | 2     | String | Block header hash, height, time serialization data |
 
   - Response 
 
@@ -470,8 +473,9 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     | index | type   | description                                        |
     | ----- | ------ | -------------------------------------------------- |
-    | 0     | String | Transaction serialization data                     |
-    | 1     | String | Block header hash, height, time serialization data |
+    | 0     | int    | Chain Id                                           |
+    | 1     | String | Transaction serialization data                     |
+    | 2     | String | Block header hash, height, time serialization data |
 
   - Response
 
@@ -1043,7 +1047,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
 
 
-#### 2.3.12 Receive a new cross-chain transaction for the friend chain
+#### ~~2.3.12 Receive a new cross-chain transaction for the friend chain~~ （Deprecated）
 
 - Function description：
 
@@ -1565,7 +1569,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     ```
     {
-        "cmd": "tx_getTxProcessors",
+        "cmd": "tx_getTxs",
         "minVersion": "1.0",
         "params": [
         	ChainId,
@@ -1824,7 +1828,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
 
 
-### 5.3 SendHashCrossTxMessage
+### ~~5.3 SendHashCrossTxMessage~~ （Deprecated）
 
 - Message description：The friend chain sends the complete cross-chain transaction converted by the protocol to the NULS mainnet, and the original transaction hash
 - cmd：newFcTx

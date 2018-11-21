@@ -462,7 +462,7 @@ Relies on remote service interface data provided by the kernel module.
 
     ```
     {
-        "method":"nw_createNodeGroup",
+        "method":"nw_delNodeGroup",
         "minVersion":1.1,
         "params":[
             1234
@@ -1590,7 +1590,13 @@ broadcast to other nodes.
 | ------ | --------- | --------------- | ----------------------------------------------- |
 | ??     | addr_list | network address | 18 bytes per node (16 bytes IP + 2 bytes port） |
 
+#### Bye
 
+Used for peer connection to disconnect actively, rejecting service message connection
+
+| Length | Fields  | Type  | Remark   |
+| ------ | ------- | ----- | -------- |
+| 1      | byeCode | uint8 | 预留字段 |
 
   ### 4.2 Transaction agreement
 

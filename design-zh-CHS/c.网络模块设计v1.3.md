@@ -453,7 +453,7 @@
 
     ```
     {
-        "method":"nw_createNodeGroup",
+        "method":"nw_delNodeGroup",
         "minVersion":1.1,
         "params":[
             1234
@@ -1573,6 +1573,14 @@ data:{
 | Length | Fields    | Type            | Remark                               |
 | ------ | --------- | --------------- | ------------------------------------ |
 | ??     | addr_list | network address | 每个节点18字节（16字节IP+2字节port） |
+
+#### Bye
+
+用于peer连接主动断开，拒绝业务消息连接
+
+| Length | Fields  | Type  | Remark   |
+| ------ | ------- | ----- | -------- |
+| 1      | byeCode | uint8 | 预留字段 |
 
 
 
