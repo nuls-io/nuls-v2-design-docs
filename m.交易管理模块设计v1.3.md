@@ -71,7 +71,7 @@
 
 
 
-### 1.2 架构图
+### 1.3 架构图
 
 ![](./image/tx-manager-module/tx-manager-architecture.png)
 
@@ -134,7 +134,7 @@
 
 1. 账本模块生成转账交易**atx**，如果生成的是跨链交易，需要同时调用跨链模块生成NULS主网协议的**atx_trans**并签名。
 
-   - 根据NULS主网协议，从**atx**提取type、time、remark、txData放入新生成的**atx_trans**中。
+   - 根据NULS主网协议，从**atx**提取type、time、remark、scriptSig，txData放入新生成的**atx_trans**中。
 
    - 提取CoinData数据，如果是UTXO模型，则需要根据资产、input、output以及手续费，计算出实际的支付金额，生成NULS主网协议(账户余额模型)的from。
 
@@ -162,10 +162,6 @@
 
    - 如果是账户余额模型，则提取对应的from和to，生成NULS主网协议的CoinData
 
-   -  **atx_trans** 交易的txData中包含**atx**交易的hash
-
-   - 最后对 **atx_trans** 交易进行签名，设置scriptSig
-
 2. **atx_trans**跨链交易通过接口[newCrossTx](#2322-接收本地新的主网协议的跨链交易)发送到交易管理模块等待广播； **atx**转账交易在A链中生成后，发送到交易管理模块中，通过[newTx](#232-接收本地新交易)接口对交易数据的基本格式以及合法性进行基础验证，然后存放到待验证本地交易队列中。
 
    + 接收交易对交易数据反序列化成Transaction
@@ -174,7 +170,7 @@
 
    + 对coinData中链和资产的基本格式，合法性，和完整性进行校验
 
-3. 验证交易的定时任务Task将会从该队列中取出交易，首先通过账本模块验证coinData，验证通过之后跟交易类型从缓存中找到对应的交易验证器，再调用验证接口进行验证，验证通过的交易通过[newHash](#59-BroadcastTxMessage)广播给链内其他节点，同时通过[newCrossHash](#51-broadcastcrosstxhashmessage)广播主网协议的交易**atx_trans**，并将放入交易管理模块待打包交易内存池，等待共识打包。
+3. 验证交易的定时任务Task将会从该队列中取出交易，首先通过账本模块验证coinData，验证通过之后跟交易类型从缓存中找到对应的交易验证器，再调用验证接口进行验证，验证通过的交易通过[newHash](#59_BroadcastTxMessage)广播给链内其他节点，同时通过[newCrossHash](#51-broadcastcrosstxhashmessage)广播主网协议的交易**atx_trans**，并将放入交易管理模块待打包交易内存池，等待共识打包。
 
    + 定时取出待确认交易
 
@@ -204,7 +200,7 @@
 
    1. A链节点Anode1先通过消息接口[newCrossHash](#51-broadcastcrosstxhashmessage)广播**atx_trans**交易的hash给连接的NULS主网节点。
    2. 交易管理模块获得的交易hash后，再通过[askCrossTx]( #52-receivecrosstxmessage)发送获取完整跨链交易的消息到A链节点Anode1。
-   3. A链节点Anode1收到该请求，再将完整的**atx_trans**跨链交易通过[newMnTx](#56-sendcrosstxmessage)发送给主网节点Mn，主网节点交易管理模块解析处理**atx_trans**交易。
+   3. A链节点Anode1收到该请求，再将完整的**atx_trans**跨链交易和**atx**交易的hash（协议转换之前的hash）通过[newFcTx](#53-sendhashcrosstxmessage)发送给主网节点Mn，主网节点交易管理模块解析处理**atx_trans**交易。
 
 8. NULS主网节点交易管理模块先反序列化**atx_trans**交易，然后进行校验。
 
@@ -230,13 +226,13 @@
 
 12. NULS主网共识节点互相收到所有其他共识节点发出的消息，由交易管理模块接口[crossNodeRs](#2318-接收跨链交易的链内节点验证结果)进行收集汇总，当一个交易的签名者超过共识节点总数的80%，判定该跨链交易通过NULS主网的验证，放入待打包交易内存池，等待打包确认。
 
-13. NULS主网节点共识模块打包的时，交易模块先取出交易(与 **_步骤 4_** 类似)，再次验证跨链交易atx_trans的签名数量(PS：由于提取出来的交易集合包含NULS主网创建的交易，这类交易没有验证签名数量步骤)，然后通过账本模块验证CoinData(转出资产总余额等)，符合要求则将交易发送共识模块打包进区块。
+13. NULS主网节点共识模块打包的时，交易模块先取出交易(与 **_步骤 3_** 类似)，再次验证跨链交易atx_trans的签名数量(PS：由于提取出来的交易集合包含NULS主网创建的交易，这类交易没有验证签名数量步骤)，然后通过账本模块验证CoinData(转出资产总余额等)，符合要求则将交易发送共识模块打包进区块。
 
     区块确认逻辑：验证区块中包含的跨链交易时，验证签名数量和转出链的资产余额，符合要求就确认该交易。
 
 **(3) 跨链交易进入B链中的流程**
 
-14. NULS主网节点的交易管理模块将会一直扫描区块链中的跨链交易，当发现**atx_trans**交易被区块链确认n个高度后，取出**atx_trans**交易发送给连接的B链节点(多个)
+14. NULS主网节点的交易管理模块将会一直扫描区块链中的跨链交易，当发现**atx_trans**交易被区块链确认n个高度后，取出**atx_trans**交易通过交易管理模块发送消息将**atx_trans**交易发送给连接的B链节点(多个)
 
     ​	*发送跨链交易流程*(与 **_步骤 7_** 类似)：
 
@@ -273,7 +269,7 @@
 
 - 接口定义
 
-  - method: `tx_register`
+  - method: `tx_registertx`
 
     接口说明：注册交易需要传交易类型、验证器名称、处理器名称，返回是否注册成功。
 
@@ -281,7 +277,7 @@
 
     ```
     {
-        "cmd": "tx_register",
+        "cmd": "tx_registertx",
         "minVersion": "1.0",
         "params":[
             moduleCode, 
@@ -411,14 +407,14 @@
      	"version": 1.0,
      	"code":0,
          "result":{
-             value:true
+             "list":["txHex", "txHex", "txHex", ...]
      	}
      }
      ```
 
-     | parameter | type    | description      |
-     | --------- | ------- | ---------------- |
-     | value     | boolean | 验证成功返回true |
+     | parameter | type      | description              |
+     | --------- | --------- | ------------------------ |
+     | list      | jsonArray | 不合法交易序列化数据数组 |
 
 - **交易处理器commit接口参数统一规范 Transaction processor commit **
 
@@ -428,17 +424,16 @@
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId,"txHex","secondaryDataHex"]
+        "params":["txHex","secondaryDataHex"]
     }
     ```
 
   - 请求参数说明
 
-    | index | type   | description                          |
-    | ----- | ------ | ------------------------------------ |
-    | 0     | int    | Chain Id                             |
-    | 1     | String | 交易序列化数据                       |
-    | 2     | String | 区块头的hash，高度，时间的序列化数据 |
+    | index | type   | description                              |
+    | ----- | ------ | ---------------------------------------- |
+    | 0     | String | 交易序列化数据                           |
+    | 1     | String | secondaryData 自定义(区块头？)序列化数据 |
 
   - 返回结果 
 
@@ -466,17 +461,16 @@
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId,"txHex","secondaryDataHex"]
+        "params":["txHex","secondaryDataHex"]
     }
     ```
 
   - 请求参数说明
 
-    | index | type   | description                                        |
-    | ----- | ------ | -------------------------------------------------- |
-    | 0     | String | Chain Id                                           |
-    | 1     | String | 交易序列化数据                                     |
-    | 2     | String | secondaryData 区块头的hash，高度，时间的序列化数据 |
+    | index | type   | description                              |
+    | ----- | ------ | ---------------------------------------- |
+    | 0     | String | 交易序列化数据                           |
+    | 1     | String | secondaryData 自定义(区块头？)序列化数据 |
 
   - 返回结果 
 
@@ -633,7 +627,7 @@
 
   - method: `tx_commit`
 
-    接口说明：调用交易处理器提交接口
+    接口说明：返回可打包的交易集合
 
   - 请求示例
 
@@ -647,11 +641,11 @@
 
   - 请求参数说明
 
-    | index | type   | description                          |
-    | ----- | ------ | ------------------------------------ |
-    | 0     | int    | 链id                                 |
-    | 1     | String | 交易序列化数据                       |
-    | 2     | String | 区块头的hash，高度，时间的序列化数据 |
+    | index | type   | description                      |
+    | ----- | ------ | -------------------------------- |
+    | 0     | int    | 链id                             |
+    | 1     | String | 交易序列化数据                   |
+    | 2     | String | ！！！(区块头的hash，高度，时间) |
 
   - 返回示例
 
@@ -690,7 +684,7 @@
 
   - method: `tx_rollback`
 
-    接口说明：调用交易处理器回滚接口
+    接口说明：返回可打包的交易集合
 
   - 请求示例
 
@@ -1048,7 +1042,7 @@
 
 
 
-#### ~~2.3.12 接收友链新的完整跨链交易~~ （废弃）
+#### 2.3.12 接收友链新的完整跨链交易
 
 - 功能说明：
 
@@ -1361,11 +1355,11 @@
 
   - 请求参数说明
 
-    | index | type   | description                    |
-    | ----- | ------ | ------------------------------ |
-    | 0     | Int    | chainId 链id                   |
-    | 1     | int    | nodeId 节点id                  |
-    | 2     | String | 交易hash和确认高度的序列化数据 |
+    | index | type   | description                                   |
+    | ----- | ------ | --------------------------------------------- |
+    | 0     | Int    | chainId 链id                                  |
+    | 1     | int    | nodeId 节点id                                 |
+    | 2     | String | 交易hash 、 hight 确认高度和签名？ 序列化数据 |
 
   - 返回示例
 
@@ -1554,7 +1548,7 @@
 
 
 
-#### 2.3.21 根据账户地址查询交易记录
+#### 2.3.21 查询根据账户地址查询交易记录
 
 - 功能说明：
 
@@ -1570,7 +1564,7 @@
 
     ```
     {
-        "cmd": "tx_getTxs",
+        "cmd": "tx_getTxProcessors",
         "minVersion": "1.0",
         "params": [
         	ChainId,
@@ -1587,9 +1581,9 @@
 
     | index | type   | description              |
     | ----- | ------ | ------------------------ |
-    | 0     | int    | 链Id                     |
+    | 0     | int    | 交易类型（不填返回全部） |
     | 1     | int    | 资产Id标识               |
-    | 2     | int    | 交易类型（不填返回全部） |
+    | 2     | int    | 交易类型                 |
     | 3     | String | 账户地址                 |
     | 4     | int    | 每一页数据条数           |
     | 5     | int    | 页码                     |
@@ -1705,7 +1699,7 @@
 
     | index | type | description |
     | ----- | ---- | ----------- |
-    | 0     | int  | chainId     |
+    | 0     |      |             |
 
   - 返回示例
 
@@ -1723,9 +1717,9 @@
 
   - 返回结果说明
 
-    | parameter | type    | description |
-    | --------- | ------- | ----------- |
-    | value     | boolean | 成功        |
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
 
 #### 2.3.24 停止链
 
@@ -1829,7 +1823,7 @@
 
 
 
-### ~~5.3 SendHashCrossTxMessage~~（废弃）
+### 5.3 SendHashCrossTxMessage
 
 - 消息说明：友链向NULS主网发送经过协议转换的完整跨链交易，和原始交易hash
 - cmd：newFcTx
@@ -1978,6 +1972,6 @@
 
 ```
 [tx-manager]
-bootstrap=io.module.TxManagerModuleBootstrap
+bootstrap=io.satellite.module.TxManagerModuleBootstrap
 ```
 

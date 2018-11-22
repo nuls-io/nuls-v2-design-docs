@@ -390,15 +390,15 @@ Websocket-Tool会做成JAR包供各模块引用
 
 测试之前，先启动此模拟kernel。
 
-```json
+```java
 @Test
-public  void kernel() throws Exception {
+public void kernel() throws Exception {
     int port = 8887;
     WsServer s = new WsServer(port);
+    // 注意，下面这句话不要改，模拟实现在"io.nuls.rpc.cmd.kernel"中
     s.init("kernel", null, "io.nuls.rpc.cmd.kernel");
-    s.start();
-
-    CmdDispatcher.syncLocalToKernel("ws://127.0.0.1:8887");
+    
+    s.startAndSyncKernel("ws://127.0.0.1:8887");
 
     Thread.sleep(Integer.MAX_VALUE);
 }
@@ -408,7 +408,7 @@ public  void kernel() throws Exception {
 
 #### 7.1.2 自定义cmd
 
-```json
+```java
 /*
  * 该类所在的包需要通过7.1.3中的方法进行扫描
  */
@@ -420,6 +420,8 @@ public class MyCmd extends BaseCmd {
      * 2. 调用的命令的版本
      * 3. 调用的命令是否兼容前一个版本
      *
+     * 参数：List，即使该接口不需要参数，也要这样定义
+     *
      * 返回的结果包含：
      * 1. 内置编码
      * 2. 真正调用的版本号
@@ -427,12 +429,12 @@ public class MyCmd extends BaseCmd {
      * 4. 返回的对象，由接口自己约定
      */
     @CmdAnnotation(cmd = "cm_exColdField", version = 1.0, preCompatible = true)
-    public CmdResult methodName(List params) {       
+    public CmdResponse methodName(List params) {       
         // 成功
         return success(version_code, "hello nuls", "Object if necessary");
         
         // 失败
-        return failed(Constants.INTERNAL_ERROR, version_code, "Object if necessary");
+        return failed(ErrorCode.init("-100"), version_code, "Object if necessary");
     }
 }
 ```
@@ -441,7 +443,7 @@ public class MyCmd extends BaseCmd {
 
 #### 7.1.3 启动Server
 
-```
+```java
 /*
 * 初始化websocket服务器，供其他模块调用本模块接口
 * 端口随机，会自动分配未占用端口
@@ -457,14 +459,14 @@ WsServer s = new WsServer(HostInfo.randomPort());
 s.init("m1", new String[]{"m2", "m3"}, "io.nuls.rpc.cmd");
 
 /*
-* 启动服务
+* 如果你的接口不在一个包里面，可以通过下面这句话单独注册
 */
-s.start();
+// RuntimeInfo.scanPackage("full_package_path");
 
 /*
-* 向核心模块汇报本模块信息
+* 启动服务
 */
-CmdDispatcher.syncLocalToKernel("kernel url");
+s.startAndSyncKernel("kernel url[ws://127.0.0.1:8887]");
 ```
 
 
@@ -475,7 +477,7 @@ CmdDispatcher.syncLocalToKernel("kernel url");
 
 这是供kernel调用的接口，可以最后kernel完全确认之后再实现。非必需。
 
-```
+```java
 /*
  * 1. 该类所在的包需要通过7.1.3中的方法进行扫描
  * 2. 一个模块只需要有一个类实现该接口
@@ -485,7 +487,7 @@ public class CmKernelCmd implements KernelCmd {
 	@Override
     @CmdAnnotation(cmd = Constants.SHUTDOWN, version = 1.0, preCompatible = true)
     public CmdResponse shutdown(List params) {
-        return result(1.0);
+        return success(1.0);
     }
     
     ......
@@ -496,7 +498,15 @@ public class CmKernelCmd implements KernelCmd {
 
 #### 7.1.5 调用cmd
 
-```
+```java
+/*
+* 1. 汇报本地接口给kernel
+* 2. 从kernel获取所有接口列表
+* 注意：实际使用中不需要这句话，因为在模块启动的时候RPC已经封装了
+* 但是在单元测试的时候只有一个方法，没有模块，因此需要显示调用
+*/
+CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
+
 /*
 * 参数说明：
 * 1. 调用的命令
@@ -504,25 +514,10 @@ public class CmKernelCmd implements KernelCmd {
 * 3. 调用的命令所需要的参数
 * 返回值为json格式
 */
-String response = CmdDispatcher.call("cm_exColdField", 1.0, new Object[]{});
+String response = CmdDispatcher.call("cm_exColdField", new Object[]{"params"}, 1.0);
 ```
 
 
-
-#### 7.1.6 自定义错误
-
-默认定义了如下错误，放在常量类Constants中：
-
-```
-Code	Message
--32700, "Parse error"
--32600, "Invalid Request"
--32601, "Method not found"
--32602, "Invalid params"
--32603, "Internal error"
-```
-
-自定义错误使用类：ErrorInfo
 
 
 

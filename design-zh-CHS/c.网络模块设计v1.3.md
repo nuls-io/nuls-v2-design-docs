@@ -453,7 +453,7 @@
 
     ```
     {
-        "method":"nw_createNodeGroup",
+        "method":"nw_delNodeGroup",
         "minVersion":1.1,
         "params":[
             1234
@@ -603,16 +603,19 @@
         "minVersion":1.1,
         "params":[
             1234，
-           "10.20.23.02:5006,53.26.65.58:8003"
+            1，
+           "10.20.23.02:5006,53.26.65.58:8003",
+           
         ]}
     ```
 
   - 请求参数说明
 
-    | index | parameter | required | type   | description |
-    | ----- | --------- | -------- | ------ | :---------: |
-    | 0     | chainId   | true     | int    |   链标识    |
-    | 1     | nodes     | true     | String |   节点组    |
+    | index | parameter | required | type   |        description        |
+    | ----- | --------- | -------- | ------ | :-----------------------: |
+    | 0     | chainId   | true     | int    |          链标识           |
+    | 1     | isCross   | true     | int    | 是否跨链：0 非跨链，1跨链 |
+    | 2     | nodes     | true     | String |          节点组           |
 
   - 返回示例
 
@@ -822,7 +825,7 @@
 
     ```
     {
-        "method":"nw_reconnect",
+        "method":"nw_getGroups",
         "minVersion":1.1,
         "params":[
             1,
@@ -910,7 +913,7 @@
 
   ```
   {
-      "method":"nw_reconnect",
+      "method":"nw_getNodes",
       "minVersion":1.1,
       "params":[
           1598,
@@ -923,12 +926,13 @@
 
   - 请求参数说明
 
-  | index | parameter | required | type |    description     |
-  | ----- | --------- | -------- | ---- | :----------------: |
-  | 0     | chainId   | true     | int  |       网络id       |
-  | 1     | state     | true     | int  | 0所有链接，1已连接 |
-  | 2     | startPage | true     | int  |      开始页数      |
-  | 3     | pageSize  | true     | int  |     每页记录数     |
+  | index | parameter | required | type |          description          |
+  | ----- | --------- | -------- | ---- | :---------------------------: |
+  | 0     | chainId   | true     | int  |            网络id             |
+  | 1     | state     | true     | int  | 0所有链接，1已连接，2 未 连接 |
+  | 2     | isCross   | true     | int  |      0普通连接 1跨链连接      |
+  | 3     | startPage | true     | int  |           开始页数            |
+  | 4     | pageSize  | true     | int  |          每页记录数           |
 
   - 返回示例
 
@@ -978,19 +982,19 @@
 
 
 
-| parameter   | type   | description          |
-| ----------- | ------ | -------------------- |
-| chainId     | int    | 链id                 |
-| nodeId      | String | 节点id               |
-| magicNumber | int    | 魔法参数             |
-| version     | int    | 协议版本号           |
-| blockHeight | long   | 最新区块高度         |
-| blockHash   | String | 最新区块hash         |
-| ip          | String | ip地址               |
-| port        | int    | 端口号               |
-| state       | String | 连接状态             |
-| isOut       | int    | 0被动连接，1主动连接 |
-| time        | long   | 最近连接时间         |
+| parameter   | type   | description              |
+| ----------- | ------ | ------------------------ |
+| chainId     | int    | 链id                     |
+| nodeId      | String | 节点id                   |
+| magicNumber | int    | 魔法参数                 |
+| version     | int    | 协议版本号               |
+| blockHeight | long   | 最新区块高度             |
+| blockHash   | String | 最新区块hash             |
+| ip          | String | ip地址                   |
+| port        | int    | 端口号                   |
+| state       | int    | 连接状态 1 连接 0 未连接 |
+| isOut       | int    | 0被动连接，1主动连接     |
+| time        | long   | 最近连接时间             |
 
  
 
@@ -1055,7 +1059,6 @@
      "version": 1.2,
         "code":0,
         "result":{
-            list:[{
                 chainId：1212, //链id
                 magicNumber：324234,//魔法参数
                 totalCount：2323, //总连接数
@@ -1065,26 +1068,26 @@
                 blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
                          ea1a960f207778150ffb9f2c173ff",  //最大高度区块Hash值
                 isActive：1，//0未激活，1 已激活
-                isCrossChain:1 //0不是跨链网络，1跨链网络
-                },{}
-                ]
-        }
+                isCrossActive:1， //0跨链网络未激活，1跨链激活
+                isMoonNet:0 //0友链 ，1卫星链
+                }
     }
     ```
 
   - 返回字段说明
 
-    | parameter    | type   | description              |
-    | ------------ | ------ | ------------------------ |
-    | chainId      | int    | 链id                     |
-    | magicNumber  | int    | 魔法参数                 |
-    | totalCount   | int    | 总连接数                 |
-    | inCount      | int    | 被动连接数               |
-    | outCount     | int    | 主动连接数               |
-    | blockHeight  | long   | 网络最高区块高度         |
-    | blockHash    | String | 最大高度区块Hash值       |
-    | isActive     | int    | 0未激活，1 已激活        |
-    | isCrossChain | int    | 0不是跨链网络，1跨链网络 |
+    | parameter     | type   | description                |
+    | ------------- | ------ | -------------------------- |
+    | chainId       | int    | 链id                       |
+    | magicNumber   | int    | 魔法参数                   |
+    | totalCount    | int    | 总连接数                   |
+    | inCount       | int    | 被动连接数                 |
+    | outCount      | int    | 主动连接数                 |
+    | blockHeight   | long   | 网络最高区块高度           |
+    | blockHash     | String | 最大高度区块Hash值         |
+    | isActive      | int    | 0未激活，1 已激活          |
+    | isCrossActive | int    | 0跨链网络未激活，1跨链激活 |
+    | isMoonNet     | int    | 0友链 ，1卫星链            |
 
 - 依赖服务
 
@@ -1535,11 +1538,13 @@ data:{
 | 6      | network_time | uint48   | 网络时间                                                     |
 | ??     | extend       | VarByte  | 扩展字段，不超过10个字节？                                   |
 
-
-
 #### verack
 
-用于应答version，无消息体
+用于应答version
+
+| Length | Fields   | Type  | Remark                           |
+| ------ | -------- | ----- | -------------------------------- |
+| 1      | ack_code | uint8 | 返回码，1代表正常，2代表连接已满 |
 
 #### ping
 
@@ -1568,6 +1573,14 @@ data:{
 | Length | Fields    | Type            | Remark                               |
 | ------ | --------- | --------------- | ------------------------------------ |
 | ??     | addr_list | network address | 每个节点18字节（16字节IP+2字节port） |
+
+#### Bye
+
+用于peer连接主动断开，拒绝业务消息连接
+
+| Length | Fields  | Type  | Remark   |
+| ------ | ------- | ----- | -------- |
+| 1      | byeCode | uint8 | 预留字段 |
 
 
 

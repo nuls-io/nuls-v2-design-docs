@@ -120,13 +120,13 @@ Community governance requires account signature
   3.Calculate hash160 based on public key
   4.Stitching byte arrays to form addresses
   4.1.If it is the NULS system address: address=type+hash160
-  4.2、If non-NULS system address (bitcoin): original address length + original address
+  4.2、If non-NULS system address (bitcoin): address=original address length + original address
   5、Generate address string: address byte[] + check digit, then perform base58 calculation to generate string
   5.1.If it is the NULS system check digit: xor=XOR(addressType+pkh)
   5.2.If non-NULS system check digit: xor=XOR(length+address)
   6. base58 calculation generates the address string:
-      NULS system address: Base58 (type+hash160+xor)+Base58(chainId)
-      Non-NULS system address: Base58 (length+address+xor)+Base58(chainId)
+      NULS system address: Base58 (type+hash160+xor)+Hex(chainId)
+      Non-NULS system address: Base58 (length+address+xor)+Hex(chainId)
   7.Encrypt the private key according to the password and delete the plaintext of the private key
   8.Store account information
   9.Add account to cache
@@ -158,8 +158,8 @@ Community governance requires account signature
     | index | parameter | required | type    | description                                             |
     | ----- | --------- | -------- | ------- | ------------------------------------------------------- |
     | 0     | chainId   | true     | Integer | Chain ID, indicating which chain the account belongs to |
-    | 1     | count     | false    | Integer | To create an account number, constraints:1-10000.       |
-    | 2     | password  | false    | String  | Account initial password                                |
+    | 1     | count     | false    | Integer | To create an account number, constraints:1-100.         |
+    | 2     | password  | false    | String  | Account initial password, Can be empty                  |
 
   - Return example
 
@@ -205,13 +205,13 @@ Community governance requires account signature
   3.Calculate hash160 based on public key
   4.Stitching byte arrays to form addresses
   4.1.If it is the NULS system address: address=type+hash160
-  4.2、If non-NULS system address (bitcoin): original address length + original address
+  4.2、If non-NULS system address (bitcoin): address=original address length + original address
   5、Generate address string: address byte[] + check digit, then perform base58 calculation to generate string
   5.1.If it is the NULS system check digit: xor=XOR(addressType+pkh)
   5.2.If non-NULS system check digit: xor=XOR(length+address)
   6. base58 calculation generates the address string:
-      NULS system address: Base58 (type+hash160+xor)+Base58(chainId)
-      Non-NULS system address: Base58 (length+address+xor)+Base58(chainId)
+      NULS system address: Base58 (type+hash160+xor)+Hex(chainId)
+      Non-NULS system address: Base58 (length+address+xor)+Hex(chainId)
   7.Encrypt the private key according to the password and delete the plaintext of the private key
   8.Return account information, not saved to the database
   ```
@@ -241,8 +241,8 @@ Community governance requires account signature
     | index | parameter | required | type    | description                                             |
     | ----- | --------- | -------- | ------- | ------------------------------------------------------- |
     | 0     | chainId   | true     | Integer | Chain ID, indicating which chain the account belongs to |
-    | 1     | count     | false    | Integer | To create an account number, constraints:1-10000.       |
-    | 2     | password  | false    | String  | Account initial password                                |
+    | 1     | count     | false    | Integer | To create an account number, constraints:1-100.         |
+    | 2     | password  | false    | String  | Account initial password, Can be empty                  |
 
   - Return example
 
@@ -1999,6 +1999,412 @@ Community governance requires account signature
     | msg       | String  | Failure message                    |
     | result    | jsonObj | Data return object                 |
     | value     | boolean | Whether the removal was successful |
+
+
+#### 2.2.29 Account all transaction verification
+
+- Function Description
+
+  account module all transaction verification interface, currently only alias transaction
+
+- Process description
+
+  ```
+  1. Is the transaction list empty
+  2. loop through all transaction lists, processing for alias transactions
+  3. Check if the same alias is set in the current transaction list.
+  4. Check whether there is an account duplicate setting alias in the current transaction list.
+  5. If there is no conflict in the transaction list, the verification is passed.
+  ```
+
+- ac_accountTxValidate interface
+
+  - Interface Description
+
+    This interface is used to batch verify all transactions in the account module.
+
+  - Request example
+
+    ```
+    {
+      "cmd": "ac_accountTxValidate",
+      "minVersion":1.0,
+      "params": [chianId, ["txHex","txHex","txHex", ...]]
+    }
+    
+    ```
+
+  - Request parameter description
+
+    | index | parameter | required | type  | description                                |
+    | ----- | --------- | -------- | ----- | ------------------------------------------ |
+    | 0     | chainId   | true     | Short | Chain ID                                   |
+    | 1     | txHex     | true     | array | Alias transaction serialization data array |
+
+    txHex description
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+
+  - Return example
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "list":["txHex", "txHex", "txHex", ...]
+        }
+    }
+    ```
+
+  - Return field description
+
+    | parameter | type      | description                                  |
+    | :-------- | :-------- | :------------------------------------------- |
+    | code      | Integer   | Return result status                         |
+    | msg       | String    | Failure message                              |
+    | result    | jsonObj   | Data return object                           |
+    | list      | jsonArray | Illegal transaction serialization data array |
+
+
+#### 2.2.30 Alias transaction verification
+
+- Function Description
+
+  alias transaction verification interface
+
+- Process description
+
+  ```
+  1. deserialize txHex alias transaction data
+  2. verify the alias format
+  3. Verify that the alias is already occupied.
+  4. Verify that the account has an alias set.
+  5. verify the coinData input and output
+  6. verify the script signature format
+  7. Verify that the signature contains the address of the alias. 
+  If it is not included, it is a malicious foul. 
+  Otherwise, the verification is passed.
+  ```
+
+- ac_aliasTxValidate interface
+
+  - Interface Description
+
+    This interface is used for a single alias transaction.
+
+  - Request example
+
+    ```
+    {
+      "cmd": "ac_aliasTxValidate",
+      "minVersion":1.0,
+      "params": [chainId,"txHex"]
+    }
+    
+    ```
+
+  - Request parameter description
+
+    | index | parameter | required | type   | description                          |
+    | ----- | --------- | -------- | ------ | ------------------------------------ |
+    | 0     | chainId   | true     | Short  | Chain ID                             |
+    | 1     | txHex     | true     | String | alias transaction serialization data |
+
+    txHex description
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+
+  - Return example
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "value":true
+        }
+    }
+    ```
+
+  - Return field description
+
+    | parameter | type    | description                            |
+    | :-------- | :------ | :------------------------------------- |
+    | code      | Integer | Return result status                   |
+    | msg       | String  | Failure message                        |
+    | result    | jsonObj | Data return object                     |
+    | value     | boolean | Whether the verification is successful |
+
+
+#### 2.2.31 Alias transaction submit
+
+- Function Description
+
+  Alias transaction submit, save alias
+
+- Process description
+
+  ```
+  1. deserialize txHex alias transaction data
+  2. save the alias alias to the database
+  3. set the alias to account and save to the database
+  4. Re-cache the modified account
+  5. return the alias save is successful
+  ```
+
+- ac_aliasTxCommit interface
+
+  - Interface Description
+
+    This interface is used to save aliases.
+
+  - Request example
+
+    ```
+    {
+      "cmd": "ac_aliasTxCommit",
+      "minVersion":1.0,
+      "params": [chainId,"txHex","secondaryDataHex"]
+    }
+    
+    ```
+
+  - Request parameter description
+
+    | index | parameter        | required | type   | description                          |
+    | ----- | ---------------- | -------- | ------ | ------------------------------------ |
+    | 0     | chainId          | true     | Short  | Chain ID                             |
+    | 1     | txHex            | true     | String | Alias transaction serialization data |
+    | 2     | secondaryDataHex | true     | String | Block header serialization data      |
+
+    txHex description
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+    secondaryDataHex description
+
+    ```
+    "txData":
+        {
+            "hash":"",
+            "height":1,
+            "time":13369748564
+        }
+    ```
+
+    
+
+  - Return example
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "value":true
+        }
+    }
+    ```
+
+  - Return field description
+
+    | parameter | type    | description                                 |
+    | :-------- | :------ | :------------------------------------------ |
+    | code      | Integer | Return result status                        |
+    | msg       | String  | Failure message                             |
+    | result    | jsonObj | Data return object                          |
+    | value     | boolean | Is the alias transaction saved successfully |
+
+#### 2.2.32 Alias transaction rollback
+
+- Function Description
+
+  Alias transaction rollback interface
+
+- Process description
+
+  ```
+  1. deserialize txHex alias transaction data
+  2. delete the alias object data from the database
+  3. take the corresponding account to clear the alias, re-sent the database
+  4. re-cache account
+  5. return the alias rollback is successful
+  ```
+
+- ac_aliasTxRollback interface
+
+  - Interface Description
+
+    This interface is used to roll back an alias.
+
+  - Request example
+
+    ```
+    {
+      "cmd": "ac_aliasTxRollback",
+      "minVersion":1.0,
+      "params": [chainId,"txHex","secondaryDataHex"]
+    }
+    
+    ```
+
+  - Request parameter description
+
+    | index | parameter        | required | type   | description                          |
+    | ----- | ---------------- | -------- | ------ | ------------------------------------ |
+    | 0     | chainId          | true     | Short  | Chain ID                             |
+    | 1     | txHex            | true     | String | Alias transaction serialization data |
+    | 2     | secondaryDataHex | true     | String | Block header serialization data      |
+
+    txHex description
+
+    ```
+    {
+        "type":3,
+        "time":"12546545596",
+        "scriptSig":"",
+        "hash":"",
+        "coinData":
+        {
+            "froms":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":10000,
+                "nonce":"123",
+            }],
+            "to":
+            [{
+                "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+                "amount":1
+            }]
+        },
+        "txData":
+        {
+            "chainId":"12345",
+            "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
+            "alias":"lucas"
+        }
+    }
+    ```
+    secondaryDataHex description
+
+    ```
+    "txData":
+        {
+            "hash":"",
+            "height":1,
+            "time":13369748564
+        }
+    ```
+
+    
+
+  - Return example
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "value":true
+        }
+    }
+    ```
+
+  - Return field description
+
+    | parameter | type    | description                                  |
+    | :-------- | :------ | :------------------------------------------- |
+    | code      | Integer | Return result status                         |
+    | msg       | String  | Failure message                              |
+    | result    | jsonObj | Data return object                           |
+    | value     | boolean | Is the alias transaction rollback successful |
+  
 
   
 
