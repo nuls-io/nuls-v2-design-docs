@@ -393,6 +393,40 @@
 }
 ```
 
+#### 3.1.8 创建账户
+> 当账户模块创建一个新账户后,需要调用该cmd,一个新账户,默认余额和nonce都是0.
+
+> cmd: createAccount
+
+##### 参数说明 (request)
+
+| 字段      |      是否可选  | 数据类型 |  描述信息 |
+|----------|:-------------:|--------:|--------:|
+| address |  Y | String | 账户地址 |
+
+```json
+{
+"cmd": "lg_createAccount",
+"minVersion": "1.0",
+"params":[
+  "address"
+  ]
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+  "version": "1.0",
+  "code": 0,
+  "msg": "response message.",
+  "result": {
+      "value": true
+  }
+}
+```
+
 ## 四、事件说明
 
 > 不依赖任何事件
