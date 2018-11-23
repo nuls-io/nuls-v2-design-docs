@@ -141,7 +141,7 @@
 ```
     0：chainId //链id
     1：nodeId //节点Id
-    2：message //16进制网络序消息体
+    2：messageBody //16进制网络序消息体
     ......
 ```
 
@@ -186,7 +186,8 @@
         "params":[
             1234，
             "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
+            "getBlock"
         ]}
     ```
 
@@ -196,7 +197,8 @@
     | ----- | ------------ | -------- | ------ | :---------------: |
     | 0     | chainId      | true     | int    |      链标识       |
     | 1     | excludeNodes | true     | String | 排除节点,逗号分割 |
-    | 2     | message      | true     | String |  对象16进制字符   |
+    | 2     | messageBody  | true     | String |  对象16进制字符   |
+    | 3     | command      | true     | String |  消息指令 12字节  |
 
   - 返回示例
 
@@ -255,17 +257,19 @@
         "params":[
             1234，
             "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
+            "getBlock"
         ]}
     ```
 
   - 请求参数说明
 
-    | index | parameter | required | type   |    description    |
-    | ----- | --------- | -------- | ------ | :---------------: |
-    | 0     | chainId   | true     | int    |      链标识       |
-    | 1     | nodes     | true     | String | 发送节点,逗号分割 |
-    | 2     | message   | true     | String |  对象16进制字符   |
+    | index | parameter   | required | type   |    description    |
+    | ----- | ----------- | -------- | ------ | :---------------: |
+    | 0     | chainId     | true     | int    |      链标识       |
+    | 1     | nodes       | true     | String | 发送节点,逗号分割 |
+    | 2     | messageBody | true     | String |  对象16进制字符   |
+    | 3     | command     | true     | String |  消息指令 12字节  |
 
   - 返回示例
 
@@ -297,7 +301,7 @@
     | parameter | type | description |
     | --------- | ---- | ----------- |
     |           |      |             |
-  
+
 - 依赖服务
 
   无
