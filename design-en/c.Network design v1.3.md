@@ -140,7 +140,7 @@ The network module is the basic module of the entire system, which is used to ma
 ```
     0：chainId  
     1：nodeId  
-    2：message
+    2：messageBody
     ......
 ```
 
@@ -192,7 +192,9 @@ Function Description：
         "params":[
             1234，
             "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
+            "getBlock"
+           
         ]}
     ```
 
@@ -203,6 +205,7 @@ Function Description：
     | 0     | chainId      | true     | int    |            chainId             |
     | 1     | excludeNodes | true     | String | Exclude nodes, comma separated |
     | 2     | message      | true     | String |  Object hexadecimal character  |
+    | 3     | command      | true     | String |    message command,12 byte     |
 
   - Return example
 
@@ -261,7 +264,8 @@ certain nodes (which can be 1 node) send messages.
         "params":[
             1234，
             "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
+            "getBlock"
         ]}
     ```
 
@@ -272,6 +276,7 @@ certain nodes (which can be 1 node) send messages.
     | 0     | chainId   | true     | int    |           chainId            |
     | 1     | nodes     | true     | String |    Send node, comma split    |
     | 2     | message   | true     | String | Object hexadecimal character |
+    | 3     | command   | true     | String |   message command,12 byte    |
 
   - Return example
 
@@ -462,7 +467,7 @@ Relies on remote service interface data provided by the kernel module.
 
     ```
     {
-        "method":"nw_createNodeGroup",
+        "method":"nw_delNodeGroup",
         "minVersion":1.1,
         "params":[
             1234
@@ -1590,7 +1595,13 @@ broadcast to other nodes.
 | ------ | --------- | --------------- | ----------------------------------------------- |
 | ??     | addr_list | network address | 18 bytes per node (16 bytes IP + 2 bytes port） |
 
+#### Bye
 
+Used for peer connection to disconnect actively, rejecting service message connection
+
+| Length | Fields  | Type  | Remark   |
+| ------ | ------- | ----- | -------- |
+| 1      | byeCode | uint8 | 预留字段 |
 
   ### 4.2 Transaction agreement
 
