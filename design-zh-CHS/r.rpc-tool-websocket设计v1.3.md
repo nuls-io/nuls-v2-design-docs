@@ -64,307 +64,348 @@
 
 [^说明]: 说明的功能设计，可以有层级关系，可以通过图形的形式展示，并用文字进行说明。
 
-![](./image/tools-rpc/Websocket-Tool-package.png)
-
 
 
 ## 三、接口设计
-
-### 3.1 外部接口
-
-#### 3.1.1 shutdown
-
-- 接口说明  
-  kernel调用该接口关闭模块（等待当前业务全部处理完成）
-
-- 请求示例  
-  ```json
-  {
-      "id":1,
-      "cmd":"shutdown",
-      "minVersion":1,
-      "params":[]
-  }
-  ```
-
-- 请求参数说明  
-  N/A
-
-- 返回示例  
-  ```json
-  {
-      "id":"1",
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-#### 3.1.2 terminate
-
-- 接口说明  
-  kernel调用该接口关闭模块（立即终止） 
-
-- 请求示例  
-
-  ```json
-  {
-      "id":1,
-      "cmd":"terminate",
-      "minVersion":1,
-      "params":[]
-  }
-  ```
-
-- 请求参数说明  
-  无
-
-- 返回示例  
-
-  ```json
-  {
-      "id":1,
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-#### 3.1.3 confGet
-
-- 接口说明  
-  kernel获取模块配置项
-
-- 请求示例
-
-  ```json
-  {
-      "id":1,
-      "cmd":"confGet",
-      "minVersion":1,
-      "params":[]
-  }
-  ```
-
-- 请求参数说明  
-  无
-
-- 返回示例  
-
-  ```json
-  {
-      "id":1,
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-#### 3.1.4 confSet
-
-- 接口说明  
-  kernel设置模块配置项
-
-- 请求示例
-
-  ```json
-  {
-      "id":1,
-      "cmd":"confSet",
-      "minVersion":1,
-      "params":[
-          {
-          "key1":"value1",
-          "key2":"value2"
-          }
-      ]
-  }
-  ```
-
-- 请求参数说明  
-  无
-
-- 返回示例  
-
-  ```json
-  {
-      "id":1,
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-#### 3.1.5 confReset
-
-- 接口说明  
-  kernel恢复模块配置为初始值
-
-- 请求示例
-
-  ```json
-  {
-      "id":1,
-      "cmd":"confReset",
-      "minVersion":1,
-      "params":[]
-  }
-  ```
-
-- 请求参数说明  
-  无
-
-- 返回示例  
-
-  ```json
-  {
-      "id":1,
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-### 3.2 内部接口
-
-#### 3.2.1 push
-
-- 接口说明  
-  模块初始化之后推送本地接口给kernel
-
-
-- 请求示例
-
-  ```json
-  {
-      "id":1,
-      "cmd":"version",
-      "minVersion":1,
-      "params":[
-          {
-              "name":"m1",
-              "status":"READY",
-              "available":false,
-              "addr":"192.168.1.65",
-              "port":18800,
-              "cmdDetailList":[      
-                  {
-                      "cmd":"conf_get",
-                      "version":1
-                  },                
-                  {
-                      "cmd":"conf_set",
-                      "version":1
-                  },
-                  {
-                      "cmd":"conf_reset",
-                      "version":1
-                  },
-                  {
-                      "cmd":"terminate",
-                      "version":1
-                  },                
-                  {
-                      "cmd":"shutdown",
-                      "version":1
-                  },                            
-                  ......
-              ],
-              "dependsModule":[
-                  "m2",
-                  "m3"
-              ]
-          }
-      ]
-  }
-  ```
-
-
-- 请求参数说明
-
-  | index | parameter           | required | type | description  |
-  | ----- | :------------------ | :------- | :--- | ------------ |
-  | 0     | modules_information | true     | map  | 所有模块信息 |
-
-
-  modules_information
-
-| parameter | required | type              | description          |
-| --------- | -------- | ----------------- | -------------------- |
-| service   | true     | string[]          | 本模块需要依赖的模块 |
-| available | true     | boolean           | 本模块是否可提供服务 |
-| modules   | true     | map<name, module> | 所有模块的信息       |
-
-
-  module
-
-| parameter     | required | type     | description        |
-| ------------- | -------- | -------- | ------------------ |
-| name          | true     | string   | 模块名称           |
-| status        | true     | string   | 模块状态           |
-| available     | true     | boolean  | 模块是否可提供服务 |
-| addr          | true     | string   | 连接的ip地址/域名  |
-| port          | true     | int      | 连接的端口         |
-| cmdDetailList | true     | list     | 对外提供的命令列表 |
-| dependsModule | true     | string[] | 所依赖的模块       |
-
-
-
-- 返回示例  
-
-  ```json
-  {
-      "id":1,
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
 
 
 
 ## 四、事件说明
 
-[^说明]: 业务流程中尽量避免使用事件的方式通信
-
 
 
 
 ## 五、协议
+
+#### 5.1 通信协议 – Json/WebSockets
+
+微服务的行为不像标准的客户端 - 服务器基础设施，因为每个微服务同时是客户端和服务器，因此需要全双工通信协议，这允许实现特殊类型的发布 - 订阅模式; 在这个实现中，方法只能被调用一次，然后调用者可以通过两种不同的方式接收不断的更新：
+
+- 基于事件：当方法在预定义数量的事件之后发送通知时
+- 基于时间：当方法在预定义的秒数后发送通知时
+
+WebSocket是一种成熟的选项，可以本机提供全双工连接，其他选项如标准Json-RPC不提供双向通道。
+消息将使用JSon格式进行编码，因为它是最广泛用于消息交换的，并且易于调试。
+
+#### 5.2 消息结构
+
+所有消息都有一个由5个字段组成的公共基础结构：
+
+- MessageID：这是一个标识请求的字符串。 它的长度不应超过256个字符
+- Timestamp：自纪元以来的秒数（1970年1月1日格林威治标准时间00:00:00）
+- TimeZone：发起请求的时区，它应为介于-12和12之间的数字
+- MessageType：消息类型，这些在第3节中指定
+- MessageData：保存消息有效负载的Json对象
+
+示例：
+
+```json
+{  
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"NegotiateConnection",
+    "MessageData":{
+        "CompressionRate":"3",
+        "CompressionAlgorithm":"zlib"
+    }
+}
+```
+
+#### 5.3 Message Types
+
+目前只定义了9种类型的消息：NegotiateConnection, NegotiateConnectionResponse, Request, Unsubscribe, Response, Ack, Notificatioin, RegisterCompoundMethod, UnregisterCompoundMethod
+
+##### 5.3.1 NegotiateConnection
+
+这应该是在与微服务建立连接时应该发送的第一个对象，只有在协商成功时，服务才可以处理其他请求，否则应该收到状态设置为0（失败）的NegotiateConnectionResponse对象并立即断开连接。
+
+它由两个字段组成：
+
+- CompressionAlgorithm（默认值：zlib）：一个String，表示如果CompressionRate大于0，将用于接收和发送消息的算法。默认为zlib，大多数开发语言中都有支持的库。
+- CompressionRate：0到9之间的一个整数，用于建立应为此连接发送和接收消息的压缩级别。 0表示没有压缩，而9表示最大压缩
+
+示例：
+
+```json
+{
+    "messageId":"1",
+    "timestamp":"1543133816985",
+    "timezone":"9",
+    "messageType":"NegotiateConnection",
+    "messageData":{
+        "protocolVersion":"1.0",
+        "compressionAlgorithm":"zlib",
+        "compressionRate":"0"
+    }
+}
+```
+
+
+
+##### 5.3.2 NegotiateConnectionResponse
+
+仅在响应先前传入的NegotiateConnection消息时发送此类消息。 它由两个字段组成：
+
+- NegotiationStatus：无符号的小整数值，如果协商失败则为0，如果成功则为1
+- NegotiationComment：一个字符串值，用于描述拒绝连接时出现了什么问题。
+
+示例：
+
+```json
+{
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"NegotiateConnectionReponse",
+    "MessageData":{
+        "NegotiationStatus":"0",
+        "NegotiationComment":"Incompatible protocol version"
+    }
+}
+```
+
+
+
+##### 5.3.3 Request
+
+调用者服务必须发送一个Request对象来执行Nulstar网络内某些服务提供的方法。
+
+如果在单个请求对象中包含两个或更多方法，则应按顺序执行方法，然后发送一个response包喊所有回执信息，如果其中一个请求失败，则整个操作被视为失败。
+
+它由六个字段组成：
+
+- RequestAck（默认值：0）：这是一个布尔值
+
+  - 0：发出的请求只需要一条Response消息，如果它订阅了该函数，那么它可能会有很多响应消息
+  - 1：发出的请求需要Ack和Response（译者注：有的请求可能需要一段时间处理，不会立刻返回Response，但是我要确保对方接收到了我的请求），如果它订阅了该函数，那么它可能会有很多响应消息
+
+- SubscriptionEventCounter（默认值：0）：这是一个无符号整数，指定目标方法发送Response的区块间隔。不管这个值是多少，总会立刻发送一个Response。如果是0，则不再继续发送，如果是2，则每2个块都会检测是否发送。以此类推。
+
+- SubscriptionPeriod（默认值：0）：这是一个无符号整数，指定目标方法发送Response的时间间隔。不管这个值是多少，总会立刻发送一个Response。如果是0，则不再继续发送，如果是2，则每2秒都会检测是否发送。以此类推。
+
+- SubscriptionRange：如果请求的事件返回的是一个数字，则定义何时返回这个数字。
+  这是一个字符串，表示将触发响应的条件。 字符串是一对带符号的十进制数，第一个是下限，第二个是上限，如果不可用则为空。 如果该对分别以“（”或“）”开始或结束，则表示该数字不包括在内，如果该对分别以“[”或“]”开始或结束，则表示该数字包括在内。
+
+  示例：假设我们只希望仅在余额等于或大于1000时收到通知。然后，getbalance请求应以“[1000，）”字符串作为SubscriptionRange参数发送
+
+- ResponseMaxSize（默认值：0）：无符号整数，指定方法应返回的最大对象数，值为零（默认值）表示无限制
+
+- RequestMethods：一个数组，包含所请求的所有方法及其各自的参数
+
+示例：
+
+```json
+{
+    "messageId":"3",
+    "timestamp":"1543133968578",
+    "timezone":"9",
+    "messageType":"Request",
+    "messageData":{
+        "requestAck":"0",
+        "subscriptionEventCounter":"0",
+        "subscriptionPeriod":"5",
+        "subscriptionRange":"0",
+        "responseMaxSize":"0",
+        "requestMethods":{
+            "getHeight":{
+                "paramName":"value",
+                "version":"1.0"
+            }
+        }
+    }
+}
+```
+
+
+
+##### 5.3.4 Unsubscribe
+
+当服务不再希望从其订阅的方法接收响应时，它必须向目标服务发送Unsubscribe消息。
+
+它由一个字段组成：
+
+- UnsubscribeMethods：一个数组，包含调用者想要取消订阅的所有方法
+
+示例：
+
+```json
+{
+    "messageId":"4",
+    "timestamp":"1543134296019",
+    "timezone":"9",
+    "messageType":"Unsubscribe",
+    "messageData":{
+        "unsubscribeMethods":[
+            "getHeight"
+        ]
+    }
+}
+```
+
+
+
+##### 5.3.5 Response
+
+当目标服务完成处理请求时，应该发送响应以及操作结果。
+
+它由六个字段组成：
+
+- RequestID：这是引用的原始Request消息请求ID
+- ResponseProcessingTime：目标服务处理请求所用的时间（以毫秒为单位）
+- ResponseStatus：响应状态，如果成功则为1，否则为0
+- ResponseComment：一个字符串，可以提供有关该过程结果的更多说明
+- ResponseMaxSize：响应包含每个请求的最大对象数
+- ResponseData：一个对象数组，包含已处理方法的结果，每个请求一个对象
+
+示例：
+
+```json
+{
+    "messageId":"9",
+    "timestamp":"1543134299030",
+    "timezone":"9",
+    "messageType":"Response",
+    "messageData":{
+        "requestId":"5",
+        "responseProcessingTime":"1",
+        "responseStatus":"1",
+        "responseComment":"Congratulations! Processing completed！",
+        "responseMaxSize":"0",
+        "responseData":{
+            "getHeight":"getHeight->1.3"
+        }
+    }
+}
+```
+
+
+
+##### 3.5.6 Ack
+
+其唯一目的是通知呼叫者已成功接收请求。
+
+它由一个字段组成：
+
+- RequestID：这是引用的原始Request消息请求ID
+
+示例：
+
+```json
+{
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"Ack",
+    "MessageData":{
+        "RequestID":"sdj8jcf8899ekffEFefee"
+    }
+}
+```
+
+
+
+##### 3.5.7 Notification
+
+当需要将某些事件通知给连接的组件而不期望响应消息时（例如，即将对服务执行升级时），将发送此消息类型。 通知将信息推送到其他组件，因此通知只应由Manager，Controller和Connector模块使用
+
+它由四个字段组成：
+
+- NotificationAck :(默认值：false）：这是一个布尔值
+  - false：发出的通知不期望任何类型的消息作为回执
+  - true：发出的通知需要一条Ack消息
+- NotificationType：通知的类别，每个服务都可以定义自己的类型，因此不需要接收方处理此字段
+- NotificationComment：字符串注释，提供有关通知原因的更多信息
+- NotificationData：与通知相关的数据，接收方不需要处理此字段
+
+示例：
+
+```json
+{
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"Notification",
+    "MessageData":{
+        "NotificationAck":"1",
+        "NotificationType":"SystemUpgrade",
+        "NotificationComment":"A system upgrade is about to be performed!",
+        "NotificationData":{
+            "Date":"2018-11-11",
+            "Time":"23:00:00",
+            "NewVersion":"1.1.6"
+        }
+    }
+}
+```
+
+
+
+##### 3.5.8 RegisterCompoundMethod
+
+请求可以由多个方法组成，使用此消息类型，我们注册一个虚拟方法，该方法将按顺序执行其各个实际方法，如果其子方法之一失败，则虚方法返回失败。
+
+某些子方法可能共享相同的参数名称，因此可以创建别名，如示例中所示。
+
+它由三个字段组成：
+
+- CompoundMethodName：这是标识虚方法的字符串
+- CompoundMethodDescription：描述方法功能，在查询API以获取帮助时将提供描述
+- CompoundMethods：这是一个数组，包含构成虚方法的各自参数别名的方法
+
+示例：
+
+```json
+{
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"RegisterCompoundMethod",
+    "MessageData":{
+        "CompoundMethodName":"GetMyInfo",
+        "CompoundMethodDescription":"Get useful information.",
+        "CompoundMethods":{
+            "GetBalance":{
+                "Address":"GetBalanceAddress"
+            },
+            "GetHeight":{
+
+            }
+        }
+    }
+}
+```
+
+在该示例中，正在注册一个名为GetMyInfo的虚方法，它由GetBalance和GetHeight方法组成，还为Address参数创建了一个名为GetBalanceAddress的别名。
+GetMyInfo的请求可以作为标准方法发送。
+
+（我确实没看懂这个的意义在哪，感觉就是单纯为了多这么个功能，有疑问请直接找Berzeck或者坚哥，哈哈）
+
+
+
+##### 3.5.9 UnregisterCompoundMethod
+
+此消息类型用于取消注册复合（虚拟）方法。
+
+它由一个字段组成：
+
+- UnregisterCompoundMethodName：这是标识虚方法的字符串。 如果它为空，则应取消注册调用者注册的所有虚拟方法
+
+示例：
+
+```json
+{
+    "MessageID":"45sdj8jcf8899ekffEFefee",
+    "Timestamp":"1542102459",
+    "TimeZone":"-4",
+    "MessageType":"UnregisterCompoundMethod",
+    "MessageData":{
+        "UnregisterCompoundMethodName":"GetMyInfo"
+    }
+}
+```
+
+
 
 
 
@@ -377,7 +418,86 @@
 
 [^说明]: 核心对象类定义,存储数据结构，......
 
-### 7.1 如何使用  
+### 7.1 设计
+
+>  io.nuls.rpc
+>
+> >  client
+> >
+> > > WsClient：与其他模块建立连接的对象，完全封装，不需要开发人员关注
+> >
+> > cmd
+> >
+> > > BaseCmd：所有对外提供方法的类的父类，提供success, failed方法返回Response对象
+> > >
+> > > CmdDispatcher：调用其他模块方法，包含：握手、注册、调用等，开发人员只需使用它
+> >
+> > handler
+> >
+> > > CmdHandler：根据Request对象调用正确的方法
+> >
+> > info
+> >
+> > > ClientRuntime：客户端运行时的一些变量
+> > >
+> > > Constants：常量
+> > >
+> > > HostInfo
+> > >
+> > > ServerRuntime：客户端运行时的一些变量
+> >
+> > model
+> >
+> > > message
+> > >
+> > > > Message：所有消息都应该用该对象进行传输
+> > > >
+> > > > MessageType：消息类型（包含以下9种）
+> > > >
+> > > > Ack
+> > > >
+> > > > NegotiateConnection
+> > > >
+> > > > NegotiateConnectionResponse
+> > > >
+> > > > Notification
+> > > >
+> > > > Request
+> > > >
+> > > > Response
+> > > >
+> > > > Unsubscribe
+> > > >
+> > > > RegisterCompoundMethod
+> > > >
+> > > > UnregisterCompoundMethod
+> > >
+> > > CmdAnnotation：cmd注解，提供cmd的相关信息
+> > >
+> > > CmdDetail
+> > >
+> > > CmdParameter
+> > >
+> > > ModuleE
+> > >
+> > > ModuleInfo
+> > >
+> > > Parameter
+> > >
+> > > Parameters
+> > >
+> > > RegisterApi
+> >
+> > server
+> >
+> > > WsProcessor
+> > >
+> > > WsServer
+
+
+
+### 7.2 如何使用  
+
 Websocket-Tool会做成JAR包供各模块引用  
 
 
@@ -388,19 +508,13 @@ Websocket-Tool会做成JAR包供各模块引用
 
 各模块接口是在kernel中进行维护，但是kernel由社区成员开发，因此这一部分是内部测试的模拟代码，可以直接复制使用，无需额外操作。
 
-测试之前，先启动此模拟kernel。
+（test/java/io.nuls.test.WsKernel）
 
 ```java
 @Test
 public void kernel() throws Exception {
-    int port = 8887;
-    WsServer s = new WsServer(port);
-    // 注意，下面这句话不要改，模拟实现在"io.nuls.rpc.cmd.kernel"中
-    s.init("kernel", null, "io.nuls.rpc.cmd.kernel");
-    
-    s.startAndSyncKernel("ws://127.0.0.1:8887");
-
-    Thread.sleep(Integer.MAX_VALUE);
+    // url: "ws://127.0.0.1:8887"
+    WsServer.mockKernel();
 }
 ```
 
@@ -414,27 +528,18 @@ public void kernel() throws Exception {
  */
 public class MyCmd extends BaseCmd {
 
-    /*
-     * CmdAnnotation注解包含
-     * 1. 调用的命令
-     * 2. 调用的命令的版本
-     * 3. 调用的命令是否兼容前一个版本
-     *
-     * 参数：List，即使该接口不需要参数，也要这样定义
-     *
-     * 返回的结果包含：
-     * 1. 内置编码
-     * 2. 真正调用的版本号
-     * 3. 返回的文本
-     * 4. 返回的对象，由接口自己约定
-     */
-    @CmdAnnotation(cmd = "cm_exColdField", version = 1.0, preCompatible = true)
-    public CmdResponse methodName(List params) {       
-        // 成功
-        return success(version_code, "hello nuls", "Object if necessary");
-        
-        // 失败
-        return failed(ErrorCode.init("-100"), version_code, "Object if necessary");
+    @CmdAnnotation(cmd = "getHeight", version = 1.0, scope = "private", minEvent = 0, minPeriod = 0,
+            description = "test getHeight 1.0")
+    @Parameter(parameterName = "aaa", parameterType = "int", parameterValidRange = "(1,100]", parameterValidRegExp = "")
+    @Parameter(parameterName = "bbb", parameterType = "string")
+    public Object getHeight1(Map map) {
+        Log.info("getHeight version 1");
+        // success
+        return success("Here is your real return value");
+        // 预定义错误
+        return failed(ErrorCode);
+        // 非预定义错误
+        return failed(String)
     }
 }
 ```
@@ -444,54 +549,27 @@ public class MyCmd extends BaseCmd {
 #### 7.1.3 启动Server
 
 ```java
-/*
-* 初始化websocket服务器，供其他模块调用本模块接口
-* 端口随机，会自动分配未占用端口
-*/
-WsServer s = new WsServer(HostInfo.randomPort());
+// Start server instance
+WsServer.getInstance(ModuleE.CM)
+    .supportedAPIVersions(new String[]{"1.1", "1.2"})
+    .moduleRoles(ModuleE.CM.abbr, new String[]{"1.1", "1.2"})
+    .moduleVersion("1.2")
+    .dependencies("Role_Ledger", "1.1")
+    .scanPackage("io.nuls.rpc.cmd.test")
+    .connect("ws://127.0.0.1:8887");
 
-/*
-* 初始化，参数说明：
-* 1. 本模块的code
-* 2. 依赖的模块的code，类型为String[]
-* 3. 本模块提供的对外接口所在的包路径
-*/
-s.init("m1", new String[]{"m2", "m3"}, "io.nuls.rpc.cmd");
-
-/*
-* 如果你的接口不在一个包里面，可以通过下面这句话单独注册
-*/
-// RuntimeInfo.scanPackage("full_package_path");
-
-/*
-* 启动服务
-*/
-s.startAndSyncKernel("kernel url[ws://127.0.0.1:8887]");
+// Get information from kernel
+CmdDispatcher.syncKernel();
 ```
 
 
 
 #### 7.1.4 为kernel提供的接口
 
-可忽略！
-
-这是供kernel调用的接口，可以最后kernel完全确认之后再实现。非必需。
+现阶段忽略！
 
 ```java
-/*
- * 1. 该类所在的包需要通过7.1.3中的方法进行扫描
- * 2. 一个模块只需要有一个类实现该接口
- * 3. 注解中的cmd用预定义的常量，不要擅自改动
- */
-public class CmKernelCmd implements KernelCmd {
-	@Override
-    @CmdAnnotation(cmd = Constants.SHUTDOWN, version = 1.0, preCompatible = true)
-    public CmdResponse shutdown(List params) {
-        return success(1.0);
-    }
-    
-    ......
-}
+
 ```
 
 
@@ -500,21 +578,35 @@ public class CmKernelCmd implements KernelCmd {
 
 ```java
 /*
-* 1. 汇报本地接口给kernel
-* 2. 从kernel获取所有接口列表
-* 注意：实际使用中不需要这句话，因为在模块启动的时候RPC已经封装了
-* 但是在单元测试的时候只有一个方法，没有模块，因此需要显示调用
-*/
-CmdDispatcher.syncKernel("ws://127.0.0.1:8887");
-
+  单元测试专用：单元测试时需要告知内核地址，以及同步接口列表
+  如果不是单元测试，在模块中进行连调测试，下面两句话是不需要的
+  */
+WsServer.mockModule();
 /*
-* 参数说明：
-* 1. 调用的命令
-* 2. 调用的命令的最低版本号
-* 3. 调用的命令所需要的参数
-* 返回值为json格式
-*/
-String response = CmdDispatcher.call("cm_exColdField", new Object[]{"params"}, 1.0);
+  单元测试专用结束
+  */
+
+
+// Build params map
+Map<String, Object> params = new HashMap<>();
+// Version information ("1.1" or 1.1 is both available)
+params.put(Constants.VERSION_KEY_STR, "1.0");
+params.put("paramName", "value");
+
+// Call cmd: 直接返回结果
+Response response = CmdDispatcher.requestAndResponse(ClientRuntime.ROLE_CM, "getHeight", params);
+
+// Call cmd：返回调用编号
+String messageId = CmdDispatcher.request(ClientRuntime.ROLE_CM, "getHeight", params, "5");
+for (int i = 0; i < 5; i++) {
+ CmdDispatcher.callMessageResponse(messageId);
+    Thread.sleep(5000);
+}
+
+// 取消订阅
+CmdDispatcher.unsubscribe(messageId);
+System.out.println("我已经取消了订阅");
+
 ```
 
 
