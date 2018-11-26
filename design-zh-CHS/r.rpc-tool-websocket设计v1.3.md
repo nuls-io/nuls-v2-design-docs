@@ -632,7 +632,7 @@ Websocket-Tool会做成JAR包供各模块引用
 
 
 
-#### 7.2.1 测试专用：模拟kernel
+#### 7.1.1 测试专用：模拟kernel
 
 非常重要！
 
@@ -650,7 +650,7 @@ public void kernel() throws Exception {
 
 
 
-#### 7.2.2 自定义cmd
+#### 7.1.2 自定义cmd
 
 ```java
 /*
@@ -676,7 +676,7 @@ public class MyCmd extends BaseCmd {
 
 
 
-#### 7.2.3 启动Server
+#### 7.1.3 启动Server
 
 ```java
 // Start server instance
@@ -694,7 +694,7 @@ CmdDispatcher.syncKernel();
 
 
 
-#### 7.2.4 为kernel提供的接口
+#### 7.1.4 为kernel提供的接口
 
 现阶段忽略！
 
@@ -704,7 +704,7 @@ CmdDispatcher.syncKernel();
 
 
 
-#### 7.2.5 调用cmd
+#### 7.1.5 调用cmd
 
 ```java
 /*
