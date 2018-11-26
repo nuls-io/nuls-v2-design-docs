@@ -687,10 +687,10 @@ public class MyCmd extends BaseCmd {
 ```java
 // Start server instance
 WsServer.getInstance(ModuleE.CM)
-    .supportedAPIVersions(new String[]{"1.1", "1.2"})
-    .moduleRoles(ModuleE.CM.abbr, new String[]{"1.1", "1.2"})
+    .moduleRoles(new String[]{"1.0", "2.4"})
     .moduleVersion("1.2")
-    .dependencies("Role_Ledger", "1.1")
+    .dependencies(ModuleE.LG.abbr, "1.1")
+    .dependencies(ModuleE.BL.abbr, "2.1")
     .scanPackage("io.nuls.rpc.cmd.test")
     .connect("ws://127.0.0.1:8887");
 
@@ -729,17 +729,14 @@ Map<String, Object> params = new HashMap<>();
 params.put(Constants.VERSION_KEY_STR, "1.0");
 params.put("paramName", "value");
 
-// Call cmd: 直接返回结果
-Response response = CmdDispatcher.requestAndResponse(ClientRuntime.ROLE_CM, "getHeight", params);
+// Call cmd, get response immediately
+Response response = CmdDispatcher.requestAndResponse(ModuleE.CM.abbr, "getHeight", params);
+System.out.println("requestAndResponse:" + JSONUtils.obj2json(response));
 
-// Call cmd：返回调用编号
-String messageId = CmdDispatcher.request(ClientRuntime.ROLE_CM, "getHeight", params, "5");
-for (int i = 0; i < 5; i++) {
- CmdDispatcher.callMessageResponse(messageId);
-    Thread.sleep(5000);
-}
+// Call cmd, auto invoke local method after response
+String messageId = CmdDispatcher.requestAndInvoke(ModuleE.CM.abbr, "getHeight", params, "1", InvokeMethod.class, "invokeGetHeight2");
 
-// 取消订阅
+// Unsubscribe
 CmdDispatcher.unsubscribe(messageId);
 System.out.println("我已经取消了订阅");
 
