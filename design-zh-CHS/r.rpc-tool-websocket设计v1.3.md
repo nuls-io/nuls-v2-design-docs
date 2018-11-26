@@ -1,4 +1,4 @@
-# Websocket-Tool设计文档
+# Websocket-Tool设计文档——第四版
 
 [TOC]
 
@@ -74,10 +74,9 @@
 
 
 
-
 ## 五、协议
 
-#### 5.1 通信协议 – Json/WebSockets
+### 5.1 通信协议 – Json/WebSockets
 
 微服务的行为不像标准的客户端 - 服务器基础设施，因为每个微服务同时是客户端和服务器，因此需要全双工通信协议，这允许实现特殊类型的发布 - 订阅模式; 在这个实现中，方法只能被调用一次，然后调用者可以通过两种不同的方式接收不断的更新：
 
@@ -87,7 +86,7 @@
 WebSocket是一种成熟的选项，可以本机提供全双工连接，其他选项如标准Json-RPC不提供双向通道。
 消息将使用JSon格式进行编码，因为它是最广泛用于消息交换的，并且易于调试。
 
-#### 5.2 消息结构
+### 5.2 消息结构
 
 所有消息都有一个由5个字段组成的公共基础结构：
 
@@ -112,11 +111,13 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 }
 ```
 
-#### 5.3 Message Types
+### 5.3 Message Types
 
 目前只定义了9种类型的消息：NegotiateConnection, NegotiateConnectionResponse, Request, Unsubscribe, Response, Ack, Notificatioin, RegisterCompoundMethod, UnregisterCompoundMethod
 
-##### 5.3.1 NegotiateConnection
+
+
+#### 5.3.1 NegotiateConnection
 
 这应该是在与微服务建立连接时应该发送的第一个对象，只有在协商成功时，服务才可以处理其他请求，否则应该收到状态设置为0（失败）的NegotiateConnectionResponse对象并立即断开连接。
 
@@ -143,7 +144,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 5.3.2 NegotiateConnectionResponse
+#### 5.3.2 NegotiateConnectionResponse
 
 仅在响应先前传入的NegotiateConnection消息时发送此类消息。 它由两个字段组成：
 
@@ -167,7 +168,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 5.3.3 Request
+#### 5.3.3 Request
 
 调用者服务必须发送一个Request对象来执行Nulstar网络内某些服务提供的方法。
 
@@ -219,7 +220,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 5.3.4 Unsubscribe
+#### 5.3.4 Unsubscribe
 
 当服务不再希望从其订阅的方法接收响应时，它必须向目标服务发送Unsubscribe消息。
 
@@ -245,7 +246,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 5.3.5 Response
+#### 5.3.5 Response
 
 当目标服务完成处理请求时，应该发送响应以及操作结果。
 
@@ -281,7 +282,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 3.5.6 Ack
+#### 3.5.6 Ack
 
 其唯一目的是通知呼叫者已成功接收请求。
 
@@ -305,7 +306,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 3.5.7 Notification
+#### 3.5.7 Notification
 
 当需要将某些事件通知给连接的组件而不期望响应消息时（例如，即将对服务执行升级时），将发送此消息类型。 通知将信息推送到其他组件，因此通知只应由Manager，Controller和Connector模块使用
 
@@ -341,7 +342,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 
 
-##### 3.5.8 RegisterCompoundMethod
+#### 3.5.8 RegisterCompoundMethod
 
 请求可以由多个方法组成，使用此消息类型，我们注册一个虚拟方法，该方法将按顺序执行其各个实际方法，如果其子方法之一失败，则虚方法返回失败。
 
@@ -383,7 +384,7 @@ GetMyInfo的请求可以作为标准方法发送。
 
 
 
-##### 3.5.9 UnregisterCompoundMethod
+#### 3.5.9 UnregisterCompoundMethod
 
 此消息类型用于取消注册复合（虚拟）方法。
 
@@ -407,6 +408,135 @@ GetMyInfo的请求可以作为标准方法发送。
 
 
 
+### 5.4 具体细节
+
+- 传输过程的所有属性都是string类型
+
+- 如果是boolean类型，"1"代表true，"0"代表false
+
+- 当调用一个方法的时候，调用者需要知道：提供方法的角色，以及方法的使用方式
+
+- 注册接口的字符串格式
+
+  ```json
+  {
+      "messageId":"2",
+      "timestamp":"1543204508986",
+      "timezone":"9",
+      "messageType":"Request",
+      "messageData":{
+          "requestAck":"0",
+          "subscriptionEventCounter":"0",
+          "subscriptionPeriod":"0",
+          "subscriptionRange":"0",
+          "responseMaxSize":"0",
+          "requestMethods":{
+              "registerAPI":{
+                  "apiMethods":[
+                      {
+                          "methodName":"getHeight",
+                          "methodDescription":"test getHeight 1.1",
+                          "methodMinEvent":"0",
+                          "methodMinPeriod":"0",
+                          "methodScope":"private",
+                          "parameters":[
+                              {
+                                  "parameterName":"aaa",
+                                  "parameterType":"int",
+                                  "parameterValidRange":"(1,100]",
+                                  "parameterValidRegExp":""
+                              },
+                              {
+                                  "parameterName":"bbb",
+                                  "parameterType":"string",
+                                  "parameterValidRange":"",
+                                  "parameterValidRegExp":"^[A-Za-z0-9\-]+$"
+                              }
+                          ]
+                      },
+                      {
+                          "methodName":"getHeight",
+                          "methodDescription":"test getHeight 2.0",
+                          "methodMinEvent":"0",
+                          "methodMinPeriod":"0",
+                          "methodScope":"private",
+                          "parameters":[
+  
+                          ]
+                      }
+                  ],
+                  "supportedAPIVersions":[
+                      "1.1",
+                      "1.2"
+                  ],
+                  "dependencies":{
+                      "Role_Ledger":"1.1"
+                  },
+                  "connectionInformation":{
+                      "IP":"192.168.1.65",
+                      "Port":"17733"
+                  },
+                  "moduleDomain":"nuls.io",
+                  "moduleRoles":{
+                      "cm":[
+                          "1.1",
+                          "1.2"
+                      ]
+                  },
+                  "moduleVersion":"1.2",
+                  "moduleAbbreviation":"cm",
+                  "moduleName":"Chain Manager"
+              }
+          }
+      }
+  }
+  ```
+
+- Manager返回各模块连接信息的字符串格式
+
+  ```json
+  {
+      "messageId":"8",
+      "timestamp":"1543204714006",
+      "timezone":"9",
+      "messageType":"Response",
+      "messageData":{
+          "requestId":"2",
+          "responseProcessingTime":"1",
+          "responseStatus":"1",
+          "responseComment":"Congratulations! Processing completed！",
+          "responseMaxSize":"0",
+          "responseData":{
+              "registerAPI":{
+                  "Dependencies":{
+                      "test":{
+                          "APIVersion":[
+                              "1.0"
+                          ],
+                          "IP":"192.168.1.65",
+                          "Port":"14694"
+                      },
+                      "ke":{
+                          "APIVersion":null,
+                          "IP":"192.168.1.65",
+                          "Port":"8887"
+                      },
+                      "cm":{
+                          "APIVersion":[
+                              "1.1",
+                              "1.2"
+                          ],
+                          "IP":"192.168.1.65",
+                          "Port":"17733"
+                      }
+                  }
+              }
+          }
+      }
+  }
+  ```
+
+
 
 
 
@@ -424,75 +554,75 @@ GetMyInfo的请求可以作为标准方法发送。
 >
 > >  client
 > >
-> > > WsClient：与其他模块建立连接的对象，完全封装，不需要开发人员关注
+> > > `WsClient`：与其他模块建立连接的对象，完全封装，不需要开发人员关注
+> > >
+> > > `ClientRuntime`：客户端运行时需要的数据，方法
+> > >
+> > > `CmdDispatcher`：开发人员应该只使用它来调用接口
 > >
 > > cmd
 > >
-> > > BaseCmd：所有对外提供方法的类的父类，提供success, failed方法返回Response对象
+> > > cmd_package_1
 > > >
-> > > CmdDispatcher：调用其他模块方法，包含：握手、注册、调用等，开发人员只需使用它
-> >
-> > handler
-> >
-> > > CmdHandler：根据Request对象调用正确的方法
+> > > cmd_package_2
+> > >
+> > > `BaseCmd`：所有对外提供方法的类的父类，提供success, failed方法返回Response对象
 > >
 > > info
 > >
-> > > ClientRuntime：客户端运行时的一些变量
+> > > `Constants`：常量
 > > >
-> > > Constants：常量
-> > >
-> > > HostInfo
-> > >
-> > > ServerRuntime：客户端运行时的一些变量
+> > > `HostInfo`：获取IP地址，随机获得端口
 > >
 > > model
 > >
 > > > message
 > > >
-> > > > Message：所有消息都应该用该对象进行传输
+> > > > `Message`：所有消息都应该用该对象进行传输
 > > > >
-> > > > MessageType：消息类型（包含以下9种）
+> > > > `MessageType`：消息类型（包含以下9种）
 > > > >
-> > > > Ack
+> > > > `Ack`：确认收到消息
 > > > >
-> > > > NegotiateConnection
+> > > > `NegotiateConnection`：握手
 > > > >
-> > > > NegotiateConnectionResponse
+> > > > `NegotiateConnectionResponse`：回复握手
 > > > >
-> > > > Notification
+> > > > `Notification`：通知
 > > > >
-> > > > Request
+> > > > `Request`：请求调用远程方法
 > > > >
-> > > > Response
+> > > > `Response`：回复Request
 > > > >
-> > > > Unsubscribe
+> > > > `Unsubscribe`：取消订阅的远程方法
 > > > >
-> > > > RegisterCompoundMethod
+> > > > `RegisterCompoundMethod`：订阅多个远程方法
 > > > >
-> > > > UnregisterCompoundMethod
+> > > > `UnregisterCompoundMethod`：取消订阅多个远程方法
 > > >
-> > > CmdAnnotation：cmd注解，提供cmd的相关信息
+> > > `CmdAnnotation`：注解类，有该注解的方法可以对外提供接口
 > > >
-> > > CmdDetail
+> > > `Parameter`：注解类，用以描述对外提供接口的参数信息
 > > >
-> > > CmdParameter
+> > > `Parameters`：注解类，Parameter的集合
 > > >
-> > > ModuleE
+> > > `CmdDetail`：对外提供的方法的具体信息
 > > >
-> > > ModuleInfo
+> > > `CmdParameter`：对外提供的方法的参数信息
 > > >
-> > > Parameter
+> > > `ModuleE`：枚举类型，NULS2.0基础架构下的模块信息
 > > >
-> > > Parameters
-> > >
-> > > RegisterApi
+> > > `RegisterApi`：一个模块对外提供的所有方法的合集
 > >
 > > server
 > >
-> > > WsProcessor
+> > > `CmdHandler`：根据Request消息，调用正确的方法
 > > >
-> > > WsServer
+> > > `ServerRuntime`：服务器运行时需要的参数，方法
+> > >
+> > > `WsProcessor`：处理收到的消息队列
+> > >
+> > > `WsServer`：服务器对象，负责接收消息，然后放入消息队列
 
 
 
