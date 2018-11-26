@@ -181,7 +181,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
   - 0：发出的请求只需要一条Response消息，如果它订阅了该函数，那么它可能会有很多响应消息
   - 1：发出的请求需要Ack和Response（译者注：有的请求可能需要一段时间处理，不会立刻返回Response，但是我要确保对方接收到了我的请求），如果它订阅了该函数，那么它可能会有很多响应消息
 
-- SubscriptionEventCounter（默认值：0）：这是一个无符号整数，指定目标方法发送Response的区块间隔。不管这个值是多少，总会立刻发送一个Response。如果是0，则不再继续发送，如果是2，则每2个块都会检测是否发送。以此类推。
+- SubscriptionEventCounter（默认值：0）：这是一个无符号整数，指定目标方法发送Response的值的`改变次数`。不管这个值是多少，总会立刻发送一个Response。如果是0，则不再继续发送，如果是2，则每改变两次就发送。以此类推。
 
 - SubscriptionPeriod（默认值：0）：这是一个无符号整数，指定目标方法发送Response的时间间隔。不管这个值是多少，总会立刻发送一个Response。如果是0，则不再继续发送，如果是2，则每2秒都会检测是否发送。以此类推。
 
@@ -190,7 +190,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
   示例：假设我们只希望仅在余额等于或大于1000时收到通知。然后，getbalance请求应以“[1000，）”字符串作为SubscriptionRange参数发送
 
-- ResponseMaxSize（默认值：0）：无符号整数，指定方法应返回的最大对象数，值为零（默认值）表示无限制
+- ResponseMaxSize（默认值：0）：无符号整数，指定方法应返回的最大对象数，值为零（默认值）表示无限制。只针对返回结果为List有效，指定的是返回的记录个数。
 
 - RequestMethods：一个数组，包含所请求的所有方法及其各自的参数
 
@@ -312,9 +312,9 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 它由四个字段组成：
 
-- NotificationAck :(默认值：false）：这是一个布尔值
-  - false：发出的通知不期望任何类型的消息作为回执
-  - true：发出的通知需要一条Ack消息
+- NotificationAck :(默认值：0）：这是一个布尔值
+  - 0：发出的通知不期望任何类型的消息作为回执
+  - 1：发出的通知需要一条Ack消息
 - NotificationType：通知的类别，每个服务都可以定义自己的类型，因此不需要接收方处理此字段
 - NotificationComment：字符串注释，提供有关通知原因的更多信息
 - NotificationData：与通知相关的数据，接收方不需要处理此字段
@@ -416,6 +416,10 @@ GetMyInfo的请求可以作为标准方法发送。
 
 - 当调用一个方法的时候，调用者需要知道：提供方法的角色，以及方法的使用方式
 
+- 注册的时候，Role1有method1，Role2有method2，如何定义？
+  答：不需要定义，这是写在文档中的。
+  apiMethods = Role1Methods + Role2Methods。因此注册的时候不需要知道每个Role都包含什么方法，这些应该在文档中体现。
+
 - 注册接口的字符串格式
 
   ```json
@@ -450,7 +454,7 @@ GetMyInfo的请求可以作为标准方法发送。
                                   "parameterName":"bbb",
                                   "parameterType":"string",
                                   "parameterValidRange":"",
-                                  "parameterValidRegExp":"^[A-Za-z0-9\-]+$"
+                                  "parameterValidRegExp":"^[A-Za-z0-9\\-]+$"
                               }
                           ]
                       },
@@ -464,10 +468,6 @@ GetMyInfo的请求可以作为标准方法发送。
   
                           ]
                       }
-                  ],
-                  "supportedAPIVersions":[
-                      "1.1",
-                      "1.2"
                   ],
                   "dependencies":{
                       "Role_Ledger":"1.1"
@@ -632,7 +632,7 @@ Websocket-Tool会做成JAR包供各模块引用
 
 
 
-#### 7.1.1 测试专用：模拟kernel
+#### 7.2.1 测试专用：模拟kernel
 
 非常重要！
 
@@ -650,7 +650,13 @@ public void kernel() throws Exception {
 
 
 
-#### 7.1.2 自定义cmd
+#### 7.2.2 自定义cmd
+
+scope的值：public，private，admin
+
+- public：暴露出去，第三方应用/平台也能调用的公开接口
+- private：只有模块间内部才能调用的接口
+- admin：专门为管理员设计的特定接口（管理员定义在在Berzeck的connector中，我们并不需要关心）
 
 ```java
 /*
@@ -676,7 +682,7 @@ public class MyCmd extends BaseCmd {
 
 
 
-#### 7.1.3 启动Server
+#### 7.2.3 启动Server
 
 ```java
 // Start server instance
@@ -694,7 +700,7 @@ CmdDispatcher.syncKernel();
 
 
 
-#### 7.1.4 为kernel提供的接口
+#### 7.2.4 为kernel提供的接口
 
 现阶段忽略！
 
@@ -704,7 +710,7 @@ CmdDispatcher.syncKernel();
 
 
 
-#### 7.1.5 调用cmd
+#### 7.2.5 调用cmd
 
 ```java
 /*
