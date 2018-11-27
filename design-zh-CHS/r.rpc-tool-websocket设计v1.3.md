@@ -729,14 +729,16 @@ Map<String, Object> params = new HashMap<>();
 params.put(Constants.VERSION_KEY_STR, "1.0");
 params.put("paramName", "value");
 
-// Call cmd, get response immediately
+// 可以看成是一个同步方法，发送Request，获得Response
 Response response = CmdDispatcher.requestAndResponse(ModuleE.CM.abbr, "getHeight", params);
-System.out.println("requestAndResponse:" + JSONUtils.obj2json(response));
 
-// Call cmd, auto invoke local method after response
+// 发送Request，当有Response的时候会自动调用预设的方法，返回的messageId是为了取消订阅
 String messageId = CmdDispatcher.requestAndInvoke(ModuleE.CM.abbr, "getHeight", params, "1", InvokeMethod.class, "invokeGetHeight2");
 
-// Unsubscribe
+// 与requestAndInvoke一样，但是必须在收到Ack之后才会返回messageId
+String messageId = CmdDispatcher.requestAndInvokeWithAck(ModuleE.CM.abbr, "getHeight", params, "1", InvokeMethod.class, "invokeGetHeight2");
+
+// 取消订阅
 CmdDispatcher.unsubscribe(messageId);
 System.out.println("我已经取消了订阅");
 
