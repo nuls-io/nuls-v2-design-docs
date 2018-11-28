@@ -2085,7 +2085,7 @@
         },
         "txData":
         {
-            "chainId":"12345",
+            "chainId":12345,
             "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
             "alias":"lucas"
         }
@@ -2181,7 +2181,7 @@
         },
         "txData":
         {
-            "chainId":"12345",
+            "chainId":12345,
             "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
             "alias":"lucas"
         }
@@ -2276,7 +2276,7 @@
         },
         "txData":
         {
-            "chainId":"12345",
+            "chainId":12345,
             "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
             "alias":"lucas"
         }
@@ -2382,7 +2382,7 @@
         },
         "txData":
         {
-            "chainId":"12345",
+            "chainId":12345,
             "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
             "alias":"lucas"
         }
@@ -2423,6 +2423,73 @@
     | result    | jsonObj | 业务数据             |
     | value     | boolean | 别名交易回滚是否成功 |
   
+#### 2.2.33 数据签名
+
+- 功能说明：
+
+  根据私钥将数据进行加密签名
+
+- 流程描述
+
+  ```
+  1、验证账户是否存在，验证密码是否正确
+  2、根据椭圆曲线算法对数据签名
+  3、返回十六进制签名后数据
+  ```
+
+- ac_signDigest接口
+
+  - 接口说明
+
+    该接口用于数据签名。
+
+  - 请求示例
+
+    ```
+    {
+      "cmd": "ac_signDigest",
+      "minVersion":1.0,
+      "params": 
+        {
+            "chainId":"12345",
+            "address":"NseMUi1q9TefkXUcaysAuvFjj4NbTEST",
+            "password":"",
+            "dataHex":""
+        }
+    }
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type   | description                       |
+    | ----- | --------- | -------- | ------ | --------------------------------- |
+    | 0     | chainId   | true     | Short  | 链ID                              |
+    | 1     | address   | true     | String | 账户地址                          |
+    | 2     | password  | false    | String | 账户密码                          |
+    | 3     | dataHex   | true     | String | 待签名数据HEX编码，如交易hash摘要 |
+
+  - 返回示例
+
+    ```
+    {
+        "code": 0,
+        "msg": "success",
+        "version":1.0,
+        "result": {
+           "signatureHex":""
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter    | type    | description  |
+    | :----------- | :------ | :----------- |
+    | code         | Integer | 返回结果状态 |
+    | msg          | String  | 失败时的信息 |
+    | result       | jsonObj | 业务数据     |
+    | signatureHex | string  | 签名后的数据 |
+
 
 ### 2.3 模块内部功能
 
