@@ -687,10 +687,10 @@ public class MyCmd extends BaseCmd {
 ```java
 // Start server instance
 WsServer.getInstance(ModuleE.CM)
-    .supportedAPIVersions(new String[]{"1.1", "1.2"})
-    .moduleRoles(ModuleE.CM.abbr, new String[]{"1.1", "1.2"})
+    .moduleRoles(new String[]{"1.0", "2.4"})
     .moduleVersion("1.2")
-    .dependencies("Role_Ledger", "1.1")
+    .dependencies(ModuleE.LG.abbr, "1.1")
+    .dependencies(ModuleE.BL.abbr, "2.1")
     .scanPackage("io.nuls.rpc.cmd.test")
     .connect("ws://127.0.0.1:8887");
 
@@ -729,15 +729,14 @@ Map<String, Object> params = new HashMap<>();
 params.put(Constants.VERSION_KEY_STR, "1.0");
 params.put("paramName", "value");
 
-// Call cmd: 直接返回结果
-Response response = CmdDispatcher.requestAndResponse(ClientRuntime.ROLE_CM, "getHeight", params);
+// 可以看成是一个同步方法，发送Request，获得Response
+Response response = CmdDispatcher.requestAndResponse(ModuleE.CM.abbr, "getHeight", params);
 
-// Call cmd：返回调用编号
-String messageId = CmdDispatcher.request(ClientRuntime.ROLE_CM, "getHeight", params, "5");
-for (int i = 0; i < 5; i++) {
- CmdDispatcher.callMessageResponse(messageId);
-    Thread.sleep(5000);
-}
+// 发送Request，当有Response的时候会自动调用预设的方法，返回的messageId是为了取消订阅
+String messageId = CmdDispatcher.requestAndInvoke(ModuleE.CM.abbr, "getHeight", params, "1", InvokeMethod.class, "invokeGetHeight2");
+
+// 与requestAndInvoke一样，但是必须在收到Ack之后才会返回messageId
+String messageId = CmdDispatcher.requestAndInvokeWithAck(ModuleE.CM.abbr, "getHeight", params, "1", InvokeMethod.class, "invokeGetHeight2");
 
 // 取消订阅
 CmdDispatcher.unsubscribe(messageId);
