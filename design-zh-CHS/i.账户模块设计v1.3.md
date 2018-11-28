@@ -169,7 +169,7 @@
       "msg": "success",
       "version":1.0,
       "result": {
-      	"list":["address","",""]
+      	["address","",""]
       }
   }
   ```
@@ -252,7 +252,7 @@
         "msg": "success",
         "version":1.0,
         "result": {
-        	"list":[
+        	[
         	{
         	"address":"LgkSxjwficqMwnMVXpdA3kntVjXDm3930",
         	"pubKey":"0253aa17b27482261cc9e91d5ff6f4820130055ad092629e6981bff78c545c6289",
@@ -867,7 +867,7 @@
               "msg": "success",
               "version":1.0,
               "result": {
-              	"list":[{
+              	[{
                    	"address":"",
                       "alias":"",
                       "pubkeyHex":"",
@@ -1004,7 +1004,7 @@
               "msg": "success",
               "version":1.0,
               "result": {
-              	"list":["","",""]
+              	["","",""]
               }
           }
 
@@ -1185,7 +1185,7 @@
               "msg": "success",
               "version":1.0,
               "result": {
-                "list":["",""]
+                ["",""]
               }
           }
 
@@ -2074,13 +2074,13 @@
             "froms":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":10000,
-                "nonce":"123",
+                "amount":"10000",
+                "nonce":"123"
             }],
             "to":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":1
+                "amount":"1"
             }]
         },
         "txData":
@@ -2170,13 +2170,13 @@
             "froms":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":10000,
-                "nonce":"123",
+                "amount":"10000",
+                "nonce":"123"
             }],
             "to":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":1
+                "amount":"1"
             }]
         },
         "txData":
@@ -2265,13 +2265,13 @@
             "froms":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":10000,
-                "nonce":"123",
+                "amount":"10000",
+                "nonce":"123"
             }],
             "to":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":1
+                "amount":"1"
             }]
         },
         "txData":
@@ -2371,13 +2371,13 @@
             "froms":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":10000,
-                "nonce":"123",
+                "amount":"10000",
+                "nonce":"123"
             }],
             "to":
             [{
                 "address":"Nse8m2Te1UNGPhD1tjZ3A4GDW3dCJxqE",
-                "amount":1
+                "amount":"1"
             }]
         },
         "txData":
