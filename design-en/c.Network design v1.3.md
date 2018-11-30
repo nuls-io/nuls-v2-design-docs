@@ -443,6 +443,82 @@ In addition to  its own satellite network, the satellite chain also has n cross-
 
 Relies on remote service interface data provided by the kernel module.
 
+##### 2.2.3.3  Friend chain activates cross-chain connection
+
+- Function Description：
+
+  The cross-chain node group on the satellite chain is triggered by the cross-chain registration of the friend chain in the satellite chain. The friend chain obtains cross-chain configuration information, and the cross-chain status of the own network group is updated by the cross-chain protocol.
+
+- Process description
+
+  The friend chain updates the cross-chain status of its own network group through the cross-chain protocol module.
+
+- Interface definition
+
+  - Interface Description
+
+    Receive calls from cross-chain modules, activate friend chain cross-chain
+
+    method : nw_activeCross
+
+  - Request example
+
+    ```
+    {
+        "method":"nw_activeCross",
+        "minVersion":1.1,
+        "params":[
+            1234,
+            10,
+            100,
+            "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003"
+        ]}
+    ```
+
+  - Request parameter description
+
+    | index | parameter | required | type   |              description              |
+    | ----- | --------- | -------- | ------ | :-----------------------------------: |
+    | 0     | chainId   | true     | int    |         Chain identification          |
+    | 1     | maxOut    | true     | int    |      Maximum active connections       |
+    | 2     | maxIn     | true     | int    | Maximum number of passive connections |
+    | 3     | seedIps   | true     | String |     Seed node, comma segmentation     |
+
+  - Return example
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
+        }
+    }
+    ```
+
+  - Return field description
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
+- Dependent service
+
+​      Relies on remote service interface data provided by the kernel module.
+
 #### 2.2.4 delete node group
 
 - Function Description:
