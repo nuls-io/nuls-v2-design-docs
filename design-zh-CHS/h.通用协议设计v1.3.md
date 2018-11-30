@@ -174,15 +174,15 @@ When a network address is needed somewhere, this structure is used.
 
 ## Transactions
 
-| Len  | Fields    | Data Type | Remark |
-| ---- | --------- | --------- | ------ |
-| 2    | type      | uint16    |        |
-| 4    | time      | uint32    |        |
-| ？    | txData    | VarByte   |        |
-| ？    | coinData  | VarByte   |        |
-| ？    | remark    | VarString |        |
-| ？    | scriptSig | VarByte   |        |
-|      |           |           |        |
+| Len  | Fields   | Data Type | Remark                   |
+| ---- | -------- | --------- | ------------------------ |
+| 2    | type     | uint16    | 交易类型                 |
+| 4    | time     | uint32    | 时间，精确到秒           |
+| ？   | txData   | VarByte   | 业务数据                 |
+| ？   | coinData | VarByte   | 资产数据                 |
+| ？   | remark   | VarString | 备注                     |
+| ？   | sig      | VarByte   | 只包含签名，不包含pubkey |
+|      |          |           |                          |
 
 交易特性
 
@@ -205,8 +205,9 @@ CoinForm结构[40]
 address:  //byte[24] 账户地址
 assetsChainId://uint16 资产发行链的id
 assetsId: //uint16 资产id
-amount：  //uint64，转出数量
-nonce  ： //uint32 交易顺序号，递增
+amount：  //uint128，转出数量
+nonce  ： //byte[8] 交易顺序号，前一笔交易的hash的前8个字节
+locked ： //byte 是否是锁定状态(locktime:-1),1代表锁定，0代表非锁定
 ```
 
 CoinTo结构[44]
@@ -215,8 +216,8 @@ CoinTo结构[44]
 address:  //byte[24],目标地址
 assetsChainId://uint16 资产发行链的id
 assetsId: //uint16 资产id
-amount :  //uint64，转账金额
-lockTime：//uint64,解锁高度或解锁时间，-1为永久锁定
+amount :  //uint128，转账金额
+lockTime：//uint32,解锁高度或解锁时间，-1为永久锁定
 ```
 
 手续费
