@@ -172,15 +172,15 @@ When a network address is needed somewhere, this structure is used.
 
 ## Transactions
 
-| Len  | Fields    | Data Type | Remark |
-| ---- | --------- | --------- | ------ |
-| 2    | type      | uint16    |        |
-| 4    | time      | uint32    |        |
-| ？    | txData    | VarByte   |        |
-| ？    | coinData  | VarByte   |        |
-| ？    | remark    | VarString |        |
-| ？    | scriptSig | VarByte   |        |
-|      |           |           |        |
+| Len  | Fields   | Data Type | Remark |
+| ---- | -------- | --------- | ------ |
+| 2    | type     | uint16    |        |
+| 4    | time     | uint32    |        |
+| ？   | txData   | VarByte   |        |
+| ？   | coinData | VarByte   |        |
+| ？   | remark   | VarString |        |
+| ？   | sig      | VarByte   |        |
+|      |          |           |        |
 
 Trading characteristics
 
@@ -202,8 +202,9 @@ CoinForm Structure description[40]
 address:  //byte[24] The address of the account
 assetsChainId://uint16 The id of the chain which Issued this asset
 assetsId: //uint16 asset id
-amount：  //uint64，asset count
-nonce  ： //uint32 Transaction sequence number, increment
+amount：  //uint128，asset count
+nonce  ： //byte[8] The first eight bytes of the summary of the previous transaction(If the transaction is unlocked tx, the value here is the first eight bytes of hash that locks the transaction for that amount.)
+locked : //byte ,If the transaction is unlocked, the value here is 1, which means that the asset is locked, otherwise it is 0.
 ```
 
 CoinTo Structure description[44]
@@ -212,8 +213,8 @@ CoinTo Structure description[44]
 address:  //byte[24],transfer target
 assetsChainId://uint16 The id of the chain which Issued this asset
 assetsId: //uint16 asset id
-amount :  //uint64，transfer amount
-lockTime：//uint64,Unlock height or unlock time, -1 is permanent lock
+amount :  //uint128，transfer amount
+lockTime：//uint32,Unlock height or unlock time, -1 is permanent lock
 ```
 
 tx fee

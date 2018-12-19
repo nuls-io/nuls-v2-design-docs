@@ -141,7 +141,7 @@
 ```
     0：chainId //链id
     1：nodeId //节点Id
-    2：message //16进制网络序消息体
+    2：messageBody //16进制网络序消息体
     ......
 ```
 
@@ -186,7 +186,8 @@
         "params":[
             1234，
             "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
+            "getBlock"
         ]}
     ```
 
@@ -196,7 +197,8 @@
     | ----- | ------------ | -------- | ------ | :---------------: |
     | 0     | chainId      | true     | int    |      链标识       |
     | 1     | excludeNodes | true     | String | 排除节点,逗号分割 |
-    | 2     | message      | true     | String |  对象16进制字符   |
+    | 2     | messageBody  | true     | String |  对象16进制字符   |
+    | 3     | command      | true     | String |  消息指令 12字节  |
 
   - 返回示例
 
@@ -255,17 +257,19 @@
         "params":[
             1234，
             "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
+            "getBlock"
         ]}
     ```
 
   - 请求参数说明
 
-    | index | parameter | required | type   |    description    |
-    | ----- | --------- | -------- | ------ | :---------------: |
-    | 0     | chainId   | true     | int    |      链标识       |
-    | 1     | nodes     | true     | String | 发送节点,逗号分割 |
-    | 2     | message   | true     | String |  对象16进制字符   |
+    | index | parameter   | required | type   |    description    |
+    | ----- | ----------- | -------- | ------ | :---------------: |
+    | 0     | chainId     | true     | int    |      链标识       |
+    | 1     | nodes       | true     | String | 发送节点,逗号分割 |
+    | 2     | messageBody | true     | String |  对象16进制字符   |
+    | 3     | command     | true     | String |  消息指令 12字节  |
 
   - 返回示例
 
@@ -297,7 +301,7 @@
     | parameter | type | description |
     | --------- | ---- | ----------- |
     |           |      |             |
-  
+
 - 依赖服务
 
   无
@@ -350,7 +354,7 @@
 
   1>卫星链通过 链管理模块调用来触发跨链节点组的创建。
 
-  2>友链通过跨链协议模块来 更新自有网络组的跨链状态。
+  2>友链链工厂也可以通过该接口来创建nodeGroup。
 
  ![](./image/network-module/createNodeGroup.png)
 
@@ -427,7 +431,81 @@
 
 ​       依赖内核模块提供的远程的服务接口数据。
 
-​     
+#####  2.2.3.3  友链激活跨链连接
+
+- 功能说明：
+
+  卫星链上的跨链节点组由友链在卫星链进行跨链注册触发。友链则获得跨链配置信息，由跨链协议来更新自有网络组的跨链状态。
+
+- 流程描述
+
+  友链通过跨链协议模块来 更新自有网络组的跨链状态.
+
+- 接口定义
+
+  - 接口说明
+
+    接收跨链模块的调用，激活友链跨链
+
+    method : nw_activeCross
+
+  - 请求示例
+
+    ```
+    {
+        "method":"nw_activeCross",
+        "minVersion":1.1,
+        "params":[
+            1234,
+            10,
+            100,
+            "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003"
+        ]}
+    ```
+
+  - 请求参数说明
+
+    | index | parameter | required | type   |    description     |
+    | ----- | --------- | -------- | ------ | :----------------: |
+    | 0     | chainId   | true     | int    |       链标识       |
+    | 1     | maxOut    | true     | int    |   最大主动连接数   |
+    | 2     | maxIn     | true     | int    |   最大被动连接数   |
+    | 3     | seedIps   | true     | String | 种子节点，逗号分割 |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    {
+       "version": 1.2,
+        "code":1,
+        "msg" :"xxxxxxxxxxxxxxxxxx",
+        "result":{}
+    }
+    ```
+
+    Success
+
+    ```
+    {
+     "version": 1.2,
+        "code":0,
+        "result":{
+           
+        }
+    }
+    ```
+
+  - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
+- 依赖服务
+
+​       依赖内核模块提供的远程的服务接口数据。
 
 #### 2.2.4 注销节点组
 
@@ -453,7 +531,7 @@
 
     ```
     {
-        "method":"nw_createNodeGroup",
+        "method":"nw_delNodeGroup",
         "minVersion":1.1,
         "params":[
             1234
@@ -1642,6 +1720,14 @@ data:{
 | Length | Fields    | Type            | Remark                               |
 | ------ | --------- | --------------- | ------------------------------------ |
 | ??     | addr_list | network address | 每个节点18字节（16字节IP+2字节port） |
+
+#### Bye
+
+用于peer连接主动断开，拒绝业务消息连接
+
+| Length | Fields  | Type  | Remark   |
+| ------ | ------- | ----- | -------- |
+| 1      | byeCode | uint8 | 预留字段 |
 
 
 

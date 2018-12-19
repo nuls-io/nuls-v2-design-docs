@@ -107,7 +107,7 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
 
 如果在单个请求对象中包含两个或更多方法，则应按顺序执行方法，然后发送一个response包喊所有回执信息，如果其中一个请求失败，则整个操作被视为失败。
 
-它由五个字段组成：
+它由六个字段组成：
 
 - RequestAck（默认值：false）：这是一个布尔值
 
@@ -141,18 +141,14 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
         "SubscriptionPeriod":"0",
         "SubscriptionRange":"0",
         "ResponseMaxSize":"0",
-        "RequestMethods":[
-            {
-                "GetBalance":{
-                    "Address":"N234rFr4Rtgg5ref4$45tgg5f43335emcnd"
-                }
+        "RequestMethods":{
+            "GetBalance":{
+                "Address":"N234rFr4Rtgg5ref4$45tgg5f43335emcnd"
             },
-            {
-                "GetHeight":{
+            "GetHeight":{
 
-                }
             }
-        ]
+        }
     }
 }
 ```
@@ -215,14 +211,14 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
         "ResponseStatus":"1",
         "ResponseComment":"Congratulations! Processing completed！",
         "ResponseMaxSize":"0",
-        "ResponseData":[
-            {
+        "ResponseData":{
+            "getBalance":{
                 "Balance":"25000"
             },
-            {
+            "getHeight":{
                 "Height":"45454655454"
             }
-        ]
+        }
     }
 }
 ```
@@ -284,17 +280,11 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
         "NotificationAck":"1",
         "NotificationType":"SystemUpgrade",
         "NotificationComment":"A system upgrade is about to be performed!",
-        "NotificationData":[
-            {
-                "Date":"2018-11-11"
-            },
-            {
-                "Time":"23:00:00"
-            },
-            {
-                "NewVersion":"1.1.6"
-            }
-        ]
+        "NotificationData":{
+            "Date":"2018-11-11",
+            "Time":"23:00:00",
+            "NewVersion":"1.1.6"
+        }
     }
 }
 ```
@@ -327,18 +317,14 @@ WebSocket是一种成熟的选项，可以本机提供全双工连接，其他�
     "MessageData":{
         "CompoundMethodName":"GetMyInfo",
         "CompoundMethodDescription":"Get useful information.",
-        "CompoundMethods":[
-            {
-                "GetBalance":{
-                    "Address":"GetBalanceAddress"
-                }
+        "CompoundMethods":{
+            "GetBalance":{
+                "Address":"GetBalanceAddress"
             },
-            {
-                "GetHeight":{
+            "GetHeight":{
 
-                }
             }
-        ]
+        }
     }
 }
 ```
