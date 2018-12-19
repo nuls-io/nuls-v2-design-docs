@@ -552,77 +552,79 @@ GetMyInfo的请求可以作为标准方法发送。
 
 >  io.nuls.rpc
 >
-> >  client
-> >
-> > > `WsClient`：与其他模块建立连接的对象，完全封装，不需要开发人员关注
-> > >
-> > > `ClientRuntime`：客户端运行时需要的数据，方法
-> > >
-> > > `CmdDispatcher`：开发人员应该只使用它来调用接口
-> >
-> > cmd
-> >
-> > > cmd_package_1
-> > >
-> > > cmd_package_2
-> > >
-> > > `BaseCmd`：所有对外提供方法的类的父类，提供success, failed方法返回Response对象
-> >
-> > info
-> >
-> > > `Constants`：常量
-> > >
-> > > `HostInfo`：获取IP地址，随机获得端口
-> >
-> > model
-> >
-> > > message
-> > >
-> > > > `Message`：所有消息都应该用该对象进行传输
-> > > >
-> > > > `MessageType`：消息类型（包含以下9种）
-> > > >
-> > > > `Ack`：确认收到消息
-> > > >
-> > > > `NegotiateConnection`：握手
-> > > >
-> > > > `NegotiateConnectionResponse`：回复握手
-> > > >
-> > > > `Notification`：通知
-> > > >
-> > > > `Request`：请求调用远程方法
-> > > >
-> > > > `Response`：回复Request
-> > > >
-> > > > `Unsubscribe`：取消订阅的远程方法
-> > > >
-> > > > `RegisterCompoundMethod`：订阅多个远程方法
-> > > >
-> > > > `UnregisterCompoundMethod`：取消订阅多个远程方法
-> > >
-> > > `CmdAnnotation`：注解类，有该注解的方法可以对外提供接口
-> > >
-> > > `Parameter`：注解类，用以描述对外提供接口的参数信息
-> > >
-> > > `Parameters`：注解类，Parameter的集合
-> > >
-> > > `CmdDetail`：对外提供的方法的具体信息
-> > >
-> > > `CmdParameter`：对外提供的方法的参数信息
-> > >
-> > > `ModuleE`：枚举类型，NULS2.0基础架构下的模块信息
-> > >
-> > > `RegisterApi`：一个模块对外提供的所有方法的合集
-> >
-> > server
-> >
-> > > `CmdHandler`：根据Request消息，调用正确的方法
-> > >
-> > > `ServerRuntime`：服务器运行时需要的参数，方法
-> > >
-> > > `WsProcessor`：处理收到的消息队列
-> > >
-> > > `WsServer`：服务器对象，负责接收消息，然后放入消息队列
+>  >  client
+>  >
+>  >  > `ClientProcessor`：处理服务器消息的线程
+>  >  >
+>  >  > `ClientRuntime`：客户端运行时需要的数据，方法
+>  >  >
+>  >  > `CmdDispatcher`：发送消息的入口类
+>  >  >
+>  >  > `WsClient`：与其他模块建立连接的对象
+>  >
+>  >  cmd
+>  >
+>  >  > cmd_package_1
+>  >  >
+>  >  > cmd_package_2
+>  >  >
+>  >  > `BaseCmd`：所有对外提供方法的类的父类，提供success, failed方法返回Response对象
+>  >
+>  >  info
+>  >
+>  >  > `Constants`：常量
+>  >  >
+>  >  > `HostInfo`：获取IP地址，随机获得端口
+>  >
+>  >  model
+>  >
+>  >  > message
+>  >  >
+>  >  > > `Message`：所有消息都应该用该对象进行传输
+>  >  > >
+>  >  > > `MessageType`：消息类型（包含以下9种）
+>  >  > >
+>  >  > > `Ack`：确认收到消息
+>  >  > >
+>  >  > > `NegotiateConnection`：握手
+>  >  > >
+>  >  > > `NegotiateConnectionResponse`：回复握手
+>  >  > >
+>  >  > > `Notification`：通知
+>  >  > >
+>  >  > > `Request`：请求调用远程方法
+>  >  > >
+>  >  > > `Response`：回复Request
+>  >  > >
+>  >  > > `Unsubscribe`：取消订阅
+>  >  > >
+>  >  > > `RegisterCompoundMethod`：订阅多个远程方法
+>  >  > >
+>  >  > > `UnregisterCompoundMethod`：取消订阅多个远程方法
+>  >  >
+>  >  > `CmdAnnotation`：注解类，有该注解的方法可以对外提供接口
+>  >  >
+>  >  > `Parameter`：注解类，用以描述对外提供接口的参数信息
+>  >  >
+>  >  > `Parameters`：注解类，Parameter的集合
+>  >  >
+>  >  > `CmdDetail`：对外提供的方法的具体信息
+>  >  >
+>  >  > `CmdParameter`：对外提供的方法的参数信息
+>  >  >
+>  >  > `ModuleE`：枚举类型，NULS2.0基础架构下的模块信息
+>  >  >
+>  >  > `RegisterApi`：一个模块对外提供的所有方法的合集
+>  >
+>  >  server
+>  >
+>  >  > `CmdHandler`：根据Request消息，调用正确的方法
+>  >  >
+>  >  > `ServerProcessor`：处理客户端消息的线程
+>  >  >
+>  >  > `ServerRuntime`：服务器运行时需要的参数，方法
+>  >  >
+>  >  > `WsServer`：与WsClient连接的服务器对象
 
 
 
