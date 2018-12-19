@@ -291,13 +291,19 @@
                     txType,
                     "validateCmd",
                     "commitCmd",
-                    "rollbackCmd"
+                    "rollbackCmd",
+                    "systemTx",
+                    "unlockTx",
+                    "verifySignature"
                 ],
                  [
                     txType,
                     "validateDeposit",
                     "depositCommit",
                     "depositRollback"
+                    "systemTx",
+                    "unlockTx",
+                    "verifySignature"
                 ]
                 .....
              ]
@@ -315,12 +321,15 @@
 
   - 模块交易集合元素
 
-    | index | type   | description                                           |
-    | ----- | ------ | ----------------------------------------------------- |
-    | 0     | int    | Type 交易类型                                         |
-    | 1     | String | Transaction validator 单个交易验证器接口名称          |
-    | 2     | String | Transaction processor commit 交易处理器提交接口名称   |
-    | 3     | String | Transaction processor rollback 交易处理器回滚接口名称 |
+    | index | type    | description                                                  |
+    | ----- | ------- | ------------------------------------------------------------ |
+    | 0     | int     | Type 交易类型                                                |
+    | 1     | String  | Transaction validator 单个交易验证器接口名称                 |
+    | 2     | String  | Transaction processor commit 交易处理器提交接口名称          |
+    | 3     | String  | Transaction processor rollback 交易处理器回滚接口名称        |
+    | 4     | boolean | 是否是系统产生的交易（打包节点产生，用于出块奖励结算、红黄牌惩罚） |
+    | 5     | boolean | 是否是解锁交易                                               |
+    | 6     | boolean | 该交易是否需要在账本中验证签名，所有系统产生的交易和一些特殊交易，不需要按照普通交易的方式验证签名，会提供额外的逻辑进行验证。 |
 
   - 返回示例
 
@@ -474,7 +483,7 @@
 
     | index | type   | description                                        |
     | ----- | ------ | -------------------------------------------------- |
-    | 0     | String | Chain Id                                           |
+    | 0     | int    | Chain Id                                           |
     | 1     | String | 交易序列化数据                                     |
     | 2     | String | secondaryData 区块头的hash，高度，时间的序列化数据 |
 
