@@ -284,11 +284,11 @@
         "cmd": "tx_register",
         "minVersion": "1.0",
         "params":[
-            moduleCode, 
-            moduleValidateCmd,
+            "moduleCode", 
+            "moduleValidateCmd",
             [
                 [
-                    txType,
+                    "txType",
                     "validateCmd",
                     "commitCmd",
                     "rollbackCmd",
@@ -297,7 +297,7 @@
                     "verifySignature"
                 ],
                  [
-                    txType,
+                    "txType",
                     "validateDeposit",
                     "depositCommit",
                     "depositRollback"
@@ -305,7 +305,6 @@
                     "unlockTx",
                     "verifySignature"
                 ]
-                .....
              ]
         ]
     }
@@ -341,7 +340,7 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true	//执行成功或者错误信息  
+        	"value":true	//执行成功或者错误信息  
       	}
     }
     ```
@@ -363,7 +362,7 @@
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chianId, ["txHex","txHex","txHex", ...]]
+        "params":["chianId", ["txHex","txHex","txHex"]]
     }
     ```
 
@@ -376,14 +375,14 @@
 
   - 返回结果 
 
-    - result说明：返回不合法的交易列表
+    - result说明：返回不合法的交易hash列表
 
     ```json
     {
     	"version": 1.0,
     	"code":0,
         "result":{
-            "list":["txHex", "txHex", "txHex", ...]
+            "list":["txHash", "txHash", "txHash"]
     	}
     }
     ```
@@ -400,7 +399,7 @@
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId,"txHex"]
+        "params":["chainId","txHex"]
     }
     ```
 
@@ -415,12 +414,12 @@
 
      -  result说明：返回不合法的交易列表
 
-     ```
+     ```json
      {
      	"version": 1.0,
      	"code":0,
          "result":{
-             value:true
+             "value":true
      	}
      }
      ```
@@ -433,11 +432,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId,"txHex","secondaryDataHex"]
+        "params":["chainId","txHex","secondaryDataHex"]
     }
     ```
 
@@ -458,7 +457,7 @@
     	"version": 1.0,
     	"code":0,
         "result":{
-            value:true
+            "value":true
     	}
     }
     ```
@@ -471,11 +470,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId,"txHex","secondaryDataHex"]
+        "params":["chainId","txHex","secondaryDataHex"]
     }
     ```
 
@@ -491,12 +490,12 @@
 
     - result说明：回滚成功返回true，失败返回错误信息
 
-    ```
+    ```json
     {
     	"version": 1.0,
     	"code":0,
         "result":{
-            value:true
+            "value":true
     	}
     }
     ```
@@ -529,11 +528,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "newTx",
         "minVersion": "1.0",
-        "params": [chainId, "txHex"]
+        "params": ["chainId", "txHex"]
     }
     ```
 
@@ -548,13 +547,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true  
+        	"value":true  
       	}
     }
     ```
@@ -585,11 +584,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_packableTxs",
         "minVersion": "1.0",
-        "params": [chainId,	endtimestamp, maxTxDataSize]
+        "params": ["chainId", "endtimestamp", "maxTxDataSize"]
     }
     ```
 
@@ -605,17 +604,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	list:[
-            	Transaction,
-                Transaction,
-                ....
-            ]
+        	list:[]
       	}
     }
     ```
@@ -646,11 +641,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_commit",
         "minVersion": "1.0",
-        "params": [chainId,	txHex, secondaryData]
+        "params": ["chainId", "txHex", "secondaryData"]
     }
     ```
 
@@ -666,13 +661,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -703,11 +698,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_rollback",
         "minVersion": "1.0",
-        "params": [chainId,	txHex, secondaryData]
+        "params": ["chainId", "txHex", "secondaryData"]
     }
     ```
 
@@ -723,13 +718,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -756,11 +751,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_save",
         "minVersion": "1.0",
-        "params": [chainId, [txHex, txHex, ...]]
+        "params": ["chainId", ["txHex", "txHex"]]
     }
     ```
 
@@ -775,13 +770,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -806,11 +801,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_getTx",
         "minVersion": "1.0",
-        "params": [chainId, txHash]
+        "params": ["chainId", "txHash"]
     }
     ```
 
@@ -825,13 +820,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	tx:"txHex"
+        	"tx":"txHex"
       	}
     }
     ```
@@ -858,11 +853,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_delete",
         "minVersion": "1.0",
-        "params": [chainId, txHash]
+        "params": ["chainId", "txHash"]
     }
     ```
 
@@ -910,11 +905,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_verify",
         "minVersion": "1.0",
-        "params": [chainId, txHex]
+        "params": ["chainId", "txHex"]
     }
     ```
 
@@ -929,13 +924,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -962,11 +957,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "newHash",
         "minVersion": "1.0",
-        "params": [chainId, txHashHex]
+        "params": ["chainId", "txHashHex"]
     }
     ```
 
@@ -981,13 +976,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -1018,11 +1013,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "newCrossHash", 
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHash]
+        "params": ["chainId", "nodeId", "txHash"]
     }
     ```
 
@@ -1038,13 +1033,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          	value:true
+          	"value":true
       	}
     }
     ```
@@ -1075,11 +1070,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "newFcTx",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHex]
+        "params": ["chainId", "nodeId", "txHex"]
     }
     ```
 
@@ -1095,13 +1090,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1132,11 +1127,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "newMnTx",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHex]
+        "params": ["chainId", "nodeId", "txHex"]
     }
     ```
 
@@ -1152,13 +1147,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1189,11 +1184,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "askCrossTx",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHash]
+        "params": ["chainId", "nodeId", "txHash"]
     }
     ```
 
@@ -1215,7 +1210,7 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1246,11 +1241,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "verifyFc",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHash]
+        "params": ["chainId", "nodeId", "txHash"]
     }
     ```
 
@@ -1266,13 +1261,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1303,11 +1298,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "verifyMn",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHash]
+        "params": ["chainId", "nodeId", "txHash"]
     }
     ```
 
@@ -1323,13 +1318,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1360,11 +1355,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "verifyResult",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, rsHex]
+        "params": ["chainId", "nodeId", "rsHex"]
     }
     ```
 
@@ -1380,13 +1375,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1415,11 +1410,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "crossNodeRs",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, nodeRsHex]
+        "params": ["chainId", "nodeId", "nodeRsHex"]
     }
     ```
 
@@ -1435,13 +1430,13 @@
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1468,11 +1463,11 @@
 
   - 请求示例
 
-    ```
+    ```json
     {
         "cmd": "tx_getTxsInfo",
         "minVersion": "1.0",
-        "params": [chainId]
+        "params": ["chainId"]
     }
     ```
 
@@ -1527,7 +1522,7 @@
     {
         "cmd": "tx_getTxProcessors",
         "minVersion": "1.0",
-        "params": [txType]
+        "params": ["txType"]
     }
     ```
 
@@ -1582,12 +1577,12 @@
         "cmd": "tx_getTxs",
         "minVersion": "1.0",
         "params": [
-        	ChainId,
-        	assetId,
-        	type,
+        	"ChainId",
+        	"assetId",
+        	"type",
         	"Nse7PfBkqtByKJ6AuxY151n1CM2xxxx",
-        	pageSize,
-        	pageNumber
+        	"pageSize",
+        	"pageNumber"
         ]
     }
     ```
@@ -1617,11 +1612,7 @@
          "pageSize": 10,
          "total": 31,
          "pages": 4,
-         "list": [
-            Transaction,
-            Transaction
-            ...
-         ]
+         "list": []
       }
     }
     ```
@@ -1654,7 +1645,7 @@
     {
         "cmd": "newCrossTx",
         "minVersion": "1.0",
-        "params": [chainId, txHex]
+        "params": ["chainId", "txHex"]
     }
     ```
 
@@ -1675,7 +1666,7 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-      	value:true
+      	"value":true
       }
     }
     ```
@@ -1706,7 +1697,7 @@
     {
         "cmd": "tx_runChain",
         "minVersion": "1.0",
-        "params": [chainId]
+        "params": ["chainId"]
     }
     ```
 
@@ -1754,7 +1745,7 @@
     {
         "cmd": "tx_stopChain",
         "minVersion": "1.0",
-        "params": [chainId]
+        "params": ["chainId"]
     }
     ```
 
@@ -1774,7 +1765,7 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       }
     }
     ```
