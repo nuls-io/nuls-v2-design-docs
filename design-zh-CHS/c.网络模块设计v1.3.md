@@ -1256,7 +1256,76 @@
 
 ​    无
 
+#### 2.2.13 注册网络协议处理器
 
+- 功能说明：
+
+  网络模块在接收到对端发送过来的消息后，需要根据 消息协议头中的 cmd 来调用对应模块处理。
+
+  cmd与模块的映射关系，需要各个模块在启动时候进行提交注册。
+
+- 流程描述
+
+  略
+
+- 接口定义
+
+  - 接口说明
+
+    区块管理模块 调用进行节点的高度与Hash值的更新。
+
+    method : nw_protocolRegister
+
+  - 请求示例
+
+    ```
+    {
+      "role": "bl",
+      "protocolCmds": [
+        "getBlock",
+        "sendBlock"
+      ]
+    }
+    
+    ```
+
+  - 请求参数说明
+
+  | index | parameter    | required | type   | description  |
+  | ----- | ------------ | -------- | ------ | :----------: |
+  | 0     | role         | true     | String |   模块角色   |
+  | 1     | protocolCmds | true     | array  | 协议指令数组 |
+
+  - 返回示例
+
+  Failed
+
+  ```
+  {
+     "registerStatus":"0"
+  }
+  
+  
+  ```
+
+  Success
+
+  ```
+  {
+     "registerStatus":"1" 
+  }
+  
+  ```
+
+  - 返回字段说明
+
+| parameter      | type   | description                   |
+| -------------- | ------ | ----------------------------- |
+| registerStatus | String | 注册状态"0"为失败，"1" 为成功 |
+
+- 依赖服务
+
+​    无
 
 ### 2.3 模块内部功能
 
