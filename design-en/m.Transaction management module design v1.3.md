@@ -279,27 +279,32 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Request
 
-    ```
+    ```json
     {
         "cmd": "tx_register",
         "minVersion": "1.0",
         "params":[
-            moduleCode, 
-            moduleValidateCmd,
+            "moduleCode", 
+            "moduleValidateCmd",
             [
                 [
-                    txType,
+                    "txType",
                     "validateCmd",
                     "commitCmd",
-                    "rollbackCmd"
+                    "rollbackCmd",
+                    "systemTx",
+                    "unlockTx",
+                    "verifySignature"
                 ],
                  [
-                    txType,
-                    "validateDeposit",
-                    "depositCommit",
-                    "depositRollback"
+                    "txType",
+                    "validateCmd",
+                    "commitCmd",
+                    "rollbackCmd",
+                    "systemTx",
+                    "unlockTx",
+                    "verifySignature"
                 ]
-                .....
              ]
         ]
     }
@@ -332,7 +337,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true	
+        	"value":true	
       	}
     }
     ```
@@ -349,11 +354,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Request
 
-    ```
+    ```json
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chianId, ["txHex","txHex","txHex", ...]]
+        "params":["chianId", ["txHex","txHex","txHex"]]
     }
     ```
 
@@ -368,12 +373,12 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     - result：Verify the failed transaction list
 
-    ```
+    ```json
     {
     	"version": 1.0,
     	"code":0,
         "result":{
-            "list":["txHex", "txHex", "txHex", ...]
+            "list":["txHex", "txHex", "txHex"]
     	}
     }
     ```
@@ -386,11 +391,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Request
 
-    ```
+    ```json
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId,"txHex"]
+        "params":["chainId","txHex"]
     }
     ```
 
@@ -405,12 +410,12 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
      -  result：Verify the failed transaction list
 
-     ```
+     ```json
      {
      	"version": 1.0,
      	"code":0,
          "result":{
-             value:true
+             "value":true
      	}
      }
      ```
@@ -423,11 +428,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Request
 
-    ```
+    ```json
     {
         "cmd": "",
         "minVersion": "1.0",
-        "params":[chainId"txHex","secondaryDataHex"]
+        "params":["chainId","txHex","secondaryDataHex"]
     }
     ```
 
@@ -448,7 +453,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
     	"version": 1.0,
     	"code":0,
         "result":{
-            value:true
+            "value":true
     	}
     }
     ```
@@ -461,7 +466,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Request
 
-    ```
+    ```json
     {
         "cmd": "",
         "minVersion": "1.0",
@@ -481,12 +486,12 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     - result：Rollback successfully returns true, failure returns error message
 
-    ```
+    ```json
     {
     	"version": 1.0,
     	"code":0,
         "result":{
-            value:true
+            "value":true
     	}
     }
     ```
@@ -519,11 +524,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "newTx",
         "minVersion": "1.0",
-        "params": [chainId, "txHex"]
+        "params": ["chainId", "txHex"]
     }
     ```
 
@@ -538,13 +543,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true  
+        	"value":true
       	}
     }
     ```
@@ -575,11 +580,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_packableTxs",
         "minVersion": "1.0",
-        "params": [chainId,	endtimestamp, maxTxDataSize]
+        "params": ["chainId", "endtimestamp", "maxTxDataSize"]
     }
     ```
 
@@ -595,17 +600,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	list:[
-            	Transaction,
-                Transaction,
-                ....
-            ]
+        	"list":[]
       	}
     }
     ```
@@ -636,11 +637,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_commit",
         "minVersion": "1.0",
-        "params": [chainId,	txHex, secondaryData]
+        "params": ["chainId", "txHex", "secondaryData"]
     }
     ```
 
@@ -656,13 +657,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -693,11 +694,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_rollback",
         "minVersion": "1.0",
-        "params": [chainId,	txHex, secondaryData]
+        "params": ["chainId", "txHex", "secondaryData"]
     }
     ```
 
@@ -713,13 +714,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -746,11 +747,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_save",
         "minVersion": "1.0",
-        "params": [chainId, [txHex, txHex, ...]]
+        "params": ["chainId", ["txHex", "txHex"]]
     }
     ```
 
@@ -765,13 +766,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -796,11 +797,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_getTx",
         "minVersion": "1.0",
-        "params": [chainId, txHash]
+        "params": ["chainId", "txHash"]
     }
     ```
 
@@ -815,13 +816,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	tx:"txHex"
+        	"tx":"txHex"
       	}
     }
     ```
@@ -848,11 +849,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_delete",
         "minVersion": "1.0",
-        "params": [chainId, txHash]
+        "params": ["chainId", "txHash"]
     }
     ```
 
@@ -867,13 +868,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -900,11 +901,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_verify",
         "minVersion": "1.0",
-        "params": [chainId, txHex]
+        "params": ["chainId", "txHex"]
     }
     ```
 
@@ -919,13 +920,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -952,11 +953,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "newHash",
         "minVersion": "1.0",
-        "params": [chainId, txHashHex]
+        "params": ["chainId", "txHashHex"]
     }
     ```
 
@@ -971,13 +972,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	value:true
+        	"value":true
       	}
     }
     ```
@@ -1008,11 +1009,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "newCrossHash", 
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHashhex]
+        "params": ["chainId", "nodeId", "txHashhex"]
     }
     ```
 
@@ -1028,13 +1029,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          	value:true
+          	"value":true
       	}
     }
     ```
@@ -1065,11 +1066,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "newFcTx",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHex]
+        "params": ["chainId", "nodeId", "txHex"]
     }
     ```
 
@@ -1085,13 +1086,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1122,11 +1123,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "newMnTx",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHex]
+        "params": ["chainId", "nodeId", "txHex"]
     }
     ```
 
@@ -1142,13 +1143,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1179,11 +1180,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "askCrossTx",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHash]
+        "params": ["chainId", "nodeId", "txHash"]
     }
     ```
 
@@ -1199,13 +1200,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1236,11 +1237,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "verifyFc",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHashHex]
+        "params": ["chainId", "nodeId", "txHashHex"]
     }
     ```
 
@@ -1256,13 +1257,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1293,11 +1294,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "verifyMn",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, txHash]
+        "params": ["chainId", "nodeId", "txHash"]
     }
     ```
 
@@ -1313,13 +1314,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1350,11 +1351,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "verifyResult",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, rsHex]
+        "params": ["chainId", "nodeId", "rsHex"]
     }
     ```
 
@@ -1370,13 +1371,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1405,11 +1406,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "crossNodeRs",
         "minVersion": "1.0",
-        "params": [chainId, nodeId, nodeRsHex]
+        "params": ["chainId", "nodeId", "nodeRsHex"]
     }
     ```
 
@@ -1425,13 +1426,13 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       	}
     }
     ```
@@ -1458,11 +1459,11 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
   - Requset
 
-    ```
+    ```json
     {
         "cmd": "tx_getTxsInfo",
         "minVersion": "1.0",
-        "params": [chainId]
+        "params": ["chainId"]
     }
     ```
 
@@ -1476,7 +1477,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
 
     Success
 
-    ```
+    ```json
     {
       "code":0,
       "version": 1.0,
@@ -1517,7 +1518,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
     {
         "cmd": "tx_getTxProcessors",
         "minVersion": "1.0",
-        "params": [txType]
+        "params": ["txType"]
     }
     ```
 
@@ -1572,12 +1573,12 @@ That is: other chain addresses cannot initiate transactions in this chain.
         "cmd": "tx_getTxs",
         "minVersion": "1.0",
         "params": [
-        	ChainId,
-        	assetId,
-        	type,
+        	"ChainId",
+        	"assetId",
+        	"type",
         	"Nse7PfBkqtByKJ6AuxY151n1CM2xxxx",
-        	pageSize,
-        	pageNumber
+        	"pageSize",
+        	"pageNumber"
         ]
     }
     ```
@@ -1607,11 +1608,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
          "pageSize": 10,
          "total": 31,
          "pages": 4,
-         "list": [
-            Transaction,
-            Transaction
-            ...
-         ]
+         "list": []
       }
     }
     ```
@@ -1644,7 +1641,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
     {
         "cmd": "newCrossTx",
         "minVersion": "1.0",
-        "params": [chainId, txHex]
+        "params": ["chainId", "txHex"]
     }
     ```
 
@@ -1696,7 +1693,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
     {
         "cmd": "tx_runChain",
         "minVersion": "1.0",
-        "params": [chainId]
+        "params": ["chainId"]
     }
     ```
 
@@ -1716,6 +1713,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
       "version": 1.0,
       "msg": "Success",
       "result": {
+      	"value":true
       }
     }
     ```
@@ -1744,7 +1742,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
     {
         "cmd": "tx_stopChain",
         "minVersion": "1.0",
-        "params": [chainId]
+        "params": ["chainId"]
     }
     ```
 
@@ -1764,7 +1762,7 @@ That is: other chain addresses cannot initiate transactions in this chain.
       "version": 1.0,
       "msg": "Success",
       "result": {
-          value:true
+          "value":true
       }
     }
     ```

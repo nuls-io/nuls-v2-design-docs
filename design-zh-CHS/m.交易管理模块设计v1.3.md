@@ -340,7 +340,7 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	"value":true	//执行成功或者错误信息  
+        	"value":true
       	}
     }
     ```
@@ -610,7 +610,7 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	list:[]
+        	"list":[]
       	}
     }
     ```
