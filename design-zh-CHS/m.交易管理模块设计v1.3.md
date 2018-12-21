@@ -340,11 +340,10 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	"value":true	//执行成功或者错误信息  
-      	}
-    }
+    	"value":true
+      }
+}
     ```
-
   - 返回结果说明
 
     | parameter | type    | description |
@@ -610,11 +609,10 @@
       "version": 1.0,
       "msg": "Success",
       "result": {
-        	list:[]
-      	}
+        	"list":[]
+      }
     }
     ```
-
   - 返回结果说明
 
     | parameter | type        | description  |
