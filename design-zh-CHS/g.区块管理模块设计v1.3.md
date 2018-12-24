@@ -8,9 +8,9 @@
 
 #### 1.1.1 为什么要有《区块管理》模块
 
-​	区块链上所有交易数据都保存在区块中，所以要有一个模块负责区块的保存与管理，以便其他模块对区块中数据进行验证、业务处理时可以获取到区块。
+​	区块链上所有交易数据都保存在区块中，所以要有一个模块负责区块的存储与管理，以便其他模块对区块中数据进行验证、业务处理时可以获取到区块。
 
-​	区块链程序初次启动时，需要同步网络上的全量区块到本地，这个过程一般耗时较长，且同步未完成时不能发起交易，所以适合由单独模块来完成该工作。
+​	区块链程序初次启动时，需要同步网络上的最新区块到本地，这个过程一般耗时较长，且同步未完成时不能发起交易，所以适合由单独模块来完成该工作。
 
 ​	综上所述，为其他模块提供统一的区块数据服务是必要的，也能更好地把区块的管理与区块的具体业务进行分离，用到区块的模块不必关心区块的获取细节。
 
@@ -19,14 +19,13 @@
 ​	系统启动时，判断本地区块高度是否达到网络上大多数节点的最新高度，如果没有达到，要从网络上下载区块到本地，进行区块的验证，验证通过后，保存到本地数据库，这叫区块的同步。
 
 ​	区块同步完成后，系统开始正常运行，分下面两种情况讨论
+- 如果是自身节点打包区块，共识模块会把打包好的区块交给区块管理模块，区块管理模块会负责进行区块验证、区块保存、区块广播，并且要响应网络上的其他节点发起的获取该区块的请求。
+- 如果是其他共识节点打包区块，本地节点会收到网络上发来的转发区块消息，此时要从其他节点获取区块信息，进行验证并保存，保存完成后再次转发该区块，让区块在全网传播。
 
-- 如果是自身节点进行打包区块，共识模块把打包好的区块交给区块管理模块之前，已经把区块信息广播到网络上，区块管理模块验证区块是否合法，验证通过并保存到数据库，并且要响应网络上的其他节点发起的获取该区块的请求。
+异常情况下，区块验证不通过，新区块无法与主链上最后一个区块相连，则把该区块视为分叉区块或孤儿区块，放入分叉链集合维护。当发现有一条分叉链A比主链B高度更高时，进行链切换，以分叉链A为最新的链
+，原主链B回滚，并进入分叉链集合维护。
 
-- 如果是网络上其他节点打包区块，本地节点会收到网络上发来的转发区块消息，此时要从其他节点获取区块信息，进行验证并保存。
-
-	异常情况下，区块验证不通过，新区块无法与主链上最后一个区块相连，就把该区块视为分叉区块，放入分叉链集合维护。当发现有一条分叉链A比主链B长一定高度时，进行切换，以分叉链A为最新的主链，原主链B进入分叉链集合维护。
-
-	对外提供区块头、区块查询服务
+    对外提供区块头、区块查询服务
 
 #### 1.1.3 《区块管理》在系统中的定位
 
@@ -41,7 +40,7 @@
 被依赖
 
 * 整个系统可以发起交易-区块同步
-* 共识模块：区块详细验证、打包-区块查询、区块保存、区块广播、区块回滚
+* 共识模块:区块详细验证、打包-区块查询、区块保存、区块广播、区块回滚
 
 ### 1.2 架构图
 
@@ -54,10 +53,12 @@
 ![](image/block-module/block-functions.png)
 
 1. 提供api，进行区块存储、查询、回滚的操作
-2. 从网络上同步最新区块，进行初步验证、分叉验证，如果没有分叉，调用共识模块进行共识验证，调用交易模块进行双花验证，全部验证通过后保存到本地。
+2. 从网络上同步最新区块，进行初步验证、分叉验证，如果没有分叉，调用共识模块进行共识验证，调用交易模块进行交易验证，全部验证通过后保存到本地。
 3. 区块同步、广播、转发消息的处理
 4. 分叉区块的判断、存储
-5. 分叉链维护、切换
+5. 孤儿区块的判断、存储
+6. 分叉链维护、切换
+7. 孤儿链维护、切换
 
 ### 2.2 模块服务
 
@@ -142,7 +143,7 @@
 
 #### 2.2.2 获取本地最新区块
 
-* 接口说明：
+* 接口说明:
 
 1. 根据链ID获取本地最新区块头
 2. 根据区块头高度查询DB得到交易HASH列表
@@ -155,7 +156,7 @@
     {
       "cmd": "bl_bestBlock",
       "minVersion":"1.1",
-      "params": [“888”]
+      "params": ["888"]
     }
     ```
 
@@ -213,20 +214,20 @@
                     "coinData": {
                         "from" : [
                             {
-                                “fromAssetsChainId”：“”//资产发行链的id  
-                                “fromAssetsId”：“”//资产id
-                                “fromAddress”：“”//转出账户地址
-                                “amount”：“”//转出金额
-                                “nonce”：“”//交易顺序号，递增
+                                "fromAssetsChainId":""//资产发行链的id  
+                                "fromAssetsId":""//资产id
+                                "fromAddress":""//转出账户地址
+                                "amount":""//转出金额
+                                "nonce":""//交易顺序号，递增
                             },{...}
                         ]
                         "to" : [
                             {
-                                “toAssetsChainId”：“”//资产发行链的id  
-                                “toAssetsId”：“”//资产id
-                                “toAddress”：“”//转出账户地址
-                                “amount”：“”//转出金额
-                                “locktime”：“”
+                                "toAssetsChainId":""//资产发行链的id  
+                                "toAssetsId":""//资产id
+                                "toAddress":""//转出账户地址
+                                "amount":""//转出金额
+                                "locktime":""
                             },{...}
                         ]
                     }
@@ -324,7 +325,7 @@
 
 #### 2.2.4 根据高度获取区块
 
-* 接口说明：
+* 接口说明:
 
 1. 根据链ID、高度获取区块头
 2. 根据区块头高度查询DB得到交易HASH列表
@@ -337,7 +338,7 @@
     {
       "cmd": "bl_getBlockByHeight",
       "minVersion":"1.1",
-      "params": [“111”,"888"]
+      "params": ["111","888"]
     }
     ```
 
@@ -396,20 +397,20 @@
                     "coinData": {
                         "from" : [
                             {
-                                “fromAssetsChainId”：“”//资产发行链的id  
-                                “fromAssetsId”：“”//资产id
-                                “fromAddress”：“”//转出账户地址
-                                “amount”：“”//转出金额
-                                “nonce”：“”//交易顺序号，递增
+                                "fromAssetsChainId":""//资产发行链的id  
+                                "fromAssetsId":""//资产id
+                                "fromAddress":""//转出账户地址
+                                "amount":""//转出金额
+                                "nonce":""//交易顺序号，递增
                             },{...}
                         ]
                         "to" : [
                             {
-                                “toAssetsChainId”：“”//资产发行链的id  
-                                “toAssetsId”：“”//资产id
-                                “toAddress”：“”//转出账户地址
-                                “amount”：“”//转出金额
-                                “nonce”：“”//交易顺序号，递增
+                                "toAssetsChainId":""//资产发行链的id  
+                                "toAssetsId":""//资产id
+                                "toAddress":""//转出账户地址
+                                "amount":""//转出金额
+                                "nonce":""//交易顺序号，递增
                             },{...}
                         ]
                     }
@@ -506,7 +507,7 @@
 
 #### 2.2.6 根据HASH获取区块
 
-* 接口说明：
+* 接口说明:
 
 1. 根据链ID、hash获取区块头
 2. 根据区块头高度查询DB得到交易HASH列表
@@ -519,7 +520,7 @@
     {
       "cmd": "bl_getBlockByHash",
       "minVersion":"1.1",
-      "params": ["888",“aaa”]
+      "params": ["888","aaa"]
     }
     ```
 
@@ -578,20 +579,20 @@
                     "coinData": {
                         "from" : [
                             {
-                                “fromAssetsChainId”：“”//资产发行链的id  
-                                “fromAssetsId”：“”//资产id
-                                “fromAddress”：“”//转出账户地址
-                                “amount”：“”//转出金额
-                                “nonce”：“”//交易顺序号，递增
+                                "fromAssetsChainId":""//资产发行链的id  
+                                "fromAssetsId":""//资产id
+                                "fromAddress":""//转出账户地址
+                                "amount":""//转出金额
+                                "nonce":""//交易顺序号，递增
                             },{...}
                         ]
                         "to" : [
                             {
-                                “toAssetsChainId”：“”//资产发行链的id  
-                                “toAssetsId”：“”//资产id
-                                “toAddress”：“”//转出账户地址
-                                “amount”：“”//转出金额
-                                “nonce”：“”//交易顺序号，递增
+                                "toAssetsChainId":""//资产发行链的id  
+                                "toAssetsId":""//资产id
+                                "toAddress":""//转出账户地址
+                                "amount":""//转出金额
+                                "nonce":""//交易顺序号，递增
                             },{...}
                         ]
                     }
@@ -707,7 +708,7 @@
         "version": 1.2,
         "code": 0,
         "result": {
-            “list” : [
+            "list" : [
                 {
                "chainId": "888",
                "hash": "xxxxxxx",
@@ -795,7 +796,7 @@
         "version": 1.2,
         "code": 0,
         "result": {
-            “list” : [
+            "list" : [
                 {
                     "blockHeader": {
                         "chainId": "888",
@@ -825,20 +826,20 @@
                             "coinData": {
                                 "from" : [
                                     {
-                                        “fromAssetsChainId”：“”//资产发行链的id  
-                                        “fromAssetsId”：“”//资产id
-                                        “fromAddress”：“”//转出账户地址
-                                        “amount”：“”//转出金额
-                                        “nonce”：“”//交易顺序号，递增
+                                        "fromAssetsChainId":""//资产发行链的id  
+                                        "fromAssetsId":""//资产id
+                                        "fromAddress":""//转出账户地址
+                                        "amount":""//转出金额
+                                        "nonce":""//交易顺序号，递增
                                     },{...}
                                 ]
                                 "to" : [
                                     {
-                                        “toAssetsChainId”：“”//资产发行链的id  
-                                        “toAssetsId”：“”//资产id
-                                        “toAddress”：“”//转出账户地址
-                                        “amount”：“”//转出金额
-                                        “nonce”：“”//交易顺序号，递增
+                                        "toAssetsChainId":""//资产发行链的id  
+                                        "toAssetsId":""//资产id
+                                        "toAddress":""//转出账户地址
+                                        "amount":""//转出金额
+                                        "nonce":""//交易顺序号，递增
                                     },{...}
                                 ]
                             }
@@ -861,7 +862,7 @@
 
 * 接口说明
 
-本地节点共识模块打包后，调用此接口保存区块数据，不做验证
+本地节点共识模块打包后，调用此接口保存区块数据
 
 * 请求示例
 
@@ -1010,7 +1011,7 @@
 
 #### 2.3.1 模块启动
 
-* 功能说明：
+* 功能说明:
 
   略
 
@@ -1030,7 +1031,7 @@
 
 #### 2.3.2 区块存储
 
-* 功能说明：
+* 功能说明:
 
     说明存储表划分
     
@@ -1038,15 +1039,15 @@
    ```
         不同的链存到不同的表，表名加chainID后缀
         一个完整的区块由区块头和交易组成，区块头与交易分别进行存储。
-          区块头：(放在区块管理模块)
+          区块头:(放在区块管理模块)
               key(区块高度)-value(区块头hash)              block-header-index
               key(区块头hash)-value(完整的区块头)           block-header
-          交易：(放在交易管理模块)
+          交易:(放在交易管理模块)
    ```
    * 分叉链存储
    ```
         内存中缓存每一个分叉链的(起始高度、起始hash、结束高度、结束hash)，在硬盘中缓存全量分叉链数据
-        不同链的分叉链集合存在不同的表，表名加chainID后缀，每一个分叉链对象如下：
+        不同链的分叉链集合存在不同的表，表名加chainID后缀，每一个分叉链对象如下:
             key(start区块高度+start区块hash)-value(完整的chains)          fork chains
         private Chain chain;
                 private String id;
@@ -1067,7 +1068,7 @@
 
 #### 2.3.2 区块同步
 
-* 功能说明：
+* 功能说明:
 
   略
 
@@ -1085,7 +1086,7 @@
         3. 一个以key为主键记录持有该key的节点列表
         4. 最终统计出出现频率最大的key，就获取到当前可信的最新高度与最新hash，以及可信的节点列表
         
-        举个栗子：
+        举个栗子:
         现在同时连接到10个节点。其中4个节点(A,B,C,D)的最新区块高度是100，最新区块hash是aaa，其中6个节点(E,F,G,H,I,J)的最新区块高度是101，最新区块hash是bbb。
         最终返回(101，bbb,[E,F,G,H,I,J])。
     ```
@@ -1095,7 +1096,7 @@
     ![](./image/block-module/block-synchronization2.png)
     ```
         在正式下载区块前，要判断本地与网络是否发生分叉，是否需要回滚。以便找到准确的区块下载高度。
-        以下分情况讨论：
+        以下分情况讨论:
         取上一步的结果(101，bbb,[E,F,G,H,I,J])，同时LH(N)代表本地第N块的hash，RH(N)代表网络上第N块的hash。
         1.本地高度100<网络高度101，LH(100)==RH(100)，正常，比远程节点落后，下载区块
         2.本地高度100<网络高度101，LH(100)!=RH(100)，认为本地分叉，回滚本地区块，如果LH(99)==RH(99)
@@ -1107,7 +1108,7 @@
         
         上述需要回滚的场景，要满足可用节点数(10个)>配置，一致可用节点数(6个)占比超80%两个条件，避免节点太少导致频繁回滚。以上两个条件都不满足，清空已连接节点，重新获取可用节点。
  
-        真正下载区块时，举个栗子：
+        真正下载区块时，举个栗子:
         当前高度100，网络高度500，可用节点12个，一致可用节点10个，每个节点每次下载区块2个
         那么计算得出需要下载区块400个，400/(2*10)=20轮下载完毕，同时可以计算出每轮每个节点下载区块的高度范围
         伪代码表示
@@ -1137,7 +1138,7 @@
 
 #### 2.3.3 区块基础验证
 
-* 功能说明：
+* 功能说明:
 
   验证区块自身数据正确性,下载过程中验证，验证通过说明区块数据本身没有问题，验证失败则丢弃该区块
 
@@ -1157,7 +1158,7 @@
 
 #### 2.3.4 分叉块验证
 
-* 功能说明：
+* 功能说明:
 
   验证区块上下文正确性，下载完成后验证，验证通过说明该区块与主链相连，验证失败说明该区块分叉，进入分叉链处理逻辑
 
@@ -1192,7 +1193,7 @@
 
 #### 2.3.5 分叉链管理
 
-* 功能说明：
+* 功能说明:
 
   判断分叉链与主链是否需要进行切换
 
@@ -1214,7 +1215,7 @@
 
 #### 2.3.6 转发区块
 
-* 功能说明：
+* 功能说明:
 
     详细说明
 
@@ -1231,7 +1232,7 @@
 
 #### 2.3.7 广播区块
 
-* 功能说明：
+* 功能说明:
 
   略
 
@@ -1250,13 +1251,11 @@
 
 #### 2.3.8 区块监控
 
-* 功能说明：
+* 功能说明:
 
   略
 
 * 流程描述
-
-![](./image/consensus-module/block-monitoring.png)
 
   - 启动监控定时任务，每分钟执行一次
   - 取本地最新区块头
@@ -1272,7 +1271,7 @@
 
 #### 3.1.1 同步完成
 
-说明：同步完成，本地区块高度与网络高度一致时，发布该事件
+说明:同步完成，本地区块高度与网络高度一致时，发布该事件
 
  event_topic : "bl_blockSyncComplete",
 
@@ -1286,7 +1285,7 @@ data:{
 
 #### 3.1.2 保存区块
 
-说明：每保存一个区块，发布该事件，初次同步时不发该事件
+说明:每保存一个区块，发布该事件，初次同步时不发该事件
 
  event_topic : "bl_saveBlock",
 
@@ -1300,7 +1299,7 @@ data:{
 
 #### 3.1.3 回滚区块
 
-说明：每回滚一个区块，发布该事件   
+说明:每回滚一个区块，发布该事件   
 
  event_topic : "bl_rollbackBlock",
 
@@ -1320,17 +1319,17 @@ data:{
 
 ### 4.1 网络通讯协议
 
-    略
+    参见网络模块
 
 ### 4.2 消息协议
 
-#### 4.2.1 转发小区块消息ForwardSmallBlockMessage
+#### 4.2.1 单个摘要消息HashMessage
 
-* 消息说明：用于“转发区块”功能
+* 消息说明:用于"转发区块","孤儿链维护"功能
 
 * 消息类型（cmd）
 
-  ForwardSmallBlock
+  forward,getBlock,getsBlock
 
 * 消息的格式（txData）
 
@@ -1351,9 +1350,9 @@ data:{
 2. 如果重复，说明已经收到别的节点转发的SmallBlock，丢弃消息
 3. 如果没有重复，用hash组装GetSmallBlockMessage，并发送给源节点
 
-#### 4.2.2 获取小区块消息GetSmallBlockMessage
+#### 4.2.2 摘要列表消息HashListMessage
 
-* 消息说明：用于“转发区块”功能
+* 消息说明:用于"区块同步"功能
 
 * 消息类型（cmd）
 
@@ -1366,7 +1365,11 @@ data:{
 | 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | hashLength      | VarInt    | 数组长度           |
-| ?     | hash            | byte[]    | hash           |
+| ?     | blockHash            | byte[]    | hash           |
+| ?     | hashLength      | VarInt    | 数组长度           |
+| 1     | digestAlgType  | byte      | 摘要算法标识           |
+| ?     | hashLength        | VarInt    | 数组长度           |
+| ?     | hash        | byte[]    | hash           |
 
 * 消息的验证
 
@@ -1379,7 +1382,7 @@ data:{
 
 #### 4.2.3 区块广播消息SmallBlockMessage
 
-* 消息说明：用于“转发区块”、“广播区块”功能
+* 消息说明:用于"转发区块"、"广播区块"功能
 
 * 消息类型（short）
 
@@ -1421,12 +1424,12 @@ data:{
 2. 根据chainID、区块hash判断消息是否重复，如果重复，则忽略该消息(这里要求维护一个集合,按照chainID分类储存收到的区块hash)
 3. 根据chainID、区块hash在DB中查询本地是否已经有该区块，如果已经有了，则忽略该消息
 4. 验证区块头，验证失败，则忽略该消息
-5. 取txHashList，判断那些tx本地没有，组装GetTxGroupMessage，发给源节点
+5. 取txHashList，判断那些tx本地没有，组装HashListMessage，发给源节点，获取没有的那些交易信息
 6. 如果交易都有，组放入缓存队列，等待验证线程验证后存储
 
-#### 4.2.4 根据高度获取区块消息GetBlocksByHeightMessage
+#### 4.2.4 高度区间消息HeightRangeMessage
 
-* 消息说明：用于“同步区块”功能
+* 消息说明:用于"同步区块"功能
 
 * 消息类型（cmd）
 
@@ -1451,36 +1454,9 @@ data:{
 3. 从endHeight开始查找Block,组装BlockMessage，发给目标节点
 4. 查找到startHeight为止，组装CompleteMessage，发给目标节点
 
-#### 4.2.5 获取区块消息GetBlockMessage
+#### 4.2.5 完整的区块消息BlockMessage
 
-* 消息说明：用于“区块同步”
-
-* 消息类型（cmd）
-
-  GetBlock
-
-* 消息的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | HashLength   | VarInt    | Hash数组长度           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* 消息的验证
-
-    略
-
-* 消息的处理逻辑
-
-1. 返回响应消息ReactMessage
-2. 根据hash查找Block,组装BlockMessage，发给目标节点
-3. 组装CompleteMessage，发给目标节点
-
-#### 4.2.6 完整的区块消息BlockMessage
-
-* 消息说明：用于“区块同步”
+* 消息说明:用于"区块同步"
 
 * 消息类型（cmd）
 
@@ -1507,19 +1483,22 @@ data:{
 | 1     | signAlgType      | byte    | 签名算法类型           |
 | ?     | signBytesLength| VarInt    | 签名数组长度           |
 | ?     | signBytes      | byte[]    | 区块签名           |
-| ?     | txCount   | VarInt    | 交易数           |
 | 16     | type      | uint16    | 交易类型           |
 | 48     | time      | uint48    | 交易时间           |
 | ?     | remarkLength| VarInt    | 备注数组长度           |
 | ?     | remark      | byte[]    | 备注           |
+| 32     | fromCount      | Uint32    | 转出记录数           |
 | 32     | fromAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | fromAssetsId      | Uint32    | 资产id           |
 | ?     | fromAddress      | VarChar    | 转出账户地址           |
+| 48     | amount      | Uint48    | 转出金额           |
+| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 32     | toCount      | Uint32    | 转入记录数           |
 | 32     | toAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | toAssetsId      | Uint32    | 资产id           |
 | ?     | toAddress      | VarChar    | 转入账户地址           |
-| 48     | amount      | Uint48    | 转出金额           |
-| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 48     | amount      | Uint48    | 转入金额           |
+| 32     | lockTIme      | Uint32    | 锁定时间           |
 | ?     | txData      | T    | 交易数据           |
 | ?     | txSignLength| VarInt    | 交易签名数组长度           |
 | ?     | txSign      | byte[]    | 交易签名           |
@@ -1533,60 +1512,9 @@ data:{
 1. 放入缓存队列
 2. 等待其他区块同步中
 
-#### 4.2.7 未找到数据消息NotFoundMessage
+#### 4.2.6 请求完成消息CompleteMessage
 
-* 消息说明：通用消息，用于异步请求，标志目标节点未找到对应信息。
-
-* 消息类型（cmd）
-
-  NotFound
-
-* 消息的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
-| 1     | msgType        | byte    | 未找到的数据类型           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | HashLength   | VarInt    | Hash数组长度           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* 消息的验证
-
-    略
-
-* 消息的处理逻辑
-
-1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为完成，把返回结果设置为空
-
-#### 4.2.8 响应消息ReactMessage
-
-* 消息说明：通用消息，用于异步请求，标志目标节点收到请求，正在处理。
-
-* 消息类型（short）
-
-  React
-
-* 消息的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | HashLength   | VarInt    | Hash数组长度           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* 消息的验证
-
-    略
-
-* 消息的处理逻辑
-
-1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为等待中
-
-#### 4.2.9 请求完成消息CompleteMessage
-
-* 消息说明：通用消息，用于异步请求，标志异步请求处理结束。
+* 消息说明:通用消息，用于异步请求，标志异步请求处理结束。
 
 * 消息类型（cmd）
 
@@ -1610,35 +1538,9 @@ data:{
 
 1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为完成。
 
-#### 4.2.10 获取交易列表的消息GetTxGroupRequest
+#### 4.2.7 交易列表的消息TxGroupMessage
 
-* 消息说明：用于“转发区块”
-
-* 消息类型（cmd）
-
-  GetTxGroup
-
-* 消息的格式（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
-| ?     | ArrayLength   | VarInt    | Hash列表长度           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | HashLength   | VarInt    | Hash数组长度           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* 消息的验证
-
-    略
-
-* 消息的处理逻辑
-
-1. 目标节点收到该消息后，取出hashList，遍历hashList，根据chainID、txHash获取Tx，组装TxGroupMessage，发给源节点
-
-#### 4.2.11 交易列表的消息TxGroupMessage
-
-* 消息说明：用于“转发区块”
+* 消息说明:用于"转发区块"
 
 * 消息类型（cmd）
 
@@ -1657,14 +1559,18 @@ data:{
 | 48     | time      | uint48    | 交易时间           |
 | ?     | remarkLength| VarInt    | 备注数组长度           |
 | ?     | remark      | byte[]    | 备注           |
+| 32     | fromCount      | Uint32    | 转出记录数           |
 | 32     | fromAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | fromAssetsId      | Uint32    | 资产id           |
 | ?     | fromAddress      | VarChar    | 转出账户地址           |
+| 48     | amount      | Uint48    | 转出金额           |
+| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 32     | toCount      | Uint32    | 转入记录数           |
 | 32     | toAssetsChainId      | Uint32    | 资产发行链的id           |
 | 32     | toAssetsId      | Uint32    | 资产id           |
 | ?     | toAddress      | VarChar    | 转入账户地址           |
-| 48     | amount      | Uint48    | 转出金额           |
-| 32     | nonce      | Uint32    | 交易顺序号，递增           |
+| 48     | amount      | Uint48    | 转入金额           |
+| 32     | lockTIme      | Uint32    | 锁定时间           |
 | ?     | txData      | T    | 交易数据           |
 | ?     | txSignLength| VarInt    | 交易签名数组长度           |
 | ?     | txSign      | byte[]    | 交易签名           |
@@ -1682,76 +1588,106 @@ data:{
 ```
 {
     {
+        "name": "validBlockInterval",
+        "remark": "为阻止恶意节点提前出块，设置此参数，区块时间戳大于当前时间多少就丢弃该区块",
+        "readOnly": "true",
+        "value": "1000"
+    },
+    {
+        "name": "blockCache",
+        "remark": "同步区块时最多缓存多少个区块",
+        "readOnly": "true",
+        "value": "1000"
+    },
+    {
+        "name": "smallBlockCache",
+        "remark": "系统正常运行时最多缓存多少个从别的节点接收到的小区块",
+        "readOnly": "true",
+        "value": "100"
+    },
+    {
+        "name": "chainSwtichThreshold",
+        "remark": "分叉链切换为主链的高度差阈值",
+        "readOnly": "true",
+        "value": "1"
+    },
+    {
+        "name": "chainName",
+        "remark": "链名称",
+        "readOnly": "true",
+        "value": "nuls"
+    },
+    {
         "name": "serverIp",
-        "remark": “服务ip”,
-        "changable": "true",
-        "default": "127.0.0.1"
+        "remark": "服务ip",
+        "readOnly": "true",
+        "value": "127.0.0.1"
     },
     {
         "name": "serverPort",
-        "remark": “服务端口”,
-        "changable": "true",
-        "default": ""
+        "remark": "服务端口",
+        "readOnly": "true",
+        "value": ""
     },
     {
         "name": "blockMaxSize",
-        "remark": “区块大小最大值”,
-        "changable": "false",
-        "default": "3m"
+        "remark": "区块大小最大值",
+        "readOnly": "false",
+        "value": "3145728"
     },
     {
         "name": "resetTime",
-        "remark": “持续多长时间区块高度没有更新时，就重新获取可用节点”,
-        "changable": "true",
-        "default": "180"
-    },
-    {
-        "name": "forkCount",
-        "remark": “当分叉链比主链高于多少高度时，进行切换”,
-        "changable": "false",
-        "default": "3"
+        "remark": "持续多长时间区块高度没有更新时，就重新获取可用节点",
+        "readOnly": "true",
+        "value": "180"
     },
     {
         "name": "cacheSize",
-        "remark": “分叉链缓存大小”,
-        "changable": "true",
-        "default": "50m"
+        "remark": "分叉链、孤儿链缓存区块最大数量",
+        "readOnly": "true",
+        "value": "10000"
     },
     {
         "name": "heightRange",
-        "remark": “缓存到分叉链的高度区间”,
-        "changable": "false",
-        "default": "1000"
+        "remark": "缓存到分叉链的高度区间",
+        "readOnly": "false",
+        "value": "1000"
     },
     {
         "name": "maxRollback",
-        "remark": “每次最多回滚多少区块”,
-        "changable": "true",
-        "default": "20"
+        "remark": "每次最多回滚多少区块",
+        "readOnly": "true",
+        "value": "20"
     },
     {
         "name": "consistencyNodePercent",
-        "remark": “一致可用节点最低比例，低于此数不同步区块”,
-        "changable": "false",
-        "default": "80"
+        "remark": "一致可用节点最低比例，低于此数不同步区块",
+        "readOnly": "false",
+        "value": "80"
     },
     {
         "name": "minNodeAmount",
-        "remark": “最小可用节点个数，低于此数不同步区块”,
-        "changable": "false",
-        "default": "10"
+        "remark": "最小可用节点个数，低于此数不同步区块",
+        "readOnly": "false",
+        "value": "1"
     },
     {
         "name": "downloadNumber",
-        "remark": “同步时，每次从一个节点下载多少区块”,
-        "changable": "true",
-        "default": "20"
+        "remark": "同步时，每次从一个节点下载多少区块",
+        "readOnly": "true",
+        "value": "20"
+    },
+    {
+        "name": "orphanChainMaxAge",
+        "remark": "孤儿链最大年龄",
+        "readOnly": "true",
+        "value": "10"
     },
     {
         "name": "extendMaxSize",
-        "remark": “区块头扩展字段最大值”,
-        "changable": "false",
-        "default": "1024"
+        "remark": "区块头扩展字段最大值",
+        "readOnly": "false",
+        "value": "1024"
     }
 }
 
@@ -1762,7 +1698,7 @@ data:{
 - Block对象设计
 > | `字段名称`          | `字段类型` | `说明`     |
 > | ------------------- | ---------- | ---------- |
-> | blockHeader             | BlockHeader     | 区块头   |
+> | blockHeader        | BlockHeader     | 区块头   |
 > | transactions | List<Transaction>     | 交易列表 |
 
 - SmallBlock对象设计
@@ -1775,12 +1711,10 @@ data:{
 - BlockHeader对象设计
 > | `字段名称`          | `字段类型` | `说明`     |
 > | ------------------- | ---------- | ---------- |
-> | chainId             | long     | 链ID   |
 > | hash             | String     | 区块HASH   |
 > | preHash             | String     | 上一区块HASH   |
 > | merkleHash             | String     | 区块MerkleHash   |
 > | height             | int     | 区块高度   |
-> | size             | short     | 区块大小   |
 > | time             | long     | 区块打包时间   |
 > | txCount             | short     | 交易数   |
 > | packingAddress             | String     | 打包地址   |
@@ -1790,7 +1724,7 @@ data:{
 - BlockSignature对象设计
 > | `字段名称`          | `字段类型` | `说明`     |
 > | ------------------- | ---------- | ---------- |
-> | signData             | String     | 区块签名   |
-> | publicKey | byte[]     | 公钥 |
+> | signData            | String     | 区块签名   |
+> | publicKey           | byte[]     | 公钥 |
 
 ## 七、补充内容
