@@ -110,17 +110,20 @@
 
 ##### 参数说明 (request)
 
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String |             链ID |
-| assetId |    Y     |   String |           资产ID |
-| address |    Y     |   String | 要查询余额的地址 |
+| 字段         | 是否必填 | 数据类型 |         描述信息 |
+| ------------ | :------: | -------: | ---------------: |
+| chainId      |    Y     |   String | 接口调用链的链id |
+| address      |    Y     |   String | 要查询余额的地址 |
+| assetChainId |    Y     |   String |   资产发起的链ID |
+| assetId      |    Y     |   String |           资产ID |
 
 ```json
 {
-    "chainId":"589",
+   
+    "chainId":"5",
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":"34",
     "assetId":"5",
-    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1"
 }
 ```
 
@@ -147,21 +150,25 @@
 #### 3.1.2 获取当前账户nonce值
 
 > cmd: getNonce
+>
+>
 
 ##### 参数说明 (request)
 
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String |             链ID |
-| assetId |    Y     |   String |           资产ID |
-| address |    Y     |   String | 要查询余额的地址 |
+| 字段         | 是否必填 | 数据类型 |         描述信息 |
+| ------------ | :------: | -------: | ---------------: |
+| chainId      |    Y     |   String | 接口调用链的链id |
+| address      |    Y     |   String | 要查询余额的地址 |
+| assetChainId |    Y     |   String |   资产发起的链ID |
+| assetId      |    Y     |   String |           资产ID |
 
 ```json
-
 {
-    "chainId":"589",
+   
+    "chainId":"5",
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":"34",
     "assetId":"5",
-    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1"
 }
 ```
 
@@ -189,17 +196,20 @@
 
 ##### 参数说明 (request)
 
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String |             链ID |
-| assetId |    Y     |   String |           资产ID |
-| address |    Y     |   String | 要查询余额的地址 |
+| 字段         | 是否必填 | 数据类型 |         描述信息 |
+| ------------ | :------: | -------: | ---------------: |
+| chainId      |    Y     |   String | 接口调用链的链id |
+| address      |    Y     |   String | 要查询余额的地址 |
+| assetChainId |    Y     |   String |   资产发起的链ID |
+| assetId      |    Y     |   String |           资产ID |
 
 ```json
 {
-  "chainId":"589",
-  "assetId":"5",
-  "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1"
+   
+    "chainId":"5",
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":"34",
+    "assetId":"5",
 }
 ```
 
@@ -247,7 +257,7 @@
 | validateCode |   int    | 1校验通过，2孤儿交易 3双花 4 其他异常 |
 | validateDesc |  String  |                          校验返回描述 |
 
-#### 
+
 
 #### 3.1.5  提交未确认交易
 
@@ -255,12 +265,14 @@
 
 ##### 参数说明 (request)
 
-| 字段  | 是否必填 | 数据类型 |     描述信息 |
-| ----- | :------: | -------: | -----------: |
-| txHex |    Y     |   String | 交易16进制流 |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |   String | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
+    "chainId": "21"
     "txHex": "xxxxxxxx"
 }
 ```
@@ -285,13 +297,13 @@
 
 ##### 参数说明 (request)
 
-| 字段 | 是否必填 | 数据类型 | 描述信息 |
-| ---- | :------: | -------: | -------: |
-|      |          |          |          |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |   String | 接口调用链的链Id |
 
 ```json
 {
-      
+     "chainId": "21"  
 }
 ```
 
@@ -313,12 +325,14 @@
 
 ##### 参数说明 (request)
 
-| 字段  | 是否必填 | 数据类型 |     描述信息 |
-| ----- | :------: | -------: | -----------: |
-| txHex |    Y     |   String | 交易16进制流 |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |   String | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
+     "chainId": "21",
      "txHex": "xxxxxxxx"
 }
 ```
@@ -341,12 +355,14 @@
 
 ##### 参数说明 (request)
 
-| 字段  | 是否必填 | 数据类型 |     描述信息 |
-| ----- | :------: | -------: | -----------: |
-| txHex |    Y     |   String | 交易16进制流 |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |   String | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
+     "chainId": "21",
      "txHex": "xxxxxxxx"
 }
 ```
@@ -371,12 +387,14 @@
 
 ##### 参数说明 (request)
 
-| 字段  | 是否必填 | 数据类型 |     描述信息 |
-| ----- | :------: | -------: | -----------: |
-| txHex |    Y     |   String | 交易16进制流 |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |   String | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
+     "chainId": "21",
      "txHex": "xxxxxxxx"
 }
 ```
@@ -404,12 +422,14 @@
 
 | 字段      |      是否可选  | 数据类型 |  描述信息 |
 |----------|:-------------:|--------:|--------:|
-| chainId |  Y | String |链ID |
+| chainId | Y | String | 接口调用所在链链Id |
+| assetChainId |  Y | String |资产发起链的链ID |
 | assetId |  Y | String |资产ID |
 
 ```json
 {
-  "chainId": 12,
+  "chainId": 5,
+  "assetChainId": 12,
   "assetId": 41
 }
 ```
@@ -417,8 +437,9 @@
 
 ```json
 {
-    "chainId": "mainChainId",
-    "asset_id": "xxxxxx",
+    "chainId": "5",
+    "assetChainId": "12",
+    "assetId": "41",
     "balance" : {
       "available": 10000000000,
       "freeze": 200000000,
@@ -429,8 +450,9 @@
 
 | 字段   |      数据类型      |  描述信息 |
 |----------|:-------------:|------:|
-| chainId |  String | 链ID |
-| asset_id |  String | 资产ID |
+| chainId |  String | 发起调用的链ID |
+| assetChainId | String | 资产发起的链链id |
+| assetId |  String | 资产ID |
 | balance.available |  BigInteger | 可用余额 |
 | balance.freeze |  BigInteger | 冻结余额 |
 | balance.total |  BigInteger | 总资产余额 total = available+freeze  |
