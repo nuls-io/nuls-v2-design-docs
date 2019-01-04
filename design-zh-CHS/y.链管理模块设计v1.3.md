@@ -37,11 +37,12 @@
   - 友链A把资产A转到友链B
   - 友链B内部转移资产A
   - 友链B把资产A转回到友链A
+  - 友链B把资产A转到其他友链（C,D等）
 - 非跨链交易：
   - 友链A内部转移资产A
   - 友链B内部转移资产B
 
-备注：不管是跨链交易，还是非跨链交易，都需要到NULS主链进行确认。
+备注：不论链内资产，还是链外资产，只要资产跨链进行交易，就需要主网进行确认。
 
 
 
@@ -57,6 +58,7 @@
 * 查询友链信息
 * 特定友链增加资产类型
 * 特定友链销毁资产类型
+* 跨链资产校验
 
 
 
@@ -69,6 +71,7 @@
 - 核心模块
 - 网络模块
 - 交易管理模块
+- 账本模块
 
 《链管理》弱依赖的模块：
 
@@ -76,13 +79,13 @@
 
 
 
-依赖《链管理》的模块：
-
-
-
-### 1.2 架构图
+### 1.2 模块内部架构图
 
 [^说明]: 图形说明模块的层次结构、组件关系，并通过文字进行说明
+
+![](./image/chainModule/architecture.png)
+
+
 
 ## 二、功能设计
 
@@ -102,18 +105,110 @@
 
   NULS主网会提供一个入口（网页），可以通过这个入口注册新的友链到NULS主网。
 
+  注册一条友链必须含一个注册资产。
+
 * 流程描述
 
+
+
   ![](./image/chainModule/chainRegister.png)
+
+步骤描述：
+
+   1.用户通过终端注册登记链信息以及随链初始化的资产信息。
+
+   2.链管理模块进行链交易的封装发送给交易模块。期间需要通过账本模块获取账户余额及交易nonce值。
+
+​      并且通过网络模块获取跨链的种子节点信息 返回给用户。
+
+   3.交易模块会在交易处理过程中进行数据校验的回调。
+
+   4.链管理模块通过 交易模块回调 “提交链注册交易”的接口 来进行注册数据提交。
+
+   5.链管理模块存储数据并将注册信息下发给网络模块。
+
+   6.注册链需要1000NULS，其中20%直接销毁，80%用于抵押，删除资产时退回。
+
+- 接口定义
+
+  - 接口说明
+
+  ​        向链管理模块注册友链信息。
+
+  ​        method : cm_chainReg
+
+  - 请求示例
+
+  ```
+  {
+          "chainId": 152,
+          "chainName": "nuls chain",
+          "addressType": "1",
+          "magicNumber":454546,
+          "supportInflowAsset":"1",
+          "minAvailableNodeNum":5,
+          "singleNodeMinConnectionNum":5,
+          "txConfirmedBlockNum":30,
+          "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "assetId":85,
+          "symbol":"NULS",
+          "assetName":"纳斯",
+          "initNumber":"1000000000",
+          "decimalPlaces":8,
+          "password":"xxxxxxxxxxxxx"
+          
+  }
+  ```
+  - 请求参数说明
+
+  | parameter               | required | type   | description                                 |
+  | :---------------------- | :------- | :----- | ------------------------------------------- |
+  | chainId                 | true     | int    | 链标识                                      |
+  | chainName               | true     | string | 链名称                                      |
+  | addressType             | true     | int    | 链上创建的账户的地址类型：1生态内 2非生态内 |
+  | magicNumber             | true     | string | 网络魔法参数                                |
+  | minAvailableNodeNum     | true     | int    | 最小可用节点数量                            |
+  | singleNodeConMinNodeNum | true     | int    | 单节点连接最小数量                          |
+  | txConfirmBlockNum       | true     | int    | 交易确认块数                                |
+  | symbol                  | true     | string | 资产符号                                    |
+  | assetName               | true     | string | 资产名称                                    |
+  | initNumber              | true     | string | 资产初始值                                  |
+  | decimalPlaces           | true     | int    | 最小资产可分割位数                          |
+  | address                 | true     | string | 创建链的主网地址                            |
+  | password                | true     | string | 私钥对应的密码                              |
+
+  - 返回示例
+
+     Failed
+
+     ```
+     统一RPC标准格式
+     
+     ```
+
+     Success
+
+     ```
+     {
+     "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
+     }
+     
+     ```
+
+  - 返回字段说明
+
+  | parameter | type   | description |
+  | --------- | ------ | ----------- |
+  | seeds     | String | 种子节点    |
+
 
 * 依赖服务
 
   [^说明]: 文字描述依赖了哪些服务，做什么事情
 
-  - 网络管理模块，广播交易
-  - 事件总线模块，发布事件
-
-
+  - 网络管理模块
+  - 交易管理模块，发送交易
+  - 账本模块，获取账本信息
 
 
 
@@ -128,891 +223,687 @@
 
   ![](./image/chainModule/chainDestroy.png)
 
+
+
+1. 链是随资产而创建，所以注销链必须进行资产校验，只有删除最后一条资产，链才会随着一起注销。
+
+ 2.判断是否允许注销的条件：
+
+​     资产与链存在。
+
+​    随链只有最后一个资产。
+
+​    链资产有n%资产在自有主链上。 
+
+ 3.链管理模块进行链交易的封装发送给交易模块。
+
+​     期间需要通过账本模块获取账户余额及交易nonce值。
+
+ 4.交易模块会在交易处理过程中进行数据校验的回调。
+
+ 5.链管理模块通过 交易模块回调 “提交链注销交易”的接口 来进行注销数据提交。
+
+ 6.链管理模块存储数据并将注册信息下发给网络模块。
+
+ 7.删除链随注销的资产，将退回抵押押金的80%。
+
+- 接口定义
+
+  - 接口说明
+
+  ​        向链管理模块注销友链信息（调用的是资产注销接口，因为链随最后资产一起注销）。
+
+  ​        method : cm_assetDisable
+
+  - 请求示例
+
+  ```
+  {
+          "chainId": 152,
+          "assetId": 45,
+          "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "password":"xxxxxxxxxxxxx"
+          
+  }
+  ```
+
+  - 请求参数说明
+
+  | parameter | required | type   | description          |
+  | :-------- | :------- | :----- | -------------------- |
+  | chainId   | true     | int    | 链标识               |
+  | assetId   | true     | int    | 资产id               |
+  | address   | true     | string | 创建链的主网账户地址 |
+  | password  | true     | string | 私钥对应的密码       |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+    Success
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+  - 返回字段说明
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
 - 依赖服务
 
   [^说明]: 文字描述依赖了哪些服务，做什么事情
 
-  - 网络管理模块，广播交易
-  - 事件总线模块，发布事件
+  - 网络管理模块
+  - 交易管理模块，发送交易
+  - 账本模块，校验账本信息
 
-
-
-
-
-#### 2.2.3 查询友链信息
+#### 2.2.3  增加资产信息
 
 - 功能说明：
 
-  根据链标识（chainId）查询链的具体信息
+  NULS主网会提供一个入口（网页），可以通过这个入口选择链及登记注册资产。
 
 - 流程描述
-  N/A
+
+![](./image/chainModule/assetRegister.png)
+
+
+
+步骤描述：
+
+   1.用户通过终端选择链 及随链录入资产信息：判断资产是否重叠。
+
+   2.链管理模块进行链交易的封装发送给交易模块。
+
+期间需要通过账本模块获取账户余额及交易nonce值。
+
+   3.交易模块会在交易处理过程中进行数据校验的回调。      
+
+   4.链管理模块通过 交易模块回调 “提交资产注册交易”的接口 来进行注册数据提交。
+
+   5.注册资产收1000NULS，其中20%直接销毁，80%用于抵押，删除资产时退回。
+
+- 接口定义
+
+  - 接口说明
+
+  ​        向链管理模块注册资产信息。
+
+  ​        method : cm_assetReg
+
+  - 请求示例
+
+  ```
+  {
+          "chainId": 152,
+          "assetId":85,
+          "symbol":"NULS",
+          "assetName":"纳斯",
+          "initNumber":"1000000000",
+          "decimalPlaces":8,
+           "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "password":"xxxxxxxxxxxxx"
+          
+  }
+  ```
+
+  - 请求参数说明
+
+  | parameter     | required | type   | description        |
+  | :------------ | :------- | :----- | ------------------ |
+  | chainId       | true     | int    | 链标识             |
+  | symbol        | true     | string | 资产符号           |
+  | assetName     | true     | string | 资产名称           |
+  | initNumber    | true     | string | 资产初始值         |
+  | decimalPlaces | true     | int    | 最小资产可分割位数 |
+  | address       | true     | string | 创建链的主网地址   |
+  | password      | true     | string | 私钥对应的密码     |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    统一RPC标准格式
+    ```
+
+    Success
+
+    ```
+    统一RPC标准格式
+    ```
+
+  - 返回字段说明
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
 
 - 依赖服务
 
   [^说明]: 文字描述依赖了哪些服务，做什么事情
 
-  N/A
+  - 交易管理模块，发送交易
+  - 账本模块，获取账本信息
 
 
 
-#### 2.2.4 特定友链增加资产类型
-
-- 功能说明：
-
-  NULS主网会提供一个入口（网页），可以通过这个入口对特定友链增加资产类型。
-
-- 流程描述
-
-  ![](./image/chainModule/assetRegister.png)
-
-- 依赖服务
-
-  [^说明]: 文字描述依赖了哪些服务，做什么事情
-
-  - 网络管理模块，广播交易
-  - 事件总线模块，发布事件
-
-
-
-#### 2.2.5 特定友链删除资产类型
+#### 2.2.4 特定友链删除资产类型
 
 - 功能说明：
 
-  NULS主网会提供一个入口（网页），可以通过这个入口对特定友链销毁资产类型。
+  NULS主网会提供一个入口（网页），可以通过这个入口对指定友链销毁资产。
 
 - 流程描述
 
   ![](./image/chainModule/assetDestroy.png)
 
+  1. 连下注册有多个资产时，单资产允许注销，如果只有一个资产，则资产随链一起注销。
+
+     2.判断是否允许注销的条件：
+
+  ​    连下存在多个资产。
+
+  ​    链资产有n%资产在自有主链上。 
+
+   3.链管理模块进行链交易的封装发送给交易模块。
+
+  ​     期间需要通过账本模块获取账户余额及交易nonce值。
+
+   4.交易模块会在交易处理过程中进行数据校验的回调。
+
+   5.链管理模块通过 交易模块回调 “提交链注销交易”的接口 来进行注销数据提交。
+
+   6.注销资产将退回抵押押金的80%。
+
+- 接口定义
+
+  - 接口说明
+
+  ​        向链管理模块注销资产信息。
+
+  ​        method : cm_assetDisable
+
+  - 请求示例
+
+  ```
+  {
+          "chainId": 152,
+          "assetId": 45,
+          "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "password":"xxxxxxxxxxxxx"
+          
+  }
+  ```
+
+  - 请求参数说明
+
+  | parameter | required | type   | description          |
+  | :-------- | :------- | :----- | -------------------- |
+  | chainId   | true     | int    | 链标识               |
+  | assetId   | true     | int    | 资产id               |
+  | address   | true     | string | 创建链的主网账户地址 |
+  | password  | true     | string | 私钥对应的密码       |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+    Success
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+  - 返回字段说明
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
+
+
+  - 依赖服务
+
+    [^说明]: 文字描述依赖了哪些服务，做什么事情
+
+    - 交易管理模块，发送交易
+    - 账本模块，校验账本信息
+
+#### 2.2.5 跨链交易的链资产校验
+
+- 功能说明：
+
+  交易模块在产生一笔跨链交易时，调用该接口进行跨链资产的校验。
+
+- 流程描述
+
+  1. 校验链及资产是否在跨链模块正常注册
+  2. 校验链上资产金额是否透支。
+  3. 校验资产状态是否正常。
+
+- 接口定义
+
+  - 接口说明
+
+  ​       跨链资产流通时，向链管理提交校验
+
+  ​        method : cm_assetCirculateValidator
+
+  - 请求示例
+
+  ```
+  {
+          "coinDatas": "FFAABB214324"       
+  }
+  ```
+
+  - 请求参数说明
+
+  | parameter | required | type   | description         |
+  | :-------- | :------- | :----- | ------------------- |
+  | coinDatas | true     | String | 交易coindata的HEX值 |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+    Success
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+  - 返回字段说明
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
+
+
 - 依赖服务
 
   [^说明]: 文字描述依赖了哪些服务，做什么事情
 
-  - 网络管理模块，广播交易
-  - 事件总线模块，发布事件
+  - 交易管理模块，跨链交易校验调用
 
+#### 2.2.6  跨链交易的链资产提交
 
+- 功能说明：
 
+  交易模块在产生一笔跨链交易，并校验通过时，调用该接口进行跨链资产的提交。
 
+  用于变更链资产，并用于链资产的管理。
 
-## 三、接口设计
+- 流程描述
 
-### 3.1 模块接口
+  1.  直接调用cm_assetCirculateCommit 接口
 
-#### 3.1.1 获取链信息
+- 接口定义
 
-- 接口说明
-  获取一条链详细信息
+  - 接口说明
 
-- 请求示例
-  ```json
+  ​       跨链资产流通时，校验通过并且确认可提交时，可向链管理提交该笔交易
+
+  ​        method : cm_assetCirculateCommit
+
+  - 请求示例
+
+  ```
   {
-      "cmd":"chainInfo",
-      "minVersion":"1.1",
-      "params":[1234]
+          "coinDatas": "FFAABB214324"       
   }
   ```
 
-- 请求参数说明
+  - 请求参数说明
 
-  | index | parameter | required | type | description |
-  | ----- | :-------- | :------- | :--- | ----------- |
-  | 0     | chainId   | true     | int  | 链标识      |
+  | parameter | required | type   | description         |
+  | :-------- | :------- | :----- | ------------------- |
+  | coinDatas | true     | String | 交易coindata的HEX值 |
 
-- 返回示例  
-  Failed
+  - 返回示例
 
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
+    Failed
 
-  Success
-    ```json
-    {
-      "code":10000,
-      "msg":"",
-      "version":"",
-      "result":{        "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-          "chainId":1234,
-          "name":"name",
-          "addressType":1,
-          "assets":[
-              {
-                  "assetId":1,
-                  "symbol":"xxx",
-                  "name":"xxx",
-                  "depositNuls":20000,
-                  "initTotal":1000000,
-                  "minUnit":8,
-                  "flag":true
-              }
-          ],
-          "magicNumber":1025753999,
-          "seeds":[
-              {
-                  "ip":"xxx.xxx.xxx.xxx",
-                  "port":8001
-              },
-              {
-                  "ip":"xxx.xxx.xxx.xxx",
-                  "port":8001
-              }
-          ],
-          "assetInflow":true
-      }
-  }
+    ```
+    统一RPC标准格式
+    
     ```
 
-- 返回字段说明  
+    Success
 
-  | parameter   | type        | description                                  |
-  | ----------- | ----------- | -------------------------------------------- |
-  | hash        | Int         | 链的哈希值                                   |
-  | chainId     | Int         | 链标识                                       |
-  | name        | String      | 链名称                                       |
-  | addressType | AddressType | 链上创建的账户的地址类型                     |
-  | assetList   | List<Asset> | 数组成员：资产对象                           |
-  | magicNumber | Int         | 魔法参数                                     |
-  | seedList    | List<Seed>  | 【ip->种子节点ip地址】【port->种子节点端口】 |
-  | assetInflow | Boolean     | 是否支持资产流入                             |
-
+    ```
+    统一RPC标准格式
     
+    ```
 
-  资产对象   
+  - 返回字段说明
 
-  | parameter       | type    | description                    |
-  | --------------- | ------- | ------------------------------ |
-  | assetId         | Int     | 资产标识                       |
-  | symbol          | String  | 资产单位                       |
-  | name            | String  | 资产名称                       |
-  | depositNuls     | Int     | 抵押的nuls总量                 |
-  | initCirculation | Long    | 资产发行总量                   |
-  | decimalPlaces   | Byte    | 最小单位（代表小数点后多少位） |
-  | available       | Boolean | 资产是否可用                   |
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
 
 
 
+- 依赖服务
 
-### 3.2 功能接口
+  [^说明]: 文字描述依赖了哪些服务，做什么事情
 
-#### 3.2.1 注册一条新的友链
+  - 交易管理模块，跨链交易调用
 
-- 接口说明
-  注册一条新链
+#### 2.2.7 链管理交易处理函数的注册
 
-- 请求示例
+- 功能说明：
 
-  ```json
+  在模块启动时，需要进行交易回调函数的注册，以便交易模块在进行相关类型交易处理时，进行回调处理。
+
+  注册函数分为4类：1>交易校验  2>交易提交 3>交易回滚 4>一个区块内的模块批量交易校验
+
+- 流程描述
+
+  1. 链管理模块启动
+  2. 判断交易模块RPC调用状态是否可访问
+  3. 提交回调接口
+
+- 接口定义
+
+  参看 交易模块 设计文档中的 “注册交易” 部分
+
+- 依赖服务
+
+  [^说明]: 文字描述依赖了哪些服务，做什么事情
+
+  - 交易管理模块
+
+#### 2.2.8  查询链信息
+
+- 功能说明：
+
+  查询注册链信息
+
+- 流程描述
+
+​        无
+
+- 接口定义
+
+  - 接口说明
+
+  ​        查询注册友链信息。
+
+  ​        method : cm_chain
+
+  - 请求示例
+
+  ```
   {
-      "cmd":"chainRegister",
-      "minVersion":1,
-      "params":[
-          1234,
-          "name",
-          1,
-          [
-              {
-                  "assetId":1,
-                  "symbol":"xxx",
-                  "name":"xxx",
-                  "depositNuls":20000,
-                  "initTotal":1000000,
-                  "minUnit":8,
-                  "flag":true
-              }
-          ],        
-          1,
-          1,
-          "xxx",
-          1
-      ]
+     "chainId":4545 
   }
   ```
 
-- 请求参数说明
+  - 请求参数说明
 
-  | index | parameter               | required | type                  | description              |
-  | ----- | :---------------------- | :------- | :-------------------- | ------------------------ |
-  | 0     | chainId                 | true     | int                   | 链标识                   |
-  | 1     | chainName               | true     | string                | 链名称                   |
-  | 2     | addressType             | true     | string                | 链上创建的账户的地址类型 |
-  | 3     | assets                  | true     | jsonArray【资产对象】 | 数组成员：资产对象       |
-  | 4     | minAvailableNodeNum     | true     | int                   | 最小可用节点数量         |
-  | 5     | singleNodeConMinNodeNum | true     | int                   | 单节点连接最小数量       |
-  | 6     | txConfirmBlockNum       | true     | int                   | 交易确认块数             |
-  | 7     | supportInflowAsset      | true     | boolean               | 是否支持资产流入         |
+  | parameter | required | type | description |
+  | :-------- | :------- | :--- | ----------- |
+  | chainId   | true     | int  | 链标识      |
 
-- 返回示例  
-  Failed
+  - 返回示例
 
-  ```json
+    Failed
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+    Success
+
+    ```
+    {
+            "chainId": 152,
+            "chainName": "nuls chain",
+            "addressType": 1,
+            "magicNumber":454546,
+            "supportInflowAsset":"1",
+            "minAvailableNodeNum":5,
+            "singleNodeMinConnectionNum":5,
+            "txConfirmedBlockNum":30,
+            "regAddress":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+            "regTxHash":"FFFFF", 
+            "selfAssetKeyList":["1232_32","528_8"],
+            "totalAssetKeyList":["1232_32","528_8"],
+            "createTime":1212131
+    }
+    ```
+
+  - 返回字段说明
+
+  | parameter               | type   | description                                           |
+  | :---------------------- | :----- | ----------------------------------------------------- |
+  | chainId                 | int    | 链标识                                                |
+  | chainName               | string | 链名称                                                |
+  | addressType             | int    | 链上创建的账户的地址类型：1生态内 2非生态内           |
+  | magicNumber             | string | 网络魔法参数                                          |
+  | minAvailableNodeNum     | int    | 最小可用节点数量                                      |
+  | singleNodeConMinNodeNum | int    | 单节点连接最小数量                                    |
+  | txConfirmBlockNum       | int    | 交易确认块数                                          |
+  | regTxHash               | string | 交易hash                                              |
+  | regAddress              | string | 创建链的主网地址                                      |
+  | selfAssetKeyList        | list   | 链下注册的资产列表，由chainId_assetId 组合的资产key值 |
+  | totalAssetKeyList       | list   | 链下流通的资产列表，由chainId_assetId 组合的资产key值 |
+  | createTime              | long   | 创建时间                                              |
+
+
+- 依赖服务
+
+   无
+
+#### 2.2.9  查询链下资产信息
+
+- 功能说明：
+
+  查询某链资产信息。
+
+- 流程描述
+
+​        无
+
+- 接口定义
+
+  - 接口说明
+
+  ​        向链管理模块查询某资产信息。
+
+  ​        method : cm_asset
+
+  - 请求示例
+
+  ```
   {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
+     "chainId":4545， 
+     "assetId":45
   }
   ```
 
-  Success
-
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-
-
-#### 3.2.2 注销已经存在的友链
-
-- 接口说明
-  创建者可以注销自己创建的链
-
-- 请求示例
-
-  ```json
-  {   
-      "cmd": "chainDestroy",
-      "minVersion": 1.0,
-      "params":[1234]
-  }
-  ```
-
-- 请求参数说明
-
-  | index | parameter | required | type | description |
-  | ----- | :-------- | :------- | :--- | ----------- |
-  | 0     | chainId   | true     | int  | 链标识      |
-
-- 返回示例  
-  Failed
-
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-  Success
-
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-
-
-
-#### 3.2.3 查询友链信息
-
-- 接口说明
-  查询链列表
-
-- 请求示例
-
-  ```json
-  {   
-      "cmd": "chainList",
-      "minVersion": 1.0,
-      "params":[ 
-     		 1,20
-      ]
-  }
-  ```
-
-- 请求参数说明
-
-  | index | parameter  | required | type | description |
-  | ----- | :--------- | :------- | :--- | ----------- |
-  | 0     | pageNumber | true     | int  | 页数        |
-  | 1     | pageSize   | true     | int  | 每页数量    |
-
-- 返回示例  
-  Failed
-
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-  Success
-
-  ```json
-  {
-      "version":1.2,
-      "code":0,
-      "result":{
-          "chainList":[
-              {                "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-                  "chainId":1234,
-                  "name":"name",
-                  "addressType":1,
-                  "assets":[
-                      {
-                          "assetId":1,
-                          "symbol":"xxx",
-                          "name":"xxx",
-                          "depositNuls":20000,
-                          "initTotal":1000000,
-                          "minUnit":8,
-                          "flag":true
-                      }
-                  ],
-                  "magicNumber":1025753999,
-                  "seeds":[
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      },
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      }
-                  ],
-                  "supportInflowAsset":true
-              },
-              {
-                  "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-                  "chainId":1234,
-                  "name":"name",
-                  "addressType":1,
-                  "assets":[
-                      {
-                          "assetId":1,
-                          "symbol":"xxx",
-                          "name":"xxx",
-                          "depositNuls":20000,
-                          "initTotal":1000000,
-                          "minUnit":8,
-                          "flag":true
-                      }
-                  ],
-                  "magicNumber":1025753999,
-                  "seeds":[
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      },
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      }
-                  ],
-                  "supportInflowAsset":true
-              }
-          ]
-      }
-  }
-  ```
-
-- 返回字段说明  
-  同【获取链信息】，不同的是这里返回的是链列表，【获取链信息】返回指定链
-
-
-
-
-
-
-
-#### 3.2.4 特定友链增加资产类型
-
-- 接口说明
-  创建者可以在自己创建的链种新增资产类型
-
-- 请求示例
-
-  ```json
-  {   
-      "cmd":"assetRegister",
-      "minVersion":1.0,
-      "params":[
-          1234,
-          1,
-          [
-              {
-                  "assetId":1,
-                  "symbol":"xxx",
-                  "name":"xxx",
-                  "depositNuls":20000,
-                  "initTotal":1000000,
-                  "minUnit":8,
-                  "flag":true
-              }
-          ]
-      ]
-  }
-  ```
-
-- 请求参数说明
-
-  | index | parameter   | required | type               | description      |
-  | ----- | :---------- | :------- | :----------------- | ---------------- |
-  | 0     | chainId     | true     | int                | 链标识           |
-  | 1     | addressType | true     | int                | 资产中的地址类型 |
-  | 2     | asset       | true     | object【资产对象】 | 新增的资产       |
-
-- 返回示例  
-  Failed
-
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-  Success
-
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-
-
-#### 3.2.5 特定友链删除资产类型
-
-- 接口说明
-  创建者可以注销自己创建的链中的资产
-
-- 请求示例
-
-  ```json
-  {
-      "cmd":"assetDestroy",
-      "minVersion":1,
-      "params":[
-          1234,
-          88
-      ]
-  }
-  ```
-
-- 请求参数说明
-
-  | index | parameter | required | type | description |
-  | ----- | :-------- | :------- | :--- | ----------- |
-  | 0     | chainId   | true     | int  | 链标识      |
-  | 1     | assetId   | true     | int  | 资产标识    |
-
-- 返回示例  
-  Failed
-
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-  Success
-
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
-
-- 返回字段说明  
-  无
-
-
-
-## 四、事件说明
+  - 请求参数说明
+
+  | parameter | required | type | description |
+  | :-------- | :------- | :--- | ----------- |
+  | chainId   | true     | int  | 链标识      |
+  | assetId   | true     | int  | 资产id      |
+
+  - 返回示例
+
+    Failed
+
+    ```
+    统一RPC标准格式
+    
+    ```
+
+    Success
+
+    ```
+    {
+            "chainId": 152,
+            "assetId":85,
+            "symbol":"NULS",
+            "assetName":"纳斯",
+            "initNumber":"1000000000",
+            "decimalPlaces":8,
+            "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+            "txHash":"xxxxxxxxxxxxx",
+            "createTime":125848
+            }
+    ```
+
+  - 返回字段说明
+
+  | parameter     | type   | description        |
+  | :------------ | :----- | ------------------ |
+  | chainId       | int    | 链标识             |
+  | symbol        | string | 资产符号           |
+  | assetName     | string | 资产名称           |
+  | initNumber    | string | 资产初始值         |
+  | decimalPlaces | int    | 最小资产可分割位数 |
+  | address       | string | 创建链的主网地址   |
+  | txHash        | string | 交易hash           |
+  | createTime    | long   | 创建时间           |
+
+- 依赖服务
+
+   无
+
+## 3、事件说明
 
 [^说明]: 业务流程中尽量避免使用事件的方式通信
 
-### 4.1 发布的事件
-
-[^说明]: 这里说明事件的topic，事件的格式协议（精确到字节），事件的发生情景。
-
-[参考<事件总线>]: ./
-
-
-
-#### 4.1.1 注册一条新的友链  
-
- event_topic : "chain_register",
-
-```json
-{
-    "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-        "chainId":1234,
-        "name":"name",
-        "addressType":1,
-        "assets":[
-            {
-                "assetId":1,
-                "symbol":"xxx",
-                "name":"xxx",
-                "depositNuls":20000,
-                "initTotal":1000000,
-                "minUnit":8,
-                "flag":true
-            }
-        ],
-        "magicNumber":1025753999,
-        "seeds":[
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            },
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            }
-        ],
-        "supportInflowAsset":true
-}
-```
+* 链注册事件
+* 链注销事件
+* 新增资产事件
+* 注销资产事件
 
 
 
 
+## 4、协议
 
-#### 4.1.2 注销已经存在的友链   
+### 4.1 网络通讯协议
 
- event_topic : "chain_destroy",
+####  4.1.1 向友链请求获取发行的资产总量   
 
-```json
-{
-    "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-        "chainId":1234,
-        "name":"name",
-        "addressType":1,
-        "assets":[
-            {
-                "assetId":1,
-                "symbol":"xxx",
-                "name":"xxx",
-                "depositNuls":20000,
-                "initTotal":1000000,
-                "minUnit":8,
-                "flag":true
-            }
-        ],
-        "magicNumber":1025753999,
-        "seeds":[
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            },
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            }
-        ],
-        "supportInflowAsset":true
-}
-```
+- 消息说明：定期链管理向友链发起发行资产总量数据请求消息。
+- cmd：requestAssetAmount
+
+| Length | Fields     | Type   | Remark |
+| ------ | ---------- | ------ | ------ |
+| 2      | chainId    | uint16 | 链Id   |
+| 2      | assetId    | uint16 | 资产id |
+| 4      | randomCode | uint32 | 随机数 |
+
+#### 4.1.1 接收友链回复的资产总量   
+
+- 消息说明：接收到友链对资产的回复。
+- cmd：responseAssetAmount
+
+| Length | Fields     | Type       | Remark   |
+| ------ | ---------- | ---------- | -------- |
+| 2      | chainId    | uint16     | 链Id     |
+| 2      | assetId    | uint16     | 资产id   |
+| 48     | amount     | biginteger | 资产总量 |
+| 4      | randomCode | uint32     | 随机数   |
 
 
 
 
+### 4.2 交易协议
 
-#### 4.1.3 对特定友链增加资产类型   
-
- event_topic : "asset_register",
-
-```json
-{
-	"chainId":1234,
-    "assetId":1,
-    "symbol":"xxx",
-    "name":"xxx",
-    "depositNuls":20000,
-    "initTotal":1000000,
-    "minUnit":8,
-    "flag":true
-}
-```
-
-
-
-
-
-#### 4.1.4 特定友链删除资产类型   
-
- event_topic : "asset_destroy",
-
-```json
-{
-	"chainId":1234,
-    "assetId":1,
-    "symbol":"xxx",
-    "name":"xxx",
-    "depositNuls":20000,
-    "initTotal":1000000,
-    "minUnit":8,
-    "flag":true
-}
-```
-
-
-
-
-
-
-## 五、协议
-
-### 5.1 网络通讯协议
-
-[^说明]: 节点间通讯的具体协议，参考《网络模块》
-
-#### 无
-
-
-
-
-### 5.2 交易协议
-
-##### 5.2.1 注册一条新的友链
+##### 4.2.1 注册一条新的友链
 
 与通用交易相比，只有类型和txData有区别，具体区别如下
 
-```json
-  type: n // 交易的类型   Uint16
-  txData:{
-      chainId:  //uint16 ,链id   uint16
-      链名称     //varString     不超过30个字节
-      
-      资产信息列表：资产id 标识、名称、初始总额、最小单位 资产是否可用	
-          [{
-              资产id： uint32	  
-              标识：//varString，用于查询资产总额，区分不同资产     不超过30个字节
-              名称：//varString，用于显示      不超过30个字节
-              初始总额：//varint         4个字节
-              最小单位://byte,代表小数点后多少位，     1个字节     
-              资产是否可用： 判断资产是否可以流通     1个字节	
-          }]
-          
-      地址类型：1，//byte : 1、NULS生态圈地址，2、其他    1个字节
-      最小可用节点数量 //uint16,    2个字节
-      单节点连接最小数量 //uint16,   2个字节
-      交易确认块数 //uint16,     2个字节
-      是否支持资产流入 //boolean,   1个字节
-  }
+交易类型定义：10101
 
-```
+txData定义
 
-说明：
-
-type序列化2个字节
-
- txData:{
-
-​	chhainId  2个字节
-
-​	chainName   =》 前面 1个字节记录长度，比如length=9 表示读后面的 9个字节组成 chainName
-
-​	Assets 资产列表需要序列化资产 对象 Asset   循环调用parse（byte[] b） 方法直到完成 
-
-​			[
-
-​				assetId   uint32
-
-​				symbol     前面 1个字节记录长度，比如length=9 表示读后面的 9个字节组成 symbol
-
-​				name         前面 1个字节记录长度，比如length=9 表示读后面的 9个字节组成 name         
-
-​				initTotal      占用 32个字节
-
-​				minUnit       占用1个字节
-
-​				flag              占用1个字节
-
-​			] 
-
-​	assetType   占用1个字节
-
-​	minAvailableNodeNum   占用2个字节
-
-​	singleNodeConMinNodeNum   占用2个字节
-
-​	txConfirmBlockNum    占用8个字节
-
-​	supportInflowAsset 占用1个字节
-
-}
+| Length | Fields                     | Type       | Remark           |
+| ------ | -------------------------- | ---------- | ---------------- |
+| 2      | chainId                    | uint16     | 链Id             |
+| ？     | name                       | byte[]     | 链名称           |
+| 1      | addressType                | uint8      | 地址类型         |
+| 4      | magicNumber                | uint32     | 魔法参数         |
+| 1      | supportInflowAsset         | uint8      | 是否支出资产流入 |
+| 2      | minAvailableNodeNum        | uint16     | 最小可用节点数   |
+| 2      | singleNodeMinConnectionNum | uint16     | 单节点最小连接数 |
+| ？     | address                    | byte[]     | 账户地址         |
+| 2      | assetId                    | uint16     | 资产id           |
+| ？     | symbol                     | byte[]     | 单位             |
+| ？     | assetName                  | byte[]     | 资产名称         |
+| 2      | depositNuls                | uint16     | 抵押NULS数量     |
+| 48     | initNumber                 | Biginteger | 资产初始数量     |
+| 1      | decimalPlaces              | uint8      | 资产最小分割位数 |
 
 
 
+##### 4.2.2 注销已经存在的友链  
 
+  与通用交易相比，只有类型和txData有区别，具体区别如下
 
-| 参数                    | 必选  | 类型        | 说明                                                      |
-| :---------------------- | :---- | :---------- | --------------------------------------------------------- |
-| type                    | true  | uint16      | tx类型                                                    |
-| chainId                 | ture  | uint16      | 链唯一id                                                  |
-| chainName               | true  | varString   | 链名称           不超过30个字节                           |
-| assets                  | true  | List<Asset> | 资产列表                                                  |
-| assetId                 | true  | uint32      | 资产id             4个字节                                |
-| symbol                  | true  | varString   | 资产标识         不超过30个字节                           |
-| name                    | true  | varString   | 资产名字        不超过30个字节                            |
-| initTotal               | true  | long        | 发行总量          32个字节                                |
-| minUnit                 | true  | byte        | 最小单位://byte,代表小数点后多少位，比如1nuls=100000000na |
-| flag                    | false | byte        | 资产是否可用  //0.不可用  1.可用                          |
-| addressType             | true  | byte        | 资产类型  1、NULS地址结构，2、其他                        |
-| minAvailableNodeNum     | true  | uint16      | 最小可用节点数量                                          |
-| singleNodeConMinNodeNum | true  | uint16      | 单节点连接最小数量                                        |
-| txConfirmBlockNum       | true  | Long        | 交易确认块数                                              |
-| supportInflowAsset      | true  | byte        | 是否支持资产流入   1支持，0不支持                         |
-| depositNuls             | false | Long        | 抵押金 （系统做）  比如nuls 抵押20000                     |
-| fee                     | false | Na          | 手续费（系统做）                                          |
-| signature               | false | byte[]      | 签名（系统做）                                            |
+  交易类型定义：10102
 
-##### - 验证器
-
-- chainId合法性 是否重复  chainId是由调用者生成表示有“意义”的一串数字
-- 各字段不为空、值在正确范围内
-- 抵押金验证器
-- 其他基本验证器
+  txData定义：同4.2.1 链注册交易
 
 
 
-##### - 处理器
-
-- 存储链信息
-- 存储资产信息
-- 在n（运行参数）块确认之后开始监听该链的魔法参数
-
-
-
-##### 5.2.2 注销已经存在的友链  
-
-协议   
+##### 4.2.3 新增友链资产
 
 与通用交易相比，只有类型和txData有区别，具体区别如下
 
-```json
-  type: n // 交易的类型 序列化2个字节
-  txData:{
-      chainId:  //uint16 ,链id  序列化2个字节
-  }
-```
+交易类型定义：10103
 
+txData定义：
 
+| Length | Fields        | Type       | Remark           |
+| ------ | ------------- | ---------- | ---------------- |
+| 2      | chainId       | uint16     | 链Id             |
+| 2      | assetId       | uint16     | 资产id           |
+| ？     | symbol        | byte[]     | 单位             |
+| ？     | assetName     | byte[]     | 资产名称         |
+| 2      | depositNuls   | uint16     | 抵押NULS数量     |
+| 48     | initNumber    | Biginteger | 资产初始数量     |
+| 1      | decimalPlaces | uint8      | 资产最小分割位数 |
+| ？     | address       | byte[]     | 账户地址         |
 
-##### - 验证器
+##### 4.2.2 注销已经存在的资产  
 
-- chainId合法性
-- 该链是否可以被该地址操作，权限验证
+  与通用交易相比，只有类型和txData有区别，具体区别如下
 
+  交易类型定义：10104
 
-
-##### - 处理器
-
-- 在n（运行参数）块之后停止该链所有跨链交易、解锁抵押金、从区块链中逻辑删除该链数据
-
-
-
-##### 5.2.3 对特定友链增加资产类型
-
-与通用交易相比，只有类型和txData有区别，具体区别如下 
-
-```json
- type: n // 交易的类型    序列化2个字节
-
-  txData:{
-
-    chainId: "" //uint16 ,链id    序列化2个字节
-
-    symbol:"" //varString，用于查询资产总额，区分不同资产    最多30个字节
-
-    name:""	//varString，用于显示   最大30个字节  
-
-    initTotal:"" //  占用 32个字节
-
-    minUnit:""	// byte,代表小数点后多少位,占用1个字节
-
-  }
-```
-
-
-
-##### - 验证器
-
-- chainId合法性
-- 各字段不为空、值在正确范围内
-- 抵押金验证器
-- 其他基本验证器
-
-
-
-##### - 处理器
-
-- 存储资产信息
-
-
-
-##### 5.2.4 特定友链删除资产类型
-
-与通用交易相比，只有类型和txData有区别，具体区别如下
-
-```json
-  type: n //交易的类型
-  txData:{
-      chainId:""  //uint16 ,链id
-      assetsId: ""   // ,资产Id
-  }
-```
-
-
-
-##### - 验证器
-
-- 资产合法性 
-- 资产是否可以被该地址操作，权限验证
-- 是否是该链最后一种资产
-
-
-
-##### - 处理器
-
-- 若该资产没有转移到发行链之外，则立刻停止该资产交易、解锁抵押金、从区块链中逻辑删除该资产数据
-  否则，在n（运行参数）块之后停止该资产交易、解锁抵押金、从区块链中逻辑删除该资产数据
+  txData定义：同4.2.3 资产新增交易
 
 
 
@@ -1023,15 +914,33 @@ type序列化2个字节
 
 [^说明]: 本模块必须要有的配置项
 
-| Parameter               | Type     | Description          |
-| ----------------------- | -------- | -------------------- |
-| deposit                 | long     | 注册友链所需的抵押金 |
-| minTxConfirmBlocks      | int      | 最小交易确认块数     |
-| maxTxConfirmBlock       | int      | 最大交易确认块数     |
-| maxSymbolLength         | int      | 最大货币符号长度     |
-| dependsModule           | string[] | 依赖的模块           |
-| minAvailableNodeNum     | int      | 最小可用节点数       |
-| singleNodeConMinNodeNum | int      | 单节点连接最小数量   |
+```
+[system]
+language = en
+encoding = UTF-8
+
+[db]
+rocksdb.datapath = ../data
+
+[param]
+asset_symbol_max = 5
+asset_name_max = 20
+asset_depositNuls = 200000
+asset_depositNuls_destroy_rate = 0.2
+asset_depositNuls_lock_rate = 0.8
+asset_initNumber_min = 10000
+asset_initNumber_max = 100000000
+asset_decimalPlaces_min = 4
+asset_decimalPlaces_max = 8
+asset_recovery_rate = 0.9
+
+[defaultAsset]
+nuls_chain_id = 8964
+nuls_chain_name = nuls chain
+nuls_asset_id = 1
+nuls_asset_initNumber_max = 100000000
+nuls_asset_symbol = NULS
+```
 
 
 

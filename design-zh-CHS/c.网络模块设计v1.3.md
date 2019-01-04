@@ -141,7 +141,7 @@
 ```
     0：chainId //链id
     1：nodeId //节点Id
-    2：messageBody //16进制网络序消息体
+    2：message //16进制网络序消息体
     ......
 ```
 
@@ -181,14 +181,10 @@
 
     ```
     {
-        "method":"nw_broadcast",
-        "minVersion":1.1,
-        "params":[
-            1234，
-            "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
-            "getBlock"
-        ]}
+       "chainId":1234，
+       "excludeNodes": "10.13.25.36:5003,20.30.25.65:8009",
+       "params":     "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+        }
     ```
 
   - 请求参数说明
@@ -197,8 +193,7 @@
     | ----- | ------------ | -------- | ------ | :---------------: |
     | 0     | chainId      | true     | int    |      链标识       |
     | 1     | excludeNodes | true     | String | 排除节点,逗号分割 |
-    | 2     | messageBody  | true     | String |  对象16进制字符   |
-    | 3     | command      | true     | String |  消息指令 12字节  |
+    | 2     | message      | true     | String |  对象16进制字符   |
 
   - 返回示例
 
@@ -252,24 +247,19 @@
 
     ```
     {
-        "method":"nw_sendPeersMsg",
-        "minVersion":1.1,
-        "params":[
-            1234，
-            "10.13.25.36:5003,20.30.25.65:8009",
-            "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3",
-            "getBlock"
-        ]}
+          "chainId":  1234，
+          "nodes":  "10.13.25.36:5003,20.30.25.65:8009",
+       "message":"03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+        }
     ```
 
   - 请求参数说明
 
-    | index | parameter   | required | type   |    description    |
-    | ----- | ----------- | -------- | ------ | :---------------: |
-    | 0     | chainId     | true     | int    |      链标识       |
-    | 1     | nodes       | true     | String | 发送节点,逗号分割 |
-    | 2     | messageBody | true     | String |  对象16进制字符   |
-    | 3     | command     | true     | String |  消息指令 12字节  |
+    | index | parameter | required | type   |    description    |
+    | ----- | --------- | -------- | ------ | :---------------: |
+    | 0     | chainId   | true     | int    |      链标识       |
+    | 1     | nodes     | true     | String | 发送节点,逗号分割 |
+    | 2     | message   | true     | String |  对象16进制字符   |
 
   - 返回示例
 
@@ -354,7 +344,7 @@
 
   1>卫星链通过 链管理模块调用来触发跨链节点组的创建。
 
-  2>友链链工厂也可以通过该接口来创建nodeGroup。
+  2>友链通过跨链协议模块来 更新自有网络组的跨链状态。
 
  ![](./image/network-module/createNodeGroup.png)
 
@@ -370,17 +360,14 @@
 
     ```
     {
-        "method":"nw_createNodeGroup",
-        "minVersion":1.1,
-        "params":[
-            1234,
-            232342,
-            10,
-            100,
-            20，
-            "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003",
-            0
-        ]}
+          "chainId":  1234,
+          "magicNumber": 232342,
+          "maxOut":  10,
+          "maxIn":  100,
+          "minAvailableCount":  20，
+          "seedIps":  "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003",
+          "isMoonNode":  0
+        }
     ```
 
   - 请求参数说明
@@ -431,81 +418,7 @@
 
 ​       依赖内核模块提供的远程的服务接口数据。
 
-#####  2.2.3.3  友链激活跨链连接
-
-- 功能说明：
-
-  卫星链上的跨链节点组由友链在卫星链进行跨链注册触发。友链则获得跨链配置信息，由跨链协议来更新自有网络组的跨链状态。
-
-- 流程描述
-
-  友链通过跨链协议模块来 更新自有网络组的跨链状态.
-
-- 接口定义
-
-  - 接口说明
-
-    接收跨链模块的调用，激活友链跨链
-
-    method : nw_activeCross
-
-  - 请求示例
-
-    ```
-    {
-        "method":"nw_activeCross",
-        "minVersion":1.1,
-        "params":[
-            1234,
-            10,
-            100,
-            "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003"
-        ]}
-    ```
-
-  - 请求参数说明
-
-    | index | parameter | required | type   |    description     |
-    | ----- | --------- | -------- | ------ | :----------------: |
-    | 0     | chainId   | true     | int    |       链标识       |
-    | 1     | maxOut    | true     | int    |   最大主动连接数   |
-    | 2     | maxIn     | true     | int    |   最大被动连接数   |
-    | 3     | seedIps   | true     | String | 种子节点，逗号分割 |
-
-  - 返回示例
-
-    Failed
-
-    ```
-    {
-       "version": 1.2,
-        "code":1,
-        "msg" :"xxxxxxxxxxxxxxxxxx",
-        "result":{}
-    }
-    ```
-
-    Success
-
-    ```
-    {
-     "version": 1.2,
-        "code":0,
-        "result":{
-           
-        }
-    }
-    ```
-
-  - 返回字段说明
-
-    | parameter | type | description |
-    | --------- | ---- | ----------- |
-    |           |      |             |
-
-- 依赖服务
-
-​       依赖内核模块提供的远程的服务接口数据。
+​     
 
 #### 2.2.4 注销节点组
 
@@ -531,11 +444,8 @@
 
     ```
     {
-        "method":"nw_delNodeGroup",
-        "minVersion":1.1,
-        "params":[
-            1234
-        ]}
+        "chainId": 1234
+        }
     ```
 
   - 请求参数说明
@@ -605,11 +515,8 @@
 
     ```
     {
-        "method":"nw_getSeeds",
-        "minVersion":1.1,
-        "params":[
-            1234
-        ]}
+        "chainId": 1234
+        }
     ```
 
   - 请求参数说明
@@ -677,14 +584,10 @@
 
     ```
     {
-        "method":"nw_addNodes",
-        "minVersion":1.1,
-        "params":[
-            1234，
-            1，
-           "10.20.23.02:5006,53.26.65.58:8003",
-           
-        ]}
+        "chainId":455，
+        "isCross":0,
+        "nodes":"10.20.23.02:5006,53.26.65.58:8003"
+           }
     ```
 
   - 请求参数说明
@@ -755,12 +658,9 @@
 
     ```
     {
-        "method":"nw_addNodes",
-        "minVersion":1.1,
-        "params":[
-            1234，
-           "10.20.23.02:5006,53.26.65.58:8003"
-        ]}
+        "chainId":234,
+        "nodes": "10.20.23.02:5006,53.26.65.58:8003"
+        }
     ```
 
   - 请求参数说明
@@ -832,11 +732,8 @@
 
     ```
     {
-        "method":"nw_reconnect",
-        "minVersion":1.1,
-        "params":[
-            1234
-        ]}
+        "chainId":1234
+        }
     ```
 
   - 请求参数说明
@@ -903,12 +800,9 @@
 
     ```
     {
-        "method":"nw_getGroups",
-        "minVersion":1.1,
-        "params":[
-            1,
-            10
-        ]}
+        "startPage":1,
+        "pageSize":10
+     }
     ```
 
   - 请求参数说明
@@ -991,14 +885,11 @@
 
   ```
   {
-      "method":"nw_getNodes",
-      "minVersion":1.1,
-      "params":[
-          1598,
-          0,
-          1,
-          50
-      ]
+      "chainId":125,
+      "state":1,
+      "isCross":1,
+      "startPage":1,
+      "pageSize":5
   }
   ```
 
@@ -1104,11 +995,8 @@
 
     ```
     {
-        "method":"nw_getGroupByChainId",
-        "minVersion":1.1,
-        "params":[
-            103
-        ]}
+        "chainId":142
+     }
     ```
 
   - 请求参数说明
@@ -1282,8 +1170,14 @@
     {
       "role": "bl",
       "protocolCmds": [
-        "getBlock",
-        "sendBlock"
+        {
+        "protocolCmd":"getBlock",
+        "handler":"getBlockRequest"
+        },
+        {
+        "protocolCmd":"sendBlock",
+        "handler":"downLoadBlock"
+        }
       ]
     }
     
@@ -1291,10 +1185,13 @@
 
   - 请求参数说明
 
-  | index | parameter    | required | type   | description  |
-  | ----- | ------------ | -------- | ------ | :----------: |
-  | 0     | role         | true     | String |   模块角色   |
-  | 1     | protocolCmds | true     | array  | 协议指令数组 |
+  | index | parameter    | required | type   |   description    |
+  | ----- | ------------ | -------- | ------ | :--------------: |
+  | 0     | role         | true     | String |     模块角色     |
+  | 1     | protocolCmds | true     | array  |   协议指令数组   |
+  | 2     | protocolCmd  | true     | String | 协议指令，12字节 |
+  | 3     | handler      | true     | String |  对应模块处理器  |
+  |       |              |          |        |                  |
 
   - 返回示例
 
@@ -1703,7 +1600,7 @@ data:{
 
 #### pong
 
-用于断开网络连接
+用于回应ping
 
 | Length | Fields     | Type   | Remark |
 | ------ | ---------- | ------ | ------ |
@@ -1723,13 +1620,11 @@ data:{
 
 #### Bye
 
-用于peer连接主动断开，拒绝业务消息连接
+ 用于对等连接主动断开连接，拒绝服务对端消息业务
 
 | Length | Fields  | Type  | Remark   |
 | ------ | ------- | ----- | -------- |
 | 1      | byeCode | uint8 | 预留字段 |
-
-
 
 ### 4.2 交易协议
 
