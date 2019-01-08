@@ -112,18 +112,18 @@
 
 | 字段         | 是否必填 | 数据类型 |         描述信息 |
 | ------------ | :------: | -------: | ---------------: |
-| chainId      |    Y     |   String | 接口调用链的链id |
+| chainId      |    Y     |      int | 接口调用链的链id |
 | address      |    Y     |   String | 要查询余额的地址 |
-| assetChainId |    Y     |   String |   资产发起的链ID |
-| assetId      |    Y     |   String |           资产ID |
+| assetChainId |    Y     |      int |   资产发起的链ID |
+| assetId      |    Y     |      int |           资产ID |
 
 ```json
 {
    
-    "chainId":"5",
+    "chainId":5,
     "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
-    "assetChainId":"34",
-    "assetId":"5",
+    "assetChainId":34,
+    "assetId":5,
 }
 ```
 
@@ -131,9 +131,9 @@
 
 ```json
 { 
-       "available": 10000000000,
-       "freeze": 200000000,
-       "total": 12000000000
+       "available": "10000000000",
+       "freeze": "200000000",
+       "total": "12000000000"
 }
 ```
 
@@ -157,18 +157,18 @@
 
 | 字段         | 是否必填 | 数据类型 |         描述信息 |
 | ------------ | :------: | -------: | ---------------: |
-| chainId      |    Y     |   String | 接口调用链的链id |
+| chainId      |    Y     |      int | 接口调用链的链id |
 | address      |    Y     |   String | 要查询余额的地址 |
 | assetChainId |    Y     |   String |   资产发起的链ID |
-| assetId      |    Y     |   String |           资产ID |
+| assetId      |    Y     |      int |           资产ID |
 
 ```json
 {
    
-    "chainId":"5",
+    "chainId":5,
     "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
-    "assetChainId":"34",
-    "assetId":"5",
+    "assetChainId":34,
+    "assetId":5,
 }
 ```
 
@@ -198,7 +198,7 @@
 
 | 字段         | 是否必填 | 数据类型 |         描述信息 |
 | ------------ | :------: | -------: | ---------------: |
-| chainId      |    Y     |   String | 接口调用链的链id |
+| chainId      |    Y     |      int | 接口调用链的链id |
 | address      |    Y     |   String | 要查询余额的地址 |
 | assetChainId |    Y     |   String |   资产发起的链ID |
 | assetId      |    Y     |   String |           资产ID |
@@ -206,7 +206,7 @@
 ```json
 {
    
-    "chainId":"5",
+    "chainId":5,
     "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
     "assetChainId":"34",
     "assetId":"5",
@@ -217,7 +217,7 @@
 
 ```json
 {
-    "available": 10000000000,
+    "available": "10000000000",
     "nonce": "xxxxx"
 }
 ```
@@ -235,11 +235,12 @@
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String | 接口调用链的链id |
+| chainId |    Y     |      int | 接口调用链的链id |
 | txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
+    "chainId": 458,
     "txHex": "xxxxxxxx"
 }
 ```
@@ -268,12 +269,12 @@
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String | 接口调用链的链Id |
+| chainId |    Y     |      int | 接口调用链的链Id |
 | txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
-    "chainId": "21"
+    "chainId": 21,
     "txHex": "xxxxxxxx"
 }
 ```
@@ -282,13 +283,13 @@
 
 ```json
 {
-    "result":1
+    "value":1
 }
 ```
 
-| 字段   | 数据类型 |             描述信息 |
-| ------ | :------: | -------------------: |
-| result |   int    | 1提交通过，0提交不过 |
+| 字段  | 数据类型 |             描述信息 |
+| ----- | :------: | -------------------: |
+| value |   int    | 1提交通过，0提交不过 |
 
 
 
@@ -300,11 +301,11 @@
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String | 接口调用链的链Id |
+| chainId |    Y     |      int | 接口调用链的链Id |
 
 ```json
 {
-     "chainId": "21"  
+     "chainId": 21  
 }
 ```
 
@@ -312,7 +313,7 @@
 
 ```json
 {
-    "result":1
+    "value":1
 }
 ```
 
@@ -328,12 +329,12 @@
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String | 接口调用链的链Id |
+| chainId |    Y     |      int | 接口调用链的链Id |
 | txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
-     "chainId": "21",
+     "chainId": 21,
      "txHex": "xxxxxxxx"
 }
 ```
@@ -358,12 +359,12 @@
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String | 接口调用链的链Id |
+| chainId |    Y     |      int | 接口调用链的链Id |
 | txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
-     "chainId": "21",
+     "chainId": 21,
      "txHex": "xxxxxxxx"
 }
 ```
@@ -372,7 +373,7 @@
 
 ```json
 {
-    "result":1
+    "value":1
 }
 ```
 
@@ -390,12 +391,12 @@
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |   String | 接口调用链的链Id |
+| chainId |    Y     |      int | 接口调用链的链Id |
 | txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
-     "chainId": "21",
+     "chainId": 21,
      "txHex": "xxxxxxxx"
 }
 ```
@@ -404,7 +405,7 @@
 
 ```json
 {
-    "result":1
+    "value":1
 }
 ```
 
@@ -423,9 +424,9 @@
 
 | 字段      |      是否可选  | 数据类型 |  描述信息 |
 |----------|:-------------:|--------:|--------:|
-| chainId | Y | String | 接口调用所在链链Id |
-| assetChainId |  Y | String |资产发起链的链ID |
-| assetId |  Y | String |资产ID |
+| chainId | Y | int | 接口调用所在链链Id |
+| assetChainId |  Y | int |资产发起链的链ID |
+| assetId |  Y | int |资产ID |
 
 ```json
 {
@@ -438,22 +439,22 @@
 
 ```json
 {
-    "chainId": "5",
-    "assetChainId": "12",
-    "assetId": "41",
+    "chainId": 5,
+    "assetChainId": 12,
+    "assetId": 41,
     "balance" : {
-      "available": 10000000000,
-      "freeze": 200000000,
-      "total": 12000000000
+      "available": "10000000000",
+      "freeze": "200000000",
+      "total": "12000000000"
     }
 }
 ```
 
 | 字段   |      数据类型      |  描述信息 |
 |----------|:-------------:|------:|
-| chainId |  String | 发起调用的链ID |
-| assetChainId | String | 资产发起的链链id |
-| assetId |  String | 资产ID |
+| chainId | int | 发起调用的链ID |
+| assetChainId | int | 资产发起的链链id |
+| assetId | int | 资产ID |
 | balance.available |  BigInteger | 可用余额 |
 | balance.freeze |  BigInteger | 冻结余额 |
 | balance.total |  BigInteger | 总资产余额 total = available+freeze  |
