@@ -1675,9 +1675,9 @@ broadcast to other nodes.
 
 Used for peer connection to disconnect actively, rejecting service message connection
 
-| Length | Fields  | Type  | Remark   |
-| ------ | ------- | ----- | -------- |
-| 1      | byeCode | uint8 | 预留字段 |
+| Length | Fields  | Type  | Remark |
+| ------ | ------- | ----- | ------ |
+| 1      | byeCode | uint8 |        |
 
   ### 4.2 Transaction agreement
 

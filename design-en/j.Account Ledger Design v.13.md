@@ -26,7 +26,7 @@
     - Strictly speaking, a nonce is an attribute of the originating address (it only makes sense in the context of the sending address). However, the nonce is not explicitly stored in the blockchain as part of the account status.
     - The nonce value is also used to prevent incorrect calculation of account balances. For example, suppose an account has 10 NULS balances and signs two transactions, all of which cost 6 NULS with nonce 1 and nonce 2, respectively. Which of the two transactions is valid? In a blockchain distributed system, nodes may receive transactions out of order. Nonce forces transactions of any address to be processed in order, regardless of the interval, regardless of the order in which the nodes receive. This way, all nodes will calculate the same balance. The transaction paying 6 Ethereum will be successfully processed and the account balance will be reduced to 4 ether. Whenever it is received, all nodes believe that the transaction with nonce 2 is invalid. If a node receives a nonce 2 transaction first, it will hold it, but will not verify it until it receives and processes the nonce 1 transaction.
     - Use nonce to ensure that all nodes calculate the same balance and correctly sort the transactions, which is equivalent to the mechanism used in Bitcoin to prevent "double payment". However, because Ethereum tracks account balances and does not track individual coins separately (called UTXO in Bitcoin), "double payments" occur only when the account balance is incorrectly calculated. The nonce mechanism prevents this from happening.
-  
+
 ### 1.2 Architecture
 > The core of the Ledger is assets management and ledger management.
 
@@ -67,13 +67,13 @@
     - Continuous transaction verification
 - Function Interface Management (rpc)
     - rpc interface for use by other modules
-  
+
 #### 2.3.2 Cold (offline) transaction processing
 > A cold wallet is an unconnected wallet, also called an offline wallet. A hot wallet is a wallet that keeps online, that is, an online wallet. Cold wallets are not more secure than hot wallets.
 
 > Since the cold wallet only signs the transaction information, the signed hex string is transmitted to the server through the hot wallet, and then the server performs unified transaction processing, so the client needs to perform the offline signature function.
 > The offline transaction system maintains the storage information of the nonce. After using a nonce, the nonce is saved in the business system.
- 
+
 ### 2.4 Ledger flowcharts
 #### 2.4.1 Transfer Transaction Process
 
@@ -99,298 +99,371 @@
 
 ![trx-validate-flow.png](image/ledger/trx-validate-flow.png)
 
-## 3. Interface Design
+## 3.Interface design
 
-### 3.1 Module Interface
-#### 3.1.1 Obtain asset information based on asset id
-> cmd: getAsset
+### 3.1 Module core interaction interface
 
-##### Parameter Description (request)
+#### 3.1.1  Get account balance
 
-| Field | Optional | Data Type | Description |
-|----------|:-------------:|--------:|--------:|
-| chainId | Y | String | Chain ID |
-| assetId | Y | String | Asset ID |
-
-```json
-{
-  "cmd": "getAsset",
-  "minVersion": "1.0",
-  "params":["chainId","assetId"]
-}
-```
-##### Return value description (response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result":{
-    "chainId": "mainChainId",
-    "asset_id": "xxxxxx",
-    "balance" : {
-      "available": 10000000000,
-      "freeze": 200000000,
-      "total": 12000000000
-    }
-  }
-}
-```
-
-| Field | Data Type | Description Information |
-|----------|:-------------:|------:|
-| chainId | String | Chain ID |
-| asset_id | String | Asset ID |
-| balance.available | BigInteger | Available Balances |
-| balance.freeze | BigInteger | Freeze balance |
-| balance.total | BigInteger | Total Assets Balance total = available+freeze |
-
-
-#### 3.1.2 Querying the asset list
-> cmd: getAssets
-
-##### Parameter Description (request)
-
-```json
-{
-  "cmd": "getAssets",
-  "minVersion": "1.0",
-  "params":[]
-}
-```
-##### Return value description (response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": [
-      {
-        "chainId": "mainChainId",
-        "asset_id": "xxxxxx",
-        "balance" : {
-          "available": 10000000000,
-          "freeze": 200000000,
-          "total": 12000000000
-        }
-      },
-      {
-        "chainId": "friendChainId",
-        "asset_id": "xxxxxxyyyyyy",
-        "balance" : {
-          "available": 10000000000,
-          "freeze": 200000000,
-          "total": 12000000000
-        }
-    }
-  ]
-}
-```
-
-| Field | Data Type | Description Information |
-|----------|:-------------:|------:|
-| chainId | String | Chain ID |
-| asset_id | String | Asset ID |
-| balance.available | BigInteger | Available Balances |
-| balance.freeze | BigInteger | Freeze balance |
-| balance.total | BigInteger | Total Assets Balance total = available+freeze |
-
-
-#### 3.1.3 Querying User Balance
 > cmd: getBalance
 
 ##### Parameter Description (request)
 
-| Field | Optional | Data Type | Description |
-|----------|:-------------:|--------:|--------:|
-| chainId | Y | String | Chain ID |
-| assetId | Y | String | Asset ID |
-| address | Y | String | To find the address of the balance |
+| Field        | Required or not |   type |                                 desc |
+| ------------ | :-------------: | -----: | -----------------------------------: |
+| chainId      |        Y        |    int | Chain id of the interface call chain |
+| address      |        Y        | String |     The address to check the balance |
+| assetChainId |        Y        |    int |             Asset-initiated chain ID |
+| assetId      |        Y        |    int |                             Asset ID |
 
 ```json
 {
-  "cmd": "getBalance",
-  "minVersion": "1.0",
-  "params":[
-    "chainId",
-    "assetId",
-    "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
-  ]
+   
+    "chainId":5,
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":34,
+    "assetId":5,
 }
 ```
+
 ##### Return value description (response)
 
 ```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-  "balance" : {
-       "available": 10000000000,
-       "freeze": 200000000,
-       "total": 12000000000
-     }
-  }
+{ 
+       "available": "10000000000",
+       "freeze": "200000000",
+       "total": "12000000000"
 }
 ```
 
-> Description: 1NULS=10^8Na
+> remarks: 1NULS=10^8Na
 
-| Field | Data Type | Description Information |
-|----------|:-------------:|------:|
-| balance.available | BigInteger | Available Balances |
-| balance.freeze | BigInteger | Freeze balance |
-| balance.total | BigInteger | Total Assets Balance total = available+freeze |
+| Field     |    type    |                     DESC |
+| --------- | :--------: | -----------------------: |
+| available | BigInteger |        Available Balance |
+| freeze    | BigInteger |                   freeze |
+| total     | BigInteger | total = available+freeze |
 
-#### 3.1.4 Get the account coinData
-> cmd: getCoinData
+
+
+#### 3.1.2 Get the current account nonce value
+
+> cmd: getNonce
+>
+>
+
+##### Parameter Description(request)
+
+| Field        | Required or not |   type |                                 desc |
+| ------------ | :-------------: | -----: | -----------------------------------: |
+| chainId      |        Y        |    int | Chain id of the interface call chain |
+| address      |        Y        | String |     The address to check the balance |
+| assetChainId |        Y        | String |             Asset-initiated chain ID |
+| assetId      |        Y        |    int |                             Asset ID |
+
+```json
+{
+   
+    "chainId":5,
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":34,
+    "assetId":5,
+}
+```
+
+##### Return value description(response)
+
+```json
+{
+   "nonce":"xxxxxxxxxxx"，
+   "nonceType":1
+}
+```
+
+
+
+| Field     |  Type  |                                                         Desc |
+| --------- | :----: | -----------------------------------------------------------: |
+| nonce     | String |                                    Spending transaction hash |
+| nonceType |  int   | 1The last transaction has been confirmed, 0 the transaction has not been confirmed |
+
+
+
+#### 3.1.3 Get balance and nonce value
+
+> cmd: getBalanceNonce
 
 ##### Parameter Description (request)
 
-| Field | Optional | Data Type | Description |
-|----------|:-------------:|--------:|--------:|
-| chainId | Y | String | Chain ID |
-| assetId | Y | String | Asset ID |
-| address | Y | String | To find the address of the balance |
+##### 
+
+| Field        | Required or not |   type |                                 desc |
+| ------------ | :-------------: | -----: | -----------------------------------: |
+| chainId      |        Y        |    int | Chain id of the interface call chain |
+| address      |        Y        | String |     The address to check the balance |
+| assetChainId |        Y        | String |             Asset-initiated chain ID |
+| assetId      |        Y        |    int |                             Asset ID |
 
 ```json
 {
-"cmd": "getCoinData",
-"minVersion": "1.0",
-"params":[
-  "chainId",
-  "assetId",
-  "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
-  ]
+   
+    "chainId":5,
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":"34",
+    "assetId":"5",
 }
 ```
 
-##### Return value description: (response)
+##### Return value description：(response)
 
 ```json
 {
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-    "available": 10000000000,
-    "nonce": "xxxxx"
-  }
+    "available": "10000000000",
+    "nonce": "xxxxx"
 }
 ```
 
-| Field | Data Type | Description Information |
-|----------|:-------------:|------:|
-| available | BigInteger | User Available Balance |
-| nonce | String | The random value of the account, which holds the hash of the user's last transaction. |
+| Field     |    Type    |                                                         Desc |
+| --------- | :--------: | -----------------------------------------------------------: |
+| available | BigInteger |                                       User available balance |
+| nonce     |   String   | A random value of the account that holds the hash of the user's last transaction. |
 
-#### 3.1.5 Saving unconfirmed transactions
-> cmd: saveTx
+#### 3.1.4  Verify coinData
 
-##### Parameter Description (request)
-
-| Field | Optional | Data Type | Description |
-|----------|:-------------:|--------:|--------:|
-| chainId | Y | String | Chain ID |
-| txHash | Y | String | Trading hash |
-| txHexData | Y | String | Trading Data HEX Format |
-
-```json
-{
-"cmd": "saveTx",
-"minVersion": "1.0",
-"params":[
-  "chainId",
-  "txHash",
-  "txHexData"
-  ]
-}
-```
-
-##### Return value description: (response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      
-  }
-}
-```
-
-#### 3.1.6 Deleting unconfirmed transactions
-> cmd: deleteTx
-
-##### Parameter Description (request)
-
-| Field | Optional | Data Type | Description |
-|----------|:-------------:|--------:|--------:|
-| chainId | Y | String | Chain ID |
-| txHash | Y | String | Trading hash |
-
-```json
-{
-"cmd": "deleteTx",
-"minVersion": "1.0",
-"params":[
-  "chainId",
-  "txHash"
-  ]
-}
-```
-
-##### Return value description: (response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      "txHash": "txHash"
-  }
-}
-```
-#### 3.1.7 Verifying coinData
 > cmd: validateCoinData
 
 ##### Parameter Description (request)
 
-| Field | Optional | Data Type | Description |
-|----------|:-------------:|--------:|--------:|
-| from | Y | String | Transactions from |
-| nonce | Y | String | nonce value of trading account |
-| to | Y | String | Transaction Destination |
+| Field   | Required or not |   Type |                                 desc |
+| ------- | :-------------: | -----: | -----------------------------------: |
+| chainId |        Y        |    int | Chain id of the interface call chain |
+| txHex   |        Y        | String |               Transaction hex stream |
 
 ```json
 {
-"cmd": "validateCoinData",
-"minVersion": "1.0",
-"params":[
-  "from",
-  "nonce",
-  "to"
-  ]
+    "chainId": 458,
+    "txHex": "xxxxxxxx"
 }
 ```
 
-##### Return value description: (response)
+##### Return value description：(response)
 
 ```json
 {
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      "value": true
-  }
+    "validateCode":1,
+    "validateDesc":"success" 
 }
 ```
+
+| Field        |  Type  |                                                         Desc |
+| ------------ | :----: | -----------------------------------------------------------: |
+| validateCode |  int   | 1 check pass, 2 orphan trade 3 double flower 4 other abnormalities |
+| validateDesc | String |                                     Check return description |
+
+
+
+#### 3.1.5  Submit unconfirmed transaction
+
+> cmd: commitUnconfirmedTx
+
+##### Parameter Description (request)
+
+| Field   | Required or not |   Type |                                 desc |
+| ------- | :-------------: | -----: | -----------------------------------: |
+| chainId |        Y        |    int | Chain id of the interface call chain |
+| txHex   |        Y        | String |               Transaction hex stream |
+
+```json
+{
+    "chainId": 21,
+    "txHex": "xxxxxxxx"
+}
+```
+
+##### Return value description：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| Field  | Type |             Desc |
+| ----- | :------: | -------------------: |
+| value |   int    | 1 submission passed, 0 submission failed |
+
+
+
+#### 3.1.6  Batch verification notify
+
+> cmd: bathValidateBegin
+
+##### Parameter Description (request)
+
+| Field   | Required or not | Type |             desc |
+| ------- | :-------------: | ---: | ---------------: |
+| chainId |        Y        |  int | 接口调用链的链Id |
+
+```json
+{
+     "chainId": 21  
+}
+```
+
+##### Return value description：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| Field  | Type |     Desc     |
+| ------ | :--: | :----------: |
+| result | int  | 1成功，0失败 |
+
+#### 3.1.7  Receive batch verification one by one
+
+> cmd: bathValidatePerTx
+
+##### Parameter Description (request)
+
+| Field   | Required or not |   Type |                                 Desc |
+| ------- | :-------------: | -----: | -----------------------------------: |
+| chainId |        Y        |    int | Chain id of the interface call chain |
+| txHex   |        Y        | String |               Transaction hex stream |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### Return value description：(response)
+
+```json
+{
+    "result":1
+}
+```
+
+| Field  | Type |                Desc |
+| ------ | :--: | ------------------: |
+| result | int  | 1 success, 0 failed |
+
+#### 3.1.8  Submit confirmation transactions one by one
+
+> cmd: commitConfirmTx
+
+##### Parameter Description (request)
+
+| Field   | Required or not |   Type |                                 Desc |
+| ------- | :-------------: | -----: | -----------------------------------: |
+| chainId |        Y        |    int | Chain id of the interface call chain |
+| txHex   |        Y        | String |               Transaction hex stream |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### Return value description：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| Field  | Type |               Desc |
+| ------ | :--: | -----------------: |
+| result | int  | 1Success，0 failed |
+
+
+
+#### 3.1.9  Rollback transaction
+
+> cmd: rollBackConfirmTx
+
+##### Parameter Description (request)
+
+| Field   | Required or not |   Type |                                 desc |
+| ------- | :-------------: | -----: | -----------------------------------: |
+| chainId |        Y        |    int | Chain id of the interface call chain |
+| txHex   |        Y        | String |               Transaction hex stream |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### Return value description：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| Field  | Type |               Desc |
+| ------ | :--: | -----------------: |
+| result | int  | 1Success，0 failed |
+
+
+
+### 3.2 Other interface
+
+#### 3.2.1 Obtain asset information based on asset id
+
+> cmd: getAsset
+
+##### Parameter Description (request)
+
+| Field        | Required or not |   type |                                 desc |
+| ------------ | :-------------: | -----: | -----------------------------------: |
+| chainId      |        Y        |    int | Chain id of the interface call chain |
+| assetChainId |        Y        | String |             Asset-initiated chain ID |
+| assetId      |        Y        |    int |                             Asset ID |
+
+```json
+{
+  "chainId": 5,
+  "assetChainId": 12,
+  "assetId": 41
+}
+```
+
+##### Return value description (response)
+
+```json
+{
+    "chainId": 5,
+    "assetChainId": 12,
+    "assetId": 41,
+    "balance" : {
+      "available": "10000000000",
+      "freeze": "200000000",
+      "total": "12000000000"
+    }
+}
+```
+
+| Field             |    Type    |                                Desc |
+| ----------------- | :--------: | ----------------------------------: |
+| chainId           |    int     | The chain ID of the initiating call |
+| assetChainId      |    int     |            Asset-initiated chain id |
+| assetId           |    int     |                            Asset ID |
+| balance.available | BigInteger |                   Available Balance |
+| balance.freeze    | BigInteger |                      Freeze balance |
+| balance.total     | BigInteger |            total = available+freeze |
+
+
+
 ## 4. Description of the event
 
 > does not depend on any events
@@ -399,7 +472,7 @@
 
 ### 5.1 Network Communication Protocol
 
-no
+NA
 
 ### 5.2 Trading Agreement
 
@@ -422,3 +495,6 @@ no
 
 ### References Literature
 - [Proficient in Ethereum - Chapter 7 Transaction](https://github.com/inoutcode/ethereum_book/blob/master/%E7%AC%AC%E4%B8%83%E7%AB%A0.asciidoc)
+```
+
+```
