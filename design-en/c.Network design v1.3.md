@@ -1277,6 +1277,67 @@ none
 
     none
 
+#### 2.2.14 Network time acquisition
+
+- Function Description：
+
+  Get network time for local time offset synchronization.
+
+* Process description
+
+The network module obtains the time of several servers on the network and performs offset calculation adjustment. If the network time acquisition fails, the time acquisition protocol is sent to 10 peer nodes to obtain the peer node time for deviation calculation. If it is not available, it returns directly to the local time.
+
+Time corrections are performed periodically. 
+
+- Interface definition
+
+  - Interface Description
+
+    Get network time
+
+    method : nw_currentTimeMillis
+
+  - Request example
+
+    ```
+    RPC unified format
+    ```
+
+  - Request parameter description
+
+  | index | parameter | required | type | description |
+  | ----- | --------- | -------- | ---- | :---------: |
+  |       |           |          |      |             |
+
+  - Return example
+
+  Failed
+
+  ```
+  RPC unified format
+  ```
+
+  Success
+
+  ```
+  {
+     "currentTimeMillis":11544545466 
+  }
+  
+  
+  
+  ```
+
+  - Return field description
+
+| parameter         | type | description                                                |
+| ----------------- | ---- | ---------------------------------------------------------- |
+| currentTimeMillis | long | Difference from 1970-01-01 to the present, in milliseconds |
+
+- Dependent service
+
+​    无
+
 ## 2.3 Module internal function
 
   #### 2.3.1Module start
@@ -1675,9 +1736,32 @@ broadcast to other nodes.
 
 Used for peer connection to disconnect actively, rejecting service message connection
 
-| Length | Fields  | Type  | Remark   |
-| ------ | ------- | ----- | -------- |
-| 1      | byeCode | uint8 | 预留字段 |
+| Length | Fields  | Type  | Remark |
+| ------ | ------- | ----- | ------ |
+| 1      | byeCode | uint8 |        |
+
+#### getTime
+
+Used to get time from the peer node
+
+| Length | Fields    | Type   | Remark    |
+| ------ | --------- | ------ | --------- |
+| 4      | messageId | uint32 | messageId |
+
+ 
+
+#### responseTime
+
+Reply to peer node time
+
+| Length | Fields    | Type   | Remark    |
+| ------ | --------- | ------ | --------- |
+| 4      | messageId | uint32 | messageId |
+| 4      | time      | uint32 | time      |
+
+ 
+
+
 
   ### 4.2 Transaction agreement
 

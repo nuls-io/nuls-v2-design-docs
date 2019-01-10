@@ -2,859 +2,916 @@
 
 [TOC]
 
-## 1. Overall description
+## 1、General description
 
-### 1.1 Summary
+### 1.1 Module overview
 
-#### 1.1.1 Why need chain management module?
+#### 1.1.1 Why do you have a Chain Management module
 
-* NULS2.0 supports multi chain and cross chain transactions, so a module is needed to manage chain information.
+In NULS 1.0, there is only one chain (NULS main network), so no chain management module is required.
 
-* identification
+In NULS 2.0, the NULS main network can register other friend information, including:        
 
-  * Satellite chain: The core chain of NULS2.0
-  * Friends chain: Any other chain that links only to the satellite chain, any cross chain transaction is maintained by the satellite chain.
-  * Cross chain: the transaction between friend chain A and friend chain B is defined as "cross chain".
+- Chains in the NULS ecosystem: Derived from the same set of code as the NULS main network.
+- Other chains: Bitcoin, Ethereum, etc.
 
-
-#### 1.1.2 What should chain management do?
-
-All maintenance operations for chain (friend chain) should be in the chain management module.
-
-* Register chain
-* Destroy chain
-* Query chain information
-* Register asset
-* Destroy asset
+The Chain Management module is used to manage all the friends that join the NULS main network.
 
 
 
-#### 1.1.3 Positioning of chain management in system
+Glossary：
 
-In the NULS 2.0 ecosystem chain system, "chain management" belongs to the satellite chain and friend chain has a different module, satellite chain provides all the interfaces, in the friend chain is only contains  query chain interface.
-
-
-Chain Management is a general module in the system. It not only calls the interfaces of other modules, but also other modules call the interfaces of Chain Management.
+- NULS main network: Unlike NULS 1.0, it is another chain that runs independently, also known as NULS 2.0."Chain Management" is one of the modules of the NULS main network.
+- Friends Chain: Other chains registered on the NULS main website.
 
 
 
-### 1.2 Architecture diagram
+Hypothesis 1: Friendship A, which owns asset A
+
+Hypothesis 2: Friendship B, which owns asset B
+
+- Cross-chain trading：
+  - Friend chain A transfers asset A to friend chain B
+  - Friendship B internal transfer of assets A
+  - Friend Chain B turns asset A back to friend chain A
+  - Friendship B transfers asset A to other friends (C, D, etc.)
+- Non-cross-chain trading：
+  - Friend Chain A Internal Transfer Asset A
+  - Friendship B internal transfer of assets B
+
+Remarks: Regardless of the assets in the chain or the assets outside the chain, as long as the assets are traded across the chain, the main network needs to be confirmed.
 
 
 
-## 2. Function design
+
+#### 1.1.2  What does "Chain Management" do?
+
+The Chain Management module is used to manage basic information about the chain that joins the NULS main network, including:
+
+* Sign up for a new friend chain
+* Destroy existing friendship chains
+* Query friend information
+* Increase the asset type for a specific friend chain
+* Destroy asset type for a specific friend chain
+* Cross-chain asset verification
+
+
+
+#### 1.1.3  The Positioning of "Chain Management" in the System
+
+"chain management"  dependent module：
+
+- Kernel module
+- Network module
+- Transaction management module
+- Account module
+
+   "chain management" weakly dependent module：
+
+- Event bus module
+
+
+
+### 1.2 Module internal architecture diagram
+
+
+
+![](./image/chainModule/architecture.png)
+
+
+
+## 2、feature design
 
 ### 2.1 Functional architecture diagram
 
+
+
+![](./image/chainModule/structure.png)
+
 ### 2.2 Module service
 
-#### 2.2.1 Chain registration and storage
+#### 2.2.1 Sign up for a new friend chain
 
-* Function Description
+* Function Description：
 
-  Provide an entry to do chain registration.
+  he NULS main network will provide an entry (web page) through which you can register a new friend chain to the NULS main network.
 
 * Process description
 
-  ![](image/chainModule/chainRegister.png)
 
 
+  ![](./image/chainModule/chainRegister.png)
 
+步骤描述：
 
-### 2.3 Module internal function
+Step description:
 
+    1> The user registers the registration chain information with the terminal and the asset information initialized with the chain.
+    
+    2> The chain management module performs the encapsulation of the chain transaction and sends it to the transaction module.
+         During the period, you need to obtain the account balance and the transaction nonce value through the ledger module.
+          And the seed node information of the cross-chain is obtained through the network module and returned to the user.
+    
+    3>The transaction module will perform a callback of the data check during the transaction process.
+    
+    4>The chain management module performs registration data submission through the transaction module callback interface of the “submission chain registration transaction”.
+    
+    5> The chain management module stores the data and sends the registration information to the network module.
+    
+    6> The registration chain requires 1000NULS, of which 20% is directly destroyed, 80% is used for mortgages, and is returned when assets are deleted.
+  
 
+- Interface definition
 
-## 3. Interface design
+  - Interface Description
 
-### 3.1 Module interface
+  ​      Register friendchain information with the chain management module.
 
-#### Get chain information
+  ​        method : cm_chainReg
 
-- Description
-  Get a chain detail information
+  - Request example
 
-- Request example
-  ```json
+  ```
   {
-      "cmd":"chainInfo",
-      "minVersion":"1.1",
-      "params":[1234]
+          "chainId": 152,
+          "chainName": "nuls chain",
+          "addressType": "1",
+          "magicNumber":454546,
+          "supportInflowAsset":"1",
+          "minAvailableNodeNum":5,
+          "singleNodeMinConnectionNum":5,
+          "txConfirmedBlockNum":30,
+          "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "assetId":85,
+          "symbol":"NULS",
+          "assetName":"NULS CHAIN",
+          "initNumber":"1000000000",
+          "decimalPlaces":8,
+          "password":"xxxxxxxxxxxxx"
+          
   }
   ```
-- Request parameter specification
+  - Request parameter description
 
-  | index | parameter | required | type    | description |
-  | ----- | :-------- | :------- | :------ | ----------- |
-  | 0     | chainId   | true     | integer | 链标识      |
+  | parameter               | required | type   | description                                                  |
+  | :---------------------- | :------- | :----- | ------------------------------------------------------------ |
+  | chainId                 | true     | int    | Chain identification                                         |
+  | chainName               | true     | string | Chain name                                                   |
+  | addressType             | true     | int    | The address type of the account created on the chain: 1 within the ecological 2 non-ecological |
+  | magicNumber             | true     | string | Network magic parameter                                      |
+  | minAvailableNodeNum     | true     | int    | Minimum number of available nodes                            |
+  | singleNodeConMinNodeNum | true     | int    | Minimum number of single node connections                    |
+  | txConfirmBlockNum       | true     | int    | Transaction confirmation block number                        |
+  | symbol                  | true     | string | Asset symbol                                                 |
+  | assetName               | true     | string | Asset Name                                                   |
+  | initNumber              | true     | string | Initial value of assets                                      |
+  | decimalPlaces           | true     | int    | Minimum asset separable digits                               |
+  | address                 | true     | string | Create the primary network address of the chain              |
+  | password                | true     | string | Password corresponding to the private key                    |
 
-- Response example
-  Failed
+  - Return example
 
-  ```json
+     Failed
+
+     ```
+     Unified RPC standard format
+     
+     ```
+
+     Success
+
+     ```
+     {
+     "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
+     }
+     
+     ```
+
+  - Return field description
+
+  | parameter | type   | description |
+  | --------- | ------ | ----------- |
+  | seeds     | String | Seed node   |
+
+
+* Dependent service
+
+  - Network management module
+  - Transaction management module, send transaction
+  - Account book module, get the book information
+
+
+
+
+#### 2.2.2  Log out of existing friends
+
+- Function Description：
+
+  The NULS main network will provide an entry (web page) through which you can log out existing friends.
+
+- Process description
+
+  ![](./image/chainModule/chainDestroy.png)
+
+   1>The chain is created with the asset, so the logout chain must be checked for assets. Only the last asset will be deleted and the chain will be logged off.
+
+  2>Conditions for determining whether to allow cancellation:
+
+​        Assets and chains exist.
+
+​       There is only one last asset with the chain.
+
+​       Chain assets have n% of assets in their own main chain.
+
+3>The chain management module performs the encapsulation of the chain transaction and sends it to the transaction module.
+
+​       During the period, you need to obtain the account balance and the transaction nonce value through    the ledger module.
+
+4>The transaction module will perform a callback of the data check during the transaction process.
+
+5>The chain management module performs the logout data submission through the transaction module callback interface of the “commit chain cancellation transaction”.
+
+6>The chain management module stores the data and sends the registration information to the network module.
+
+7>Deleting the chain with the cancelled assets will return 80% of the mortgage deposit.
+
+- Interface definition
+
+  - Interface Description
+
+  ​        Unregister the chain information to the chain management module (the asset logout interface is called because the chain is logged off with the last asset)
+
+  ​        method : cm_assetDisable
+
+  - Request example
+
+  ```
   {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
+          "chainId": 152,
+          "assetId": 45,
+          "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "password":"xxxxxxxxxxxxx"
+          
   }
   ```
 
-  Success
-    ```json
-    {
-      "code":10000,
-      "msg":"",
-      "version":"",
-      "result":{        "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-          "chainId":1234,
-          "name":"name",
-          "addressType":1,
-          "assets":[
-              {
-                  "assetId":1,
-                  "symbol":"xxx",
-                  "name":"xxx",
-                  "depositNuls":20000,
-                  "initTotal":1000000,
-                  "minUnit":8,
-                  "flag":true
-              }
-          ],
-          "magicNumber":1025753999,
-          "seeds":[
-              {
-                  "ip":"xxx.xxx.xxx.xxx",
-                  "port":8001
-              },
-              {
-                  "ip":"xxx.xxx.xxx.xxx",
-                  "port":8001
-              }
-          ],
-          "supportInflowAsset":true
-      }
-  }
+  - Request parameter description
+
+  | parameter | required | type   | description                                          |
+  | :-------- | :------- | :----- | ---------------------------------------------------- |
+  | chainId   | true     | int    | Chain identification                                 |
+  | assetId   | true     | int    | Asset id                                             |
+  | address   | true     | string | Create the main network account address of the chain |
+  | password  | true     | string | Password corresponding to the private key            |
+
+  - Return example
+
+    Failed
+
+    ```
+    Unified RPC standard format
+    
     ```
 
-- Response field specification
-  | parameter          | type                     | description                                    |
-  | ------------------ | ------------------------ | ---------------------------------------------- |
-  | hash               | integer                  | hashcode of the chain                          |
-  | chainId            | integer                  | chain id                                       |
-  | name               | string                   | chain name                                     |
-  | addressType        | integer                  | Address type of account created on the chain   |
-  | assets             | jsonArray【AssetObject】 | Array data: asset object                       |
-  | magicNumber        | integer                  | magic number                                   |
-  | seeds              | jsonArray                | ip: ip address of seed<br />port: port of seed |
-  | supportInflowAsset | boolean                  | Do support asset inflow?                       |
+    Success
 
-  Asset Object
+    ```
+    Unified RPC standard format
+    
+    ```
 
-  | parameter   | type        | description                                                  |
-  | ----------- | ----------- | ------------------------------------------------------------ |
-  | assetId     | integer     | asset id                                                     |
-  | symbol      | string      | asset unit                                                   |
-  | name        | string      | asset name                                                   |
-  | depositNuls | integer     | Total nuls of deposit                                        |
-  | initTotal   | big integer | Total initial assets                                         |
-  | minUnit     | byte        | The smallest unit<br /> (representing the number of places after the decimal point) |
-  | flag        | boolean     | Are assets available?                                        |
+  - Return field description
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
+- Dependent service
+
+  - Network management module
+  - Transaction management module, send transaction
+  - Ledger module, checkbook information
+
+#### 2.2.3  Increase asset information
+
+- Function Description：
+
+  The NULS main network will provide an entry (web page) through which the selection chain and registered assets can be registered.
+
+- Process description
+
+![](./image/chainModule/assetRegister.png)
 
 
 
-### 3.2 Functional interface
+Step description:
+​    1>The user enters the asset information through the terminal selection chain and the chain: judge whether the assets overlap.
+​    2> The chain management module performs the encapsulation of the chain transaction and sends it to the transaction module.
+​        During the period, you need to obtain the account balance and the transaction nonce value through the ledger module.
+​    3> The transaction module will perform a callback of the data check during the transaction process.
+​    4> The chain management module performs registration data submission through the transaction module callback interface of “submit asset registration transaction”.
+​    5> Registered assets receive 1000NULS, of which 20% are directly destroyed, 80% are used for mortgage, and returned when assets are deleted.
 
-#### Chain registration
+- Interface definition
 
-- Interface description
-  Register a new chain
+  - Interface Description
 
-- Request example
+  ​        Register asset information with the chain management module
 
-  ```json
+  ​        method : cm_assetReg
+
+  - Request example
+
+  ```
   {
-      "cmd":"chainRegister",
-      "minVersion":1,
-      "params":[
-          1234,
-          "name",
-          1,
-          [
-              {
-                  "assetId":1,
-                  "symbol":"xxx",
-                  "name":"xxx",
-                  "depositNuls":20000,
-                  "initTotal":1000000,
-                  "minUnit":8,
-                  "flag":true
-              }
-          ],        
-          1,
-          1,
-          "xxx",
-          1
-      ]
+          "chainId": 152,
+          "assetId":85,
+          "symbol":"NULS",
+          "assetName":"NULS",
+          "initNumber":"1000000000",
+          "decimalPlaces":8,
+           "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "password":"xxxxxxxxxxxxx"
+          
   }
   ```
 
-- Request parameter specification
+  - 请求参数说明
 
-  | index | parameter               | required | type                     | description                                  |
-  | ----- | :---------------------- | :------- | :----------------------- | -------------------------------------------- |
-  | 0     | chainId                 | true     | integer                  | chain id                                     |
-  | 1     | chainName               | true     | string                   | chain name                                   |
-  | 2     | addressType             | true     | string                   | Address type of account created on the chain |
-  | 3     | assets                  | true     | jsonArray【AssetObject】 | Array data: asset object                     |
-  | 4     | minAvailableNodeNum     | true     | integer                  | Minimum number of available nodes            |
-  | 5     | singleNodeConMinNodeNum | true     | integer                  | Minimum number of single node connections    |
-  | 6     | txConfirmBlockNum       | true     | integer                  | Transaction confirmation block numbers       |
-  | 7     | supportInflowAsset      | true     | boolean                  | Do we support asset inflow?                  |
+  | parameter     | required | type   | description                                     |
+  | :------------ | :------- | :----- | ----------------------------------------------- |
+  | chainId       | true     | int    | Chain identification                            |
+  | symbol        | true     | string | Asset symbol                                    |
+  | assetName     | true     | string | Asset Name                                      |
+  | initNumber    | true     | string | Initial value of assets                         |
+  | decimalPlaces | true     | int    | Minimum asset separable digits                  |
+  | address       | true     | string | Create the primary network address of the chain |
+  | password      | true     | string | Password corresponding to the private key       |
 
-- Response example
-  Failed
+  - Return example
 
-  ```json
+    Failed
+
+    ```
+    Unified RPC standard format
+    ```
+
+    Success
+
+    ```
+    Unified RPC standard format
+    ```
+
+  - Return field description
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
+
+- Dependent service
+
+  - Transaction management module, send transaction
+  - Account book module, get the book information
+
+
+
+#### 2.2.4 Deleting an asset type for a specific friend chain
+
+- Function Description：
+
+  The NULS main network will provide an entry (web page) through which the assets can be destroyed for the specified friend chain.
+
+- Process description
+
+  ![](./image/chainModule/assetDestroy.png)
+
+  Step description:
+  1> When there are multiple assets registered, the single asset is allowed to be written off. If there is only one asset, the asset is written off along with the chain.
+  2> Conditions for determining whether to allow cancellation:
+  ​     There are multiple assets in the chain.
+  ​     Chain assets have n% of assets in their own main chain.
+  3>The chain management module performs the encapsulation of the chain transaction and sends it to the transaction module.
+  ​     During the period, you need to obtain the account balance and the transaction nonce value through the ledger module.
+  4>The transaction module will perform a callback of the data check during the transaction process.
+  5>The chain management module performs the logout data submission through the transaction module callback interface of the “commit chain cancellation transaction”.
+  6>The cancellation of the assets will be refunded 80% of the mortgage deposit.
+
+- Interface definition
+
+  - Interface Description
+
+  ​        Log out asset information to the chain management module
+
+  ​        method : cm_assetDisable
+
+  - Request example
+
+  ```
   {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
+          "chainId": 152,
+          "assetId": 45,
+          "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+          "password":"xxxxxxxxxxxxx"
+          
   }
   ```
 
-  Success
+  - Request parameter description
 
-  ```json
+  | parameter | required | type   | description                                          |
+  | :-------- | :------- | :----- | ---------------------------------------------------- |
+  | chainId   | true     | int    | Chain identification                                 |
+  | assetId   | true     | int    | Asset id                                             |
+  | address   | true     | string | Create the main network account address of the chain |
+  | password  | true     | string | Password corresponding to the private key            |
+
+  - Return example
+
+    Failed
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+    Success
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+  - Return field description
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
+
+
+  - Dependent service
+
+    - Transaction management module, send transaction
+    - Ledger module, checkbook information
+
+#### 2.2.5 Chain asset verification for cross-chain transactions
+
+- Function Description：
+
+  When the transaction module generates a cross-chain transaction, the interface is called to perform cross-chain asset verification.
+
+- Process description
+
+  1>Check chain and assets are registered normally in the cross-chain module
+
+  2>Check if the amount of assets on the chain is overdrawn.
+
+  3>Verify that the asset status is normal.
+
+- Interface definition
+
+  - Interface Description
+
+  ​      Submit verification to chain management when cross-chain assets are in circulation
+
+  ​        method : cm_assetCirculateValidator
+
+  - Request example
+
+  ```
   {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
+          "coinDatas": "FFAABB214324"       
   }
   ```
 
-- Response field specification
-  N/A
+  - Request parameter description
+
+  | parameter | required | type   | description                       |
+  | :-------- | :------- | :----- | --------------------------------- |
+  | coinDatas | true     | String | Trading the HEX value of coindata |
+
+  - Return example
+
+    Failed
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+    Success
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+  - Return field description
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
 
 
 
+- Dependent service
 
-#### Chain query
+  - Transaction management module, cross-chain transaction verification call
 
--  Interface description 
-   Query chain list 
+#### 2.2.6  Chain asset submission for cross-chain trading
 
-- Request example
+- Function Description：
 
-  ```json
-  {   
-      "cmd": "chainList",
-      "minVersion": 1.0,
-      "params":[ 
-     		 1,20
-      ]
-  }
+  When the transaction module generates a cross-chain transaction and verifies the pass, it calls the interface to submit the cross-chain asset.
+
+- Process description
+
+    Used to change chain assets and manage them for chain assets
+
+   Direct call  cm_assetCirculateCommit  
+
+- Interface definition
+
+  - Interface Description
+
+  ​       When the cross-chain asset is circulated, the transaction can be submitted to the chain management when the verification is passed and the confirmation is submitted.
+
+  ​        method : cm_assetCirculateCommit
+
+  - Request example
+
   ```
-
-- Request parameter specification
-
-  | index | parameter  | required | type    | description |
-  | ----- | :--------- | :------- | :------ | ----------- |
-  | 0     | pageNumber | true     | integer | page number |
-  | 1     | pageSize   | true     | integer | page size   |
-
-- Response example
-  Failed
-
-  ```json
   {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
+          "coinDatas": "FFAABB214324"       
   }
   ```
 
-  Success
+  - Request parameter description
 
-  ```json
+  | parameter | required | type   | description                       |
+  | :-------- | :------- | :----- | --------------------------------- |
+  | coinDatas | true     | String | Trading the HEX value of coindata |
+
+  - Return example
+
+    Failed
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+    Success
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+  - Return field description
+
+  | parameter | type | description |
+  | --------- | ---- | ----------- |
+  |           |      |             |
+
+
+
+- Dependent service
+
+  - Transaction management module, cross-chain transaction call
+
+#### 2.2.7 Registration of chain management transaction processing functions
+
+- Function Description：
+
+   When the module is started, registration of the transaction callback function is required, so that the transaction module performs callback processing when performing related type transaction processing.
+
+  The registration function is divided into 4 categories: 1> transaction verification 2> transaction submission 3> transaction rollback 4> module batch transaction verification within a block  
+
+- Process description
+
+  1>Chain management module startup.
+
+  2>Determine whether the transaction module RPC call status is accessible.
+
+  3>Submit callback interface.
+
+- Interface definition
+
+  See the "Registering a Transaction" section in the Transaction Module Design Document.
+
+- Dependent service
+
+  - Transaction management module
+
+#### 2.2.8  Query chain information
+
+- Function Description：
+
+  Query registration chain information
+
+- Process description
+
+​        NA
+
+- Interface definition
+
+  - Interface Description
+
+  ​        Query registration friend information
+
+  ​        method : cm_chain
+
+  - Request example
+
+  ```
   {
-      "version":1.2,
-      "code":0,
-      "result":{
-          "chainList":[
-              {                "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-                  "chainId":1234,
-                  "name":"name",
-                  "addressType":1,
-                  "assets":[
-                      {
-                          "assetId":1,
-                          "symbol":"xxx",
-                          "name":"xxx",
-                          "depositNuls":20000,
-                          "initTotal":1000000,
-                          "minUnit":8,
-                          "flag":true
-                      }
-                  ],
-                  "magicNumber":1025753999,
-                  "seeds":[
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      },
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      }
-                  ],
-                  "supportInflowAsset":true
-              },
-              {
-                  "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-                  "chainId":1234,
-                  "name":"name",
-                  "addressType":1,
-                  "assets":[
-                      {
-                          "assetId":1,
-                          "symbol":"xxx",
-                          "name":"xxx",
-                          "depositNuls":20000,
-                          "initTotal":1000000,
-                          "minUnit":8,
-                          "flag":true
-                      }
-                  ],
-                  "magicNumber":1025753999,
-                  "seeds":[
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      },
-                      {
-                          "ip":"xxx.xxx.xxx.xxx",
-                          "port":8001
-                      }
-                  ],
-                  "supportInflowAsset":true
-              }
-          ]
-      }
+     "chainId":4545 
   }
   ```
 
-- Response field specification
-  Returns a list of chain.
+  - Request parameter description
+
+  | parameter | required | type | description          |
+  | :-------- | :------- | :--- | -------------------- |
+  | chainId   | true     | int  | Chain identification |
+
+  - Return example
+
+    Failed
+
+    ```
+    Unified RPC standard format
+    
+    ```
+
+    Success
+
+    ```
+    {
+            "chainId": 152,
+            "chainName": "nuls chain",
+            "addressType": 1,
+            "magicNumber":454546,
+            "supportInflowAsset":"1",
+            "minAvailableNodeNum":5,
+            "singleNodeMinConnectionNum":5,
+            "txConfirmedBlockNum":30,
+            "regAddress":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+            "regTxHash":"FFFFF", 
+            "selfAssetKeyList":["1232_32","528_8"],
+            "totalAssetKeyList":["1232_32","528_8"],
+            "createTime":1212131
+    }
+    ```
+
+  - Return field description
+
+  | parameter               | type   | description                                                  |
+  | :---------------------- | :----- | ------------------------------------------------------------ |
+  | chainId                 | int    | Chain identification                                         |
+  | chainName               | string | Chain name                                                   |
+  | addressType             | int    | The address type of the account created on the chain: 1 within the ecological 2 non-ecological |
+  | magicNumber             | string | Network magic parameter                                      |
+  | minAvailableNodeNum     | int    | Minimum number of available nodes                            |
+  | singleNodeConMinNodeNum | int    | Minimum number of single node connections                    |
+  | txConfirmBlockNum       | int    | Transaction confirmation block number                        |
+  | regTxHash               | string | Transaction hash                                             |
+  | regAddress              | string | Create the primary network address of the chain              |
+  | selfAssetKeyList        | list   | List of assets registered under the chain, asset key value combined by chainId_assetId |
+  | totalAssetKeyList       | list   | List of assets circulating under the chain, asset key value combined by chainId_assetId |
+  | createTime              | long   | Creation time                                                |
 
 
+- Dependent service
 
+   NA
 
+#### 2.2.9  Query chain asset information
 
-#### Chain destroy
+- Function Description：
 
--  Interface description 
-   The creator can destroy the chain he created. 
+  Query a chain asset information
 
-- Request example
+- Process description
 
-  ```json
-  {   
-      "cmd": "chainDestroy",
-      "minVersion": 1.0,
-      "params":[1234]
-  }
+​        NA
+
+- Interface definition
+
+  - Interface Description
+
+  ​        Query the asset management module for an asset information.
+
+  ​        method : cm_asset
+
+  - Request example
+
   ```
-
-- Request parameter specification
-
-  | index | parameter | required | type    | description |
-  | ----- | :-------- | :------- | :------ | ----------- |
-  | 0     | chainId   | true     | integer | 链标识      |
-
-- Response example
-  Failed
-
-  ```json
   {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
+     "chainId":4545， 
+     "assetId":45
   }
   ```
 
-  Success
+  - Request parameter description
 
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
+  | parameter | required | type | description          |
+  | :-------- | :------- | :--- | -------------------- |
+  | chainId   | true     | int  | Chain identification |
+  | assetId   | true     | int  | Asset id             |
 
-- Response field specification
-  N/A
+  - Return example
 
+    Failed
 
+    ```
+    Unified RPC standard format
+    
+    ```
 
+    Success
 
-
-#### Asset Register
-
--  Interface description 
-   The creator can create new asset types in the chain he created. 
-
-- Request example
-
-  ```json
-  {   
-      "cmd":"assetAdd",
-      "minVersion":1.0
-      "params":[
-          1234,
-          1,
-          [
-              {
-                  "assetId":1,
-                  "symbol":"xxx",
-                  "name":"xxx",
-                  "depositNuls":20000,
-                  "initTotal":1000000,
-                  "minUnit":8,
-                  "flag":true
-              }
-          ]
-      ]
-  }
-  ```
-
-- Request parameter specification
-
-  | index | parameter   | required | type               | description      |
-  | ----- | :---------- | :------- | :----------------- | ---------------- |
-  | 0     | chainId     | true     | integer            | 链标识           |
-  | 1     | addressType | true     | integer            | 资产中的地址类型 |
-  | 2     | asset       | true     | object【资产对象】 | 新增的资产       |
-
-- Response example
-  Failed
-
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-  Success
-
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
-
-- Response field specification
-  N/A
-
-
-
-
-
-#### Asset destroy
-
--  Interface description 
-   The creator can destroy the assets in the chain he created. 
-
-- Request example
-
-  ```json
-  {
-      "cmd":"assetDestroy",
-      "minVersion":1,
-      "params":[
-          1234,
-          88
-      ]
-  }
-  ```
-
-- Request parameter specification
-
-  | index | parameter | required | type    | description |
-  | ----- | :-------- | :------- | :------ | ----------- |
-  | 0     | chainId   | true     | integer | 链标识      |
-  | 1     | assetId   | true     | integer | 资产标识    |
-
-- Response example
-  Failed
-
-  ```json
-  {
-      "version": 1.2,
-      "code":1,
-      "msg" :"xxxxxxxxxxxxxxxxxx",
-      "result":{}
-  }
-  ```
-
-  Success
-
-  ```json
-  {
-   	"version": 1.2,
-      "code":0,
-      "result":{}
-  }
-  ```
-
-- Response field specification
-  N/A
-
-
-
-## 4. Event description 
-
-[^说明]: 业务流程中尽量避免使用事件的方式通信
-
-### 4.1 Released events
-
-[^说明]: 这里说明事件的topic，事件的格式协议（精确到字节），事件的发生情景。
-
-[参考<事件总线>]: ./
-
-
-
-#### Explanation: when chain registration is successful, publish the event.   
-
- event_topic : "chain_register",
-
-```
-{
-    "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-        "chainId":1234,
-        "name":"name",
-        "addressType":1,
-        "assets":[
-            {
-                "assetId":1,
-                "symbol":"xxx",
-                "name":"xxx",
-                "depositNuls":20000,
-                "initTotal":1000000,
-                "minUnit":8,
-                "flag":true
+    ```
+    {
+            "chainId": 152,
+            "assetId":85,
+            "symbol":"NULS",
+            "assetName":"NULS ASSET",
+            "initNumber":"1000000000",
+            "decimalPlaces":8,
+            "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
+            "txHash":"xxxxxxxxxxxxx",
+            "createTime":125848
             }
-        ],
-        "magicNumber":1025753999,
-        "seeds":[
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            },
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            }
-        ],
-        "supportInflowAsset":true
-}
+    ```
+
+  - Return field description
+
+  | parameter     | type   | description                                     |
+  | :------------ | :----- | ----------------------------------------------- |
+  | chainId       | int    | Chain identification                            |
+  | symbol        | string | Asset symbol                                    |
+  | assetName     | string | Asset Name                                      |
+  | initNumber    | string | Initial value of assets                         |
+  | decimalPlaces | int    | Minimum asset separable digits                  |
+  | address       | string | Create the primary network address of the chain |
+  | txHash        | string | Transaction hash                                |
+  | createTime    | long   | Creation time                                   |
+
+- Dependent service
+
+   NA
+
+## 3、Event description
+
+* Chain registration event
+* Chain logout event
+* New asset event
+* Logout asset event
+
+
+
+
+## 4、protocol
+
+### 4.1 Network communication protocol
+
+####  4.1.1 Asking the friend chain for the total amount of assets issued 
+
+- Message description: Periodic chain management initiates the issue of total asset data request message to the friend chain
+- cmd：requestAssetAmount
+
+| Length | Fields     | Type   | Remark        |
+| ------ | ---------- | ------ | ------------- |
+| 2      | chainId    | uint16 | Chain Id      |
+| 2      | assetId    | uint16 | Asset id      |
+| 4      | randomCode | uint32 | random number |
+
+#### 4.1.1 Receive the total amount of assets returned by the friend chain 
+
+- Message Description: Received a reply from the friend chain to the asset.
+- cmd：responseAssetAmount
+
+| Length | Fields     | Type       | Remark              |
+| ------ | ---------- | ---------- | ------------------- |
+| 2      | chainId    | uint16     | Chain Id            |
+| 2      | assetId    | uint16     | Asset id            |
+| 48     |            | biginteger | Total assets amount |
+| 4      | randomCode | uint32     | random number       |
+
+
+
+
+### 4.2 Transaction agreement
+
+##### 4.2.1 Sign up for a new friend chain
+
+Compared with the general transaction, only the type and txData are different, the specific difference is as follows
+
+Transaction type definition：10101
+
+txData definition
+
+| Length | Fields                     | Type       | Remark                                |
+| ------ | -------------------------- | ---------- | ------------------------------------- |
+| 2      | chainId                    | uint16     | Chain ID                              |
+| ？     | name                       | byte[]     | Chain Name                            |
+| 1      | addressType                | uint8      | address type                          |
+| 4      | magicNumber                | uint32     | Magic parameter                       |
+| 1      | supportInflowAsset         | uint8      | Whether to spend asset inflows        |
+| 2      | minAvailableNodeNum        | uint16     | Minimum number of available nodes     |
+| 2      | singleNodeMinConnectionNum | uint16     | Single node minimum connection number |
+| ？     | address                    | byte[]     | Account address                       |
+| 2      | assetId                    | uint16     | Asset id                              |
+| ？     | symbol                     | byte[]     | symbol                                |
+| ？     | assetName                  | byte[]     | Asset name                            |
+| 2      | depositNuls                | uint16     | Mortgage NULS quantity                |
+| 48     | initNumber                 | Biginteger | Initial quantity of assets            |
+| 1      | decimalPlaces              | uint8      | Minimum number of assets              |
+
+
+
+##### 4.2.2  Log out of existing friends
+
+Compared with the general transaction, only the type and txData are different, the specific difference is as follows
+
+Transaction type definition：10102
+
+  txData definition：Same as 4.2.1 chain registration transaction
+
+
+
+##### 4.2.3 New friend chain assets
+
+Compared with the general transaction, only the type and txData are different, the specific difference is as follows
+
+Transaction type definition：10103
+
+txData definition：
+
+| Length | Fields        | Type       | Remark                     |
+| ------ | ------------- | ---------- | -------------------------- |
+| 2      | chainId       | uint16     | Chain Id                   |
+| 2      | assetId       | uint16     | Asset id                   |
+| ？     | symbol        | byte[]     | symbol                     |
+| ？     | assetName     | byte[]     | Asset name                 |
+| 2      | depositNuls   | uint16     | Mortgage NULS quantity     |
+| 48     | initNumber    | Biginteger | Initial quantity of assets |
+| 1      | decimalPlaces | uint8      | Minimum number of assets   |
+| ？     | address       | byte[]     | Account address            |
+
+##### 4.2.2  Log out of existing assets
+
+  Compared with the general transaction, only the type and txData are different, the specific difference is as follows
+
+  Transaction type definition：10104
+
+  txData definition：New transactions with 4.2.3 assets
+
+
+
+
+
+
+## 5、Module configuration
+
+```
+[system]
+language = en
+encoding = UTF-8
+
+[db]
+rocksdb.datapath = ../data
+
+[param]
+asset_symbol_max = 5
+asset_name_max = 20
+asset_depositNuls = 200000
+asset_depositNuls_destroy_rate = 0.2
+asset_depositNuls_lock_rate = 0.8
+asset_initNumber_min = 10000
+asset_initNumber_max = 100000000
+asset_decimalPlaces_min = 4
+asset_decimalPlaces_max = 8
+asset_recovery_rate = 0.9
+
+[defaultAsset]
+nuls_chain_id = 8964
+nuls_chain_name = nuls chain
+nuls_asset_id = 1
+nuls_asset_initNumber_max = 100000000
+nuls_asset_symbol = NULS
 ```
 
 
 
+## 6、Java-specific design
 
+NA
 
- ####  Explanation: when a chain destroy is successful, publish the event.    
+## 7、to add on
 
- event_topic : "chain_destroy",
-
-```
-{
-    "hash":"0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331",
-        "chainId":1234,
-        "name":"name",
-        "addressType":1,
-        "assets":[
-            {
-                "assetId":1,
-                "symbol":"xxx",
-                "name":"xxx",
-                "depositNuls":20000,
-                "initTotal":1000000,
-                "minUnit":8,
-                "flag":true
-            }
-        ],
-        "magicNumber":1025753999,
-        "seeds":[
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            },
-            {
-                "ip":"xxx.xxx.xxx.xxx",
-                "port":8001
-            }
-        ],
-        "supportInflowAsset":true
-}
-```
-
-
-
-
-
-#### Explanation: when a asset register is successful, publish the event.   
-
- event_topic : "asset_register",
-
-```
-{
-	"chainId":1234,
-    "assetId":1,
-    "symbol":"xxx",
-    "name":"xxx",
-    "depositNuls":20000,
-    "initTotal":1000000,
-    "minUnit":8,
-    "flag":true
-}
-```
-
-
-
-
-
-#### Explanation: when a asset destroy is successful, publish the event.  
-
- event_topic : "asset_destroy",
-
-```
-{
-	"chainId":1234,
-    "assetId":1,
-    "symbol":"xxx",
-    "name":"xxx",
-    "depositNuls":20000,
-    "initTotal":1000000,
-    "minUnit":8,
-    "flag":true
-}
-```
-
-
-
-
-
-
-## 5. protocol
-
-### 5.1  Network communication protocol 
-
-#### N/A
-
-
-
-
-### 5.2  Transaction protocol
-
-##### Chain registration
-
-Compared with general transactions, there are only differences between types and txData.
-
-```
-  type: n // transaction type   Uint16
-  txData:{
-
-      chainId:  //uint16 ,chain id   uint16
-
-      chainName     //varString     less than 30 bytes
-
-
-      Asset information list: asset ID, name, initial total, minimum unit assets available.
-	  
-	  assetid： uint32
-	  
-      symbol：//varString，     less than 30 bytes
-
-      name：//varString，      less than 30 bytes
-
-      initTotal：//varint         4 bytes
-
-      minUnit://byte     1 byte
-      
-      flag： Determine whether assets can be circulated.     1 byte
-	
-
-      addressType：1，//byte : 1, NULS address structure, 2 other, 1 bytes.
-
-      minAvailableNodeNum //uint16,    2 bytes
-
-      singleNodeConMinNodeNum //uint16,   2 bytes
-
-      txConfirmBlockNum //uint16,     2 bytes
-
-      supportInflowAsset //boolean,     1bytes
-
-  }
-
-```
-
-
-
-
-
-##### - Validator
-
-```
-Whether or not chainId legality is repeated chainId is generated by callers to represent a series of "meaningful" numbers.
-
-The fields are not empty and the values are in the correct range.
-
-Mortgage verification device
-
-Other basic validator
-```
-
-##### - processor
-
-```
-Processor storage chain information
-
-Storage asset information
-
-After the n (operation parameter) block is confirmed, the magic parameter of the chain is monitored.
-```
-
-
-
-##### Chain destroy
-
-Compared with general transactions, there are only differences between types and txData.
-
-```
-  type: n // transaction type, 2bytes
-  txData:{
-      chainId:  //uint16 ,chain id  2bytes
-  }
-```
-
-
-
-##### - validator
-
-```
- ChainId legitimacy
-Whether the chain can be operated by that address, and the permission is verified.
-```
-
-
-
-##### - processor
-
-```
- Stop all cross-chain transactions, unlock the mortgage, and logically delete the chain data from the block chain after the n block 
-```
-
-
-
-##### Asset register
-
-Compared with general transactions, there are only differences between types and txData. 
-
-```
- type: n // transaction type. 2bytes
-
-  txData:{
-
-    chainId:  //uint16 ,chain id    2bytes
-
-    symbol：//varString    less than 30 bytes
-
-    name：//varString   less than 30 bytes 
-
-    initTotal：//     32 bytes
-
-    minUnit://byte
-
-  }
-```
-
-
-
-##### - validator
-
-```
-ChainId legitimacy
-
-The fields are not empty and the values are in the correct range
-
-Mortgage verification device
-
-Other basic validator
-```
-
-
-
-##### - processor
-
-```
- Storage asset information 
-```
-
-
-
-##### Asset destroy
-
-Compared with general transactions, there are only differences between types and txData.
-
-```
-  type: n //transaction type
-  txData:{
-      chainId:  
-      assetsId：
-  }
-```
-
-
-
-##### - validator
-
-```
-Asset legality
-
-Whether the asset can be operated by the address, and the permission is verified.
-
-Is it the last asset of the chain?
-```
-
-
-
-##### - processor
-
-```
-If the asset is not transferred out of the issuance chain, the asset transaction is stopped immediately, the mortgage is unlocked, and the asset data is logically deleted from the block chain
-
-Otherwise, stop the asset transaction after the n block, unlock the mortgage, and logically delete the asset data from the block chain
-```
-
-
-
-
-
-
-## 6.  Module configuration 
-
-## 7.  Java unique design 
-
-## 8.  Supplementary content 
+NA
 

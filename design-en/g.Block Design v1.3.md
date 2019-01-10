@@ -1209,8 +1209,6 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
         - Roll back the main chain block
         - Switch the fork chain as the main chain
 
-![](./image/consensus-module/consensus-flow-3.png)
-
 * Dependent service
 
   Database storage tool of tool modules

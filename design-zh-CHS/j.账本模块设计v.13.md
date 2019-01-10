@@ -74,7 +74,7 @@
 > 离线交易系统中维护nonce的存储信息，使用一个nonce之后，在业务系统中对nonce进行保存处理。
 
 > 离线交易大部分都是有交易所自己处理,我们需要存储全网账户的账本数据
- 
+
 ### 2.4 账本流程
 #### 2.4.1 转账交易流程
 
@@ -102,330 +102,364 @@
 
 ## 三、接口设计
 
-### 3.1 模块接口
-#### 3.1.1 根据资产id获取资产信息
+###   3.1 模块核心交互接口
+
+#### 3.1.1  获取账户余额
+
+> cmd: getBalance
+
+##### 参数说明 (request)
+
+| 字段         | 是否必填 | 数据类型 |         描述信息 |
+| ------------ | :------: | -------: | ---------------: |
+| chainId      |    Y     |      int | 接口调用链的链id |
+| address      |    Y     |   String | 要查询余额的地址 |
+| assetChainId |    Y     |      int |   资产发起的链ID |
+| assetId      |    Y     |      int |           资产ID |
+
+```json
+{
+   
+    "chainId":5,
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":34,
+    "assetId":5,
+}
+```
+
+##### 返回值说明 (response)
+
+```json
+{ 
+       "available": "10000000000",
+       "freeze": "200000000",
+       "total": "12000000000"
+}
+```
+
+> 说明: 1NULS=10^8Na
+
+| 字段      |  数据类型  |                            描述信息 |
+| --------- | :--------: | ----------------------------------: |
+| available | BigInteger |                            可用余额 |
+| freeze    | BigInteger |                            冻结余额 |
+| total     | BigInteger | 总资产余额 total = available+freeze |
+
+
+
+#### 3.1.2 获取当前账户nonce值
+
+> cmd: getNonce
+>
+>
+
+##### 参数说明 (request)
+
+| 字段         | 是否必填 | 数据类型 |         描述信息 |
+| ------------ | :------: | -------: | ---------------: |
+| chainId      |    Y     |      int | 接口调用链的链id |
+| address      |    Y     |   String | 要查询余额的地址 |
+| assetChainId |    Y     |   String |   资产发起的链ID |
+| assetId      |    Y     |      int |           资产ID |
+
+```json
+{
+   
+    "chainId":5,
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":34,
+    "assetId":5,
+}
+```
+
+##### 返回值说明 (response)
+
+```json
+{
+   "nonce":"xxxxxxxxxxx"，
+   "nonceType":1
+}
+```
+
+
+
+| 字段      | 数据类型 |                         描述信息 |
+| --------- | :------: | -------------------------------: |
+| nonce     |  String  |                 上笔支出交易hash |
+| nonceType |   int    | 1上笔交易已确认，0上笔交易未确认 |
+
+
+
+#### 3.1.3 获取余额与nonce值
+
+> cmd: getBalanceNonce
+
+##### 参数说明 (request)
+
+| 字段         | 是否必填 | 数据类型 |         描述信息 |
+| ------------ | :------: | -------: | ---------------: |
+| chainId      |    Y     |      int | 接口调用链的链id |
+| address      |    Y     |   String | 要查询余额的地址 |
+| assetChainId |    Y     |   String |   资产发起的链ID |
+| assetId      |    Y     |   String |           资产ID |
+
+```json
+{
+   
+    "chainId":5,
+    "address":"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+    "assetChainId":"34",
+    "assetId":"5",
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "available": "10000000000",
+    "nonce": "xxxxx"
+}
+```
+
+| 字段      |  数据类型  |                                描述信息 |
+| --------- | :--------: | --------------------------------------: |
+| available | BigInteger |                            用户可用余额 |
+| nonce     |   String   | 账户的随机值,保存用户上一笔交易的hash。 |
+
+#### 3.1.4  验证coinData
+
+> cmd: validateCoinData
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链id |
+| txHex   |    Y     |   String |     交易16进制流 |
+
+```json
+{
+    "chainId": 458,
+    "txHex": "xxxxxxxx"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "validateCode":1,
+    "validateDesc":"success" 
+}
+```
+
+| 字段         | 数据类型 |                              描述信息 |
+| ------------ | :------: | ------------------------------------: |
+| validateCode |   int    | 1校验通过，2孤儿交易 3双花 4 其他异常 |
+| validateDesc |  String  |                          校验返回描述 |
+
+
+
+#### 3.1.5  提交未确认交易
+
+> cmd: commitUnconfirmedTx
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
+
+```json
+{
+    "chainId": 21,
+    "txHex": "xxxxxxxx"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| 字段  | 数据类型 |             描述信息 |
+| ----- | :------: | -------------------: |
+| value |   int    | 1提交通过，0提交不过 |
+
+
+
+#### 3.1.6  批量校验通知
+
+> cmd: bathValidateBegin
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+
+```json
+{
+     "chainId": 21  
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| 字段   | 数据类型 |     描述信息 |
+| ------ | :------: | -----------: |
+| result |   int    | 1成功，0失败 |
+
+#### 3.1.7  逐笔接收批量校验
+
+> cmd: bathValidatePerTx
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "result":1
+}
+```
+
+| 字段   | 数据类型 |     描述信息 |
+| ------ | :------: | -----------: |
+| result |   int    | 1成功，0失败 |
+
+#### 3.1.8  逐笔提交确认交易
+
+> cmd: commitConfirmTx
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| 字段   | 数据类型 |     描述信息 |
+| ------ | :------: | -----------: |
+| result |   int    | 1成功，0失败 |
+
+
+
+#### 3.1.9  逐笔回滚交易
+
+> cmd: rollBackConfirmTx
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| 字段   | 数据类型 |     描述信息 |
+| ------ | :------: | -----------: |
+| result |   int    | 1成功，0失败 |
+
+
+
+### 3.2 其他接口
+
+#### 3.2.1 根据资产id获取资产信息
 > cmd: getAsset
 
 ##### 参数说明 (request)
 
 | 字段      |      是否可选  | 数据类型 |  描述信息 |
 |----------|:-------------:|--------:|--------:|
-| chainId |  Y | String |链ID |
-| assetId |  Y | String |资产ID |
+| chainId | Y | int | 接口调用所在链链Id |
+| assetChainId |  Y | int |资产发起链的链ID |
+| assetId |  Y | int |资产ID |
 
 ```json
 {
-  "cmd": "getAsset",
-  "minVersion": "1.0",
-  "params":["chainId","assetId"]
+  "chainId": 5,
+  "assetChainId": 12,
+  "assetId": 41
 }
 ```
 ##### 返回值说明 (response)
 
 ```json
 {
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result":{
-    "chainId": "mainChainId",
-    "asset_id": "xxxxxx",
+    "chainId": 5,
+    "assetChainId": 12,
+    "assetId": 41,
     "balance" : {
-      "available": 10000000000,
-      "freeze": 200000000,
-      "total": 12000000000
+      "available": "10000000000",
+      "freeze": "200000000",
+      "total": "12000000000"
     }
-  }
 }
 ```
 
 | 字段   |      数据类型      |  描述信息 |
 |----------|:-------------:|------:|
-| chainId |  String | 链ID |
-| asset_id |  String | 资产ID |
+| chainId | int | 发起调用的链ID |
+| assetChainId | int | 资产发起的链链id |
+| assetId | int | 资产ID |
 | balance.available |  BigInteger | 可用余额 |
 | balance.freeze |  BigInteger | 冻结余额 |
 | balance.total |  BigInteger | 总资产余额 total = available+freeze  |
 
 
-#### 3.1.2 查询资产列表
-> cmd: getAssets
-
-##### 参数说明 (request)
-
-```json
-{
-  "cmd": "getAssets",
-  "minVersion": "1.0",
-  "params":[]
-}
-```
-##### 返回值说明 (response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": [
-      {  
-        "chainId": "mainChainId",
-        "asset_id": "xxxxxx",
-        "balance" : {
-          "available": 10000000000,
-          "freeze": 200000000,
-          "total": 12000000000
-        }
-      },
-      {  
-        "chainId": "friendChainId",
-        "asset_id": "xxxxxxyyyyyy",
-        "balance" : {
-          "available": 10000000000,
-          "freeze": 200000000,
-          "total": 12000000000
-        }
-    }
-  ]
-}
-```
-
-| 字段   |      数据类型      |  描述信息 |
-|----------|:-------------:|------:|
-| chainId |  String | 链ID |
-| asset_id |  String | 资产ID |
-| balance.available |  BigInteger | 可用余额 |
-| balance.freeze |  BigInteger | 冻结余额 |
-| balance.total |  BigInteger | 总资产余额 total = available+freeze  |
-
-
-#### 3.1.3 查询用户余额
-> cmd: getBalance
-
-##### 参数说明 (request)
-
-| 字段      |      是否可选  | 数据类型 |  描述信息 |
-|----------|:-------------:|--------:|--------:|
-| chainId |  Y | String |链ID |
-| assetId |  Y | String |资产ID |
-| address |  Y | String |要查询余额的地址 |
-
-```json
-{
-  "cmd": "getBalance",
-  "minVersion": "1.0",
-  "params":[
-    "chainId",
-    "assetId",
-    "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
-  ]
-}
-```
-##### 返回值说明 (response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-  "balance" : {
-       "available": 10000000000,
-       "freeze": 200000000,
-       "total": 12000000000
-     }
-  }
-}
-```
-
-> 说明: 1NULS=10^8Na
-
-| 字段   |      数据类型      |  描述信息 |
-|----------|:-------------:|------:|
-| balance.available |  BigInteger | 可用余额 |
-| balance.freeze |  BigInteger | 冻结余额 |
-| balance.total |  BigInteger | 总资产余额 total = available+freeze  |
-
-#### 3.1.4 获取账户coinData
-> cmd: getCoinData
-
-##### 参数说明 (request)
-
-| 字段      |      是否可选  | 数据类型 |  描述信息 |
-|----------|:-------------:|--------:|--------:|
-| chainId |  Y | String |链ID |
-| assetId |  Y | String |资产ID |
-| address |  Y | String |要查询余额的地址 |
-
-```json
-{
-"cmd": "getCoinData",
-"minVersion": "1.0",
-"params":[
-  "chainId",
-  "assetId",
-  "0x407d73d8a49eeb85d32cf465507dd71d507100c1"
-  ]
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-    "available": 10000000000,
-    "nonce": "xxxxx"
-  }
-}
-```
-
-| 字段   |      数据类型      |  描述信息 |
-|----------|:-------------:|------:|
-| available |  BigInteger | 用户可用余额 |
-| nonce |  String | 账户的随机值,保存用户上一笔交易的hash。 |
-
-#### 3.1.5 保存未确认交易
-> cmd: saveTx
-
-##### 参数说明 (request)
-
-| 字段      |      是否可选  | 数据类型 |  描述信息 |
-|----------|:-------------:|--------:|--------:|
-| chainId |  Y | String | 链ID |
-| txHash |  Y | String | 交易hash |
-| txHexData |  Y | String | 交易数据HEX格式 |
-
-```json
-{
-"cmd": "saveTx",
-"minVersion": "1.0",
-"params":[
-  "chainId",
-  "txHash",
-  "txHexData"
-  ]
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      
-  }
-}
-```
-
-#### 3.1.6 删除未确认交易
-> cmd: deleteTx
-
-##### 参数说明 (request)
-
-| 字段      |      是否可选  | 数据类型 |  描述信息 |
-|----------|:-------------:|--------:|--------:|
-| chainId |  Y | String | 链ID |
-| txHash |  Y | String | 交易hash |
-
-```json
-{
-"cmd": "deleteTx",
-"minVersion": "1.0",
-"params":[
-  "chainId",
-  "txHash"
-  ]
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      "txHash":"txHash"
-  }
-}
-```
-#### 3.1.7 验证coinData
-> cmd: validateCoinData
-
-##### 参数说明 (request)
-
-| 字段      |      是否可选  | 数据类型 |  描述信息 |
-|----------|:-------------:|--------:|--------:|
-| from |  Y | String | 交易from |
-| nonce |  Y | String | 交易账户的nonce值 |
-| to |  Y | String | 交易目标地址 |
-
-```json
-{
-"cmd": "validateCoinData",
-"minVersion": "1.0",
-"params":[
-  "from",
-  "nonce",
-  "to"
-  ]
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      "value": true
-  }
-}
-```
-
-#### 3.1.8 创建账户
-> 当账户模块创建一个新账户后,需要调用该cmd,一个新账户,默认余额和nonce都是0.
-
-> cmd: createAccount
-
-##### 参数说明 (request)
-
-| 字段      |      是否可选  | 数据类型 |  描述信息 |
-|----------|:-------------:|--------:|--------:|
-| address |  Y | String | 账户地址 |
-
-```json
-{
-"cmd": "lg_createAccount",
-"minVersion": "1.0",
-"params":[
-  "address"
-  ]
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-  "version": "1.0",
-  "code": 0,
-  "msg": "response message.",
-  "result": {
-      "value": true
-  }
-}
-```
 
 ## 四、事件说明
 
