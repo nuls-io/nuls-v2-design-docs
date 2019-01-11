@@ -234,7 +234,7 @@
 | --------------- | :------: | -------: | ------------------------------------------: |
 | chainId         |    Y     |      int |                            接口调用链的链id |
 | txHex           |    Y     |   String |                                交易16进制流 |
-| isBatchValidate |    Y     |   String | true 交易的批量校验，false 单笔的未确认校验 |
+| isBatchValidate |    Y     |  boolean | true 交易的批量校验，false 单笔的未确认校验 |
 
 ```json
 {
