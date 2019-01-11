@@ -74,7 +74,7 @@
 
     ```
     {
-      "cmd": "bl_bestBlockHeader",
+      "cmd": "bestBlockHeader",
       "minVersion":"1.1",
       "params": ["888"]
     }
@@ -154,7 +154,7 @@
 
     ```
     {
-      "cmd": "bl_bestBlock",
+      "cmd": "bestBlock",
       "minVersion":"1.1",
       "params": ["888"]
     }
@@ -255,7 +255,7 @@
 
     ```
     {
-      "cmd": "bl_getBlockHeaderByHeight",
+      "cmd": "getBlockHeaderByHeight",
       "minVersion":"1.1",
       "params": ["111","888"]
     }
@@ -868,7 +868,7 @@
 
     ```
     {
-      "cmd": "bl_receivePackingBlock",
+      "cmd": "receivePackingBlock",
       "minVersion":"1.1",
       "params": [
       	blockhex//能用hex就用hex
@@ -1106,6 +1106,7 @@
         5.本地高度101=网络高度101，LH(101)==RH(101)，正常，与远程节点一致，无需下载区块
         6.本地高度101=网络高度101，LH(101)!=RH(101)，认为本地分叉，重复场景2
         
+        场景1、2需要额外从节点下载与本地高度一致的区块，进行hash判断
         上述需要回滚的场景，要满足可用节点数(10个)>配置，一致可用节点数(6个)占比超80%两个条件，避免节点太少导致频繁回滚。以上两个条件都不满足，清空已连接节点，重新获取可用节点。
  
         真正下载区块时，举个栗子:
@@ -1213,6 +1214,8 @@
 
   工具模块的数据库存储工具
 
+#### 2.3.5 孤儿链管理
+
 #### 2.3.6 转发区块
 
 * 功能说明:
@@ -1313,7 +1316,15 @@ data:{
 
 ### 3.2 订阅的事件
 
-    略
+#### 3.2.1 网络稳定
+
+说明:网络稳定时，发布该事件   
+
+ event_topic : "nt_networkDone",
+
+    data:{
+        chainId
+    }
 
 ## 四、协议
 
@@ -1331,7 +1342,7 @@ data:{
 
   forward,getBlock,getsBlock
 
-* 消息的格式（txData）
+* 消息的格式（messageBody）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1352,13 +1363,13 @@ data:{
 
 #### 4.2.2 摘要列表消息HashListMessage
 
-* 消息说明:用于"区块同步"功能
+* 消息说明:用于"转发区块"功能
 
 * 消息类型（cmd）
 
   GetSmallBlock
 
-* 消息的格式（txData） 
+* 消息的格式（messageBody） 
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1388,7 +1399,7 @@ data:{
 
   SmallBlock
 
-* 消息的格式（txData）
+* 消息的格式（messageBody）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1435,7 +1446,7 @@ data:{
 
   GetBlocksByHeight
 
-* 消息的格式（txData）
+* 消息的格式（messageBody）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1462,7 +1473,7 @@ data:{
 
   Block
 
-* 消息的格式（txData）
+* 消息的格式（messageBody）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1520,7 +1531,7 @@ data:{
 
   Complete
 
-* 消息的格式（txData）
+* 消息的格式（messageBody）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
@@ -1546,7 +1557,7 @@ data:{
 
   TxGroup
 
-* 消息的格式（txData）
+* 消息的格式（messageBody）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
