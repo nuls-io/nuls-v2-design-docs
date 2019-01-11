@@ -234,15 +234,17 @@
 
 ##### Parameter Description (request)
 
-| Field   | Required or not |   Type |                                 desc |
-| ------- | :-------------: | -----: | -----------------------------------: |
-| chainId |        Y        |    int | Chain id of the interface call chain |
-| txHex   |        Y        | String |               Transaction hex stream |
+| Field           | Required or not |   Type |                                        desc |
+| --------------- | :-------------: | -----: | ------------------------------------------: |
+| chainId         |        Y        |    int |        Chain id of the interface call chain |
+| txHex           |        Y        | String |                      Transaction hex stream |
+| isBatchValidate |        Y        | String | true  batch validate，false per tx validate |
 
 ```json
 {
     "chainId": 458,
-    "txHex": "xxxxxxxx"
+    "txHex": "xxxxxxxx",
+    "isBatchValidate": "false"
 }
 ```
 
@@ -262,47 +264,15 @@
 
 
 
-#### 3.1.5  Submit unconfirmed transaction
-
-> cmd: commitUnconfirmedTx
-
-##### Parameter Description (request)
-
-| Field   | Required or not |   Type |                                 desc |
-| ------- | :-------------: | -----: | -----------------------------------: |
-| chainId |        Y        |    int | Chain id of the interface call chain |
-| txHex   |        Y        | String |               Transaction hex stream |
-
-```json
-{
-    "chainId": 21,
-    "txHex": "xxxxxxxx"
-}
-```
-
-##### Return value description：(response)
-
-```json
-{
-    "value":1
-}
-```
-
-| Field  | Type |             Desc |
-| ----- | :------: | -------------------: |
-| value |   int    | 1 submission passed, 0 submission failed |
-
-
-
-#### 3.1.6  Batch verification notify
+#### 3.1.5  Batch verification notify
 
 > cmd: bathValidateBegin
 
 ##### Parameter Description (request)
 
-| Field   | Required or not | Type |             desc |
-| ------- | :-------------: | ---: | ---------------: |
-| chainId |        Y        |  int | 接口调用链的链Id |
+| Field   | Required or not | Type |     desc |
+| ------- | :-------------: | ---: | -------: |
+| chainId |        Y        |  int | chain Id |
 
 ```json
 {
@@ -318,55 +288,29 @@
 }
 ```
 
-| Field  | Type |     Desc     |
-| ------ | :--: | :----------: |
-| result | int  | 1成功，0失败 |
+| Field | Type |     Desc     |
+| ----- | :--: | :----------: |
+| value | int  | 1成功，0失败 |
 
-#### 3.1.7  Receive batch verification one by one
+#### 
 
-> cmd: bathValidatePerTx
+#### 3.1.6  Submit  transactions
+
+> cmd: commitTx
 
 ##### Parameter Description (request)
 
-| Field   | Required or not |   Type |                                 Desc |
-| ------- | :-------------: | -----: | -----------------------------------: |
-| chainId |        Y        |    int | Chain id of the interface call chain |
-| txHex   |        Y        | String |               Transaction hex stream |
+| Field       | Required or not |    Type |                                  Desc |
+| ----------- | :-------------: | ------: | ------------------------------------: |
+| chainId     |        Y        |     int |  Chain id of the interface call chain |
+| txHex       |        Y        |  String |                Transaction hex stream |
+| isConfirmTx |        Y        | boolean | true: comfirm tx  false: unconfirm tx |
 
 ```json
 {
      "chainId": 21,
-     "txHex": "xxxxxxxx"
-}
-```
-
-##### Return value description：(response)
-
-```json
-{
-    "result":1
-}
-```
-
-| Field  | Type |                Desc |
-| ------ | :--: | ------------------: |
-| result | int  | 1 success, 0 failed |
-
-#### 3.1.8  Submit confirmation transactions one by one
-
-> cmd: commitConfirmTx
-
-##### Parameter Description (request)
-
-| Field   | Required or not |   Type |                                 Desc |
-| ------- | :-------------: | -----: | -----------------------------------: |
-| chainId |        Y        |    int | Chain id of the interface call chain |
-| txHex   |        Y        | String |               Transaction hex stream |
-
-```json
-{
-     "chainId": 21,
-     "txHex": "xxxxxxxx"
+     "txHex": "xxxxxxxx",
+     "isConfirmTx": "true",
 }
 ```
 
@@ -378,22 +322,23 @@
 }
 ```
 
-| Field  | Type |               Desc |
-| ------ | :--: | -----------------: |
-| result | int  | 1Success，0 failed |
+| Field | Type |               Desc |
+| ----- | :--: | -----------------: |
+| value | int  | 1Success，0 failed |
 
 
 
-#### 3.1.9  Rollback transaction
+#### 3.1.7  Rollback transaction
 
 > cmd: rollBackConfirmTx
 
 ##### Parameter Description (request)
 
-| Field   | Required or not |   Type |                                 desc |
-| ------- | :-------------: | -----: | -----------------------------------: |
-| chainId |        Y        |    int | Chain id of the interface call chain |
-| txHex   |        Y        | String |               Transaction hex stream |
+| Field       | Required or not |    Type |                                 desc |
+| ----------- | :-------------: | ------: | -----------------------------------: |
+| chainId     |        Y        |     int | Chain id of the interface call chain |
+| txHex       |        Y        |  String |               Transaction hex stream |
+| isConfirmTx |        Y        | boolean | true: comfirm tx false: unconfirm tx |
 
 ```json
 {
@@ -410,9 +355,9 @@
 }
 ```
 
-| Field  | Type |               Desc |
-| ------ | :--: | -----------------: |
-| result | int  | 1Success，0 failed |
+| Field | Type |               Desc |
+| ----- | :--: | -----------------: |
+| value | int  | 1Success，0 failed |
 
 
 
