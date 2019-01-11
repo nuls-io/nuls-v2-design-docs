@@ -258,23 +258,20 @@
 | validateCode |   int    | 1校验通过，2孤儿交易 3双花 4 其他异常 |
 | validateDesc |  String  |                          校验返回描述 |
 
-#### 
 
-#### 3.1.5  逐笔接收批量校验
+#### 3.1.5   批量校验通知
 
-> cmd: bathValidatePerTx
+> cmd: bathValidateBegin
 
 ##### 参数说明 (request)
 
 | 字段    | 是否必填 | 数据类型 |         描述信息 |
 | ------- | :------: | -------: | ---------------: |
 | chainId |    Y     |      int | 接口调用链的链Id |
-| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
-     "chainId": 21,
-     "txHex": "xxxxxxxx"
+     "chainId": 21
 }
 ```
 
