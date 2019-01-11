@@ -234,11 +234,11 @@
 
 ##### Parameter Description (request)
 
-| Field           | Required or not |   Type |                                        desc |
-| --------------- | :-------------: | -----: | ------------------------------------------: |
-| chainId         |        Y        |    int |        Chain id of the interface call chain |
-| txHex           |        Y        | String |                      Transaction hex stream |
-| isBatchValidate |        Y        | String | true  batch validate，false per tx validate |
+| Field           | Required or not |    Type |                                        desc |
+| --------------- | :-------------: | ------: | ------------------------------------------: |
+| chainId         |        Y        |     int |        Chain id of the interface call chain |
+| txHex           |        Y        |  String |                      Transaction hex stream |
+| isBatchValidate |        Y        | boolean | true  batch validate，false per tx validate |
 
 ```json
 {
