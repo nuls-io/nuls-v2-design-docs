@@ -145,12 +145,9 @@
 | freeze    | BigInteger |                            冻结余额 |
 | total     | BigInteger | 总资产余额 total = available+freeze |
 
-
-
 #### 3.1.2 获取当前账户nonce值
 
 > cmd: getNonce
->
 >
 
 ##### 参数说明 (request)
@@ -233,15 +230,17 @@
 
 ##### 参数说明 (request)
 
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |      int | 接口调用链的链id |
-| txHex   |    Y     |   String |     交易16进制流 |
+| 字段            | 是否必填 | 数据类型 |                                    描述信息 |
+| --------------- | :------: | -------: | ------------------------------------------: |
+| chainId         |    Y     |      int |                            接口调用链的链id |
+| txHex           |    Y     |   String |                                交易16进制流 |
+| isBatchValidate |    Y     |   String | true 交易的批量校验，false 单笔的未确认校验 |
 
 ```json
 {
     "chainId": 458,
-    "txHex": "xxxxxxxx"
+    "txHex": "xxxxxxxx",
+    "isBatchValidate": "false"
 }
 ```
 
@@ -259,69 +258,9 @@
 | validateCode |   int    | 1校验通过，2孤儿交易 3双花 4 其他异常 |
 | validateDesc |  String  |                          校验返回描述 |
 
+#### 
 
-
-#### 3.1.5  提交未确认交易
-
-> cmd: commitUnconfirmedTx
-
-##### 参数说明 (request)
-
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |      int | 接口调用链的链Id |
-| txHex   |    Y     |   String |     交易16进制流 |
-
-```json
-{
-    "chainId": 21,
-    "txHex": "xxxxxxxx"
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-    "value":1
-}
-```
-
-| 字段  | 数据类型 |             描述信息 |
-| ----- | :------: | -------------------: |
-| value |   int    | 1提交通过，0提交不过 |
-
-
-
-#### 3.1.6  批量校验通知
-
-> cmd: bathValidateBegin
-
-##### 参数说明 (request)
-
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |      int | 接口调用链的链Id |
-
-```json
-{
-     "chainId": 21  
-}
-```
-
-##### 返回值说明：(response)
-
-```json
-{
-    "value":1
-}
-```
-
-| 字段   | 数据类型 |     描述信息 |
-| ------ | :------: | -----------: |
-| result |   int    | 1成功，0失败 |
-
-#### 3.1.7  逐笔接收批量校验
+#### 3.1.5  逐笔接收批量校验
 
 > cmd: bathValidatePerTx
 
@@ -343,29 +282,31 @@
 
 ```json
 {
-    "result":1
+    "value":1
 }
 ```
 
-| 字段   | 数据类型 |     描述信息 |
-| ------ | :------: | -----------: |
-| result |   int    | 1成功，0失败 |
+| 字段  | 数据类型 |     描述信息 |
+| ----- | :------: | -----------: |
+| value |   int    | 1成功，0失败 |
 
-#### 3.1.8  逐笔提交确认交易
+#### 3.1.6 提交交易
 
-> cmd: commitConfirmTx
+> cmd: commitTx
 
 ##### 参数说明 (request)
 
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |      int | 接口调用链的链Id |
-| txHex   |    Y     |   String |     交易16进制流 |
+| 字段        | 是否必填 | 数据类型 |                              描述信息 |
+| ----------- | :------: | -------: | ------------------------------------: |
+| chainId     |    Y     |      int |                      接口调用链的链Id |
+| txHex       |    Y     |   String |                          交易16进制流 |
+| isConfirmTx |    Y     |  boolean | true 已确认交易  false 为确认交易回滚 |
 
 ```json
 {
      "chainId": 21,
-     "txHex": "xxxxxxxx"
+     "txHex": "xxxxxxxx",
+     "isConfirmTx": "false"
 }
 ```
 
@@ -377,27 +318,27 @@
 }
 ```
 
-| 字段   | 数据类型 |     描述信息 |
-| ------ | :------: | -----------: |
-| result |   int    | 1成功，0失败 |
+| 字段  | 数据类型 |     描述信息 |
+| ----- | :------: | -----------: |
+| value |   int    | 1成功，0失败 |
 
+#### 3.1.7  回滚交易
 
-
-#### 3.1.9  逐笔回滚交易
-
-> cmd: rollBackConfirmTx
+> cmd: rollBackTx
 
 ##### 参数说明 (request)
 
-| 字段    | 是否必填 | 数据类型 |         描述信息 |
-| ------- | :------: | -------: | ---------------: |
-| chainId |    Y     |      int | 接口调用链的链Id |
-| txHex   |    Y     |   String |     交易16进制流 |
+| 字段        | 是否必填 | 数据类型 |                              描述信息 |
+| ----------- | :------: | -------: | ------------------------------------: |
+| chainId     |    Y     |      int |                      接口调用链的链Id |
+| txHex       |    Y     |   String |                          交易16进制流 |
+| isConfirmTx |    Y     |  boolean | true 已确认交易  false 为确认交易回滚 |
 
 ```json
 {
      "chainId": 21,
-     "txHex": "xxxxxxxx"
+     "txHex": "xxxxxxxx",
+     "isConfirmTx": "true"
 }
 ```
 
@@ -409,9 +350,9 @@
 }
 ```
 
-| 字段   | 数据类型 |     描述信息 |
-| ------ | :------: | -----------: |
-| result |   int    | 1成功，0失败 |
+| 字段  | 数据类型 |     描述信息 |
+| ----- | :------: | -----------: |
+| value |   int    | 1成功，0失败 |
 
 
 
