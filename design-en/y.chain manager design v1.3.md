@@ -119,7 +119,7 @@ Step description:
     5> The chain management module stores the data and sends the registration information to the network module.
     
     6> The registration chain requires 1000NULS, of which 20% is directly destroyed, 80% is used for mortgages, and is returned when assets are deleted.
-  
+
 
 - Interface definition
 
@@ -134,6 +134,7 @@ Step description:
   ```
   {
           "chainId": 152,
+          "assetId": 23,
           "chainName": "nuls chain",
           "addressType": "1",
           "magicNumber":454546,
@@ -156,6 +157,7 @@ Step description:
   | parameter               | required | type   | description                                                  |
   | :---------------------- | :------- | :----- | ------------------------------------------------------------ |
   | chainId                 | true     | int    | Chain identification                                         |
+  | assetId                 | true     | int    | asset id                                                     |
   | chainName               | true     | string | Chain name                                                   |
   | addressType             | true     | int    | The address type of the account created on the chain: 1 within the ecological 2 non-ecological |
   | magicNumber             | true     | string | Network magic parameter                                      |
