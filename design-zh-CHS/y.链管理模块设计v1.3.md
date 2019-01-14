@@ -142,6 +142,7 @@
   ```
   {
           "chainId": 152,
+          "assetId": 2,
           "chainName": "nuls chain",
           "addressType": "1",
           "magicNumber":454546,
@@ -164,6 +165,7 @@
   | parameter               | required | type   | description                                 |
   | :---------------------- | :------- | :----- | ------------------------------------------- |
   | chainId                 | true     | int    | 链标识                                      |
+  | assetId                 | true     | int    | 资产id                                      |
   | chainName               | true     | string | 链名称                                      |
   | addressType             | true     | int    | 链上创建的账户的地址类型：1生态内 2非生态内 |
   | magicNumber             | true     | string | 网络魔法参数                                |

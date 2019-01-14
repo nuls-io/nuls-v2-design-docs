@@ -1025,35 +1025,47 @@
      "version": 1.2,
         "code":0,
         "result":{
-                chainId：1212, //链id
-                magicNumber：324234,//魔法参数
-                totalCount：2323, //总连接数
-                inCount：22,   //被动连接数
-                outCount：33,  //主动连接数
-                blockHeight：6000,   //网络最高区块高度
-                blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                "chainId"：1212, //链id
+                "magicNumber"：324234,//魔法参数
+                "totalCount"：2323, //总连接数
+                "connectCount"：44，//已连接数量
+                "disConnectCount"：32，//未连接数量
+                "inCount"：22,   //被动连接数
+                "outCount"：33,  //主动连接数
+                "connectCrossCount"：44，//已连接跨链数量
+                "disConnectCrossCount"：32，//未连接数量
+                "inCrossCount"：22,   //跨链被动连接数
+                "outCrossCount"：33,  //跨链主动连接数
+                "blockHeight"：6000,   //网络最高区块高度
+                "blockHash"："0020ba3f3f637ef53d025d3a8972462c00e84d9
                          ea1a960f207778150ffb9f2c173ff",  //最大高度区块Hash值
-                isActive：1，//0未激活，1 已激活
-                isCrossActive:1， //0跨链网络未激活，1跨链激活
-                isMoonNet:0 //0友链 ，1卫星链
+                "isActive"：1，//0未激活，1 已激活
+                "isCrossActive":1， //0跨链网络未激活，1跨链激活
+                "isMoonNet":0 //0友链 ，1卫星链
                 }
     }
     ```
 
   - 返回字段说明
 
-    | parameter     | type   | description                |
-    | ------------- | ------ | -------------------------- |
-    | chainId       | int    | 链id                       |
-    | magicNumber   | int    | 魔法参数                   |
-    | totalCount    | int    | 总连接数                   |
-    | inCount       | int    | 被动连接数                 |
-    | outCount      | int    | 主动连接数                 |
-    | blockHeight   | long   | 网络最高区块高度           |
-    | blockHash     | String | 最大高度区块Hash值         |
-    | isActive      | int    | 0未激活，1 已激活          |
-    | isCrossActive | int    | 0跨链网络未激活，1跨链激活 |
-    | isMoonNet     | int    | 0友链 ，1卫星链            |
+    | parameter            | type   | description                |
+    | -------------------- | ------ | -------------------------- |
+    | chainId              | int    | 链id                       |
+    | magicNumber          | int    | 魔法参数                   |
+    | totalCount           | int    | 总连接数                   |
+    | connectCount         | int    | 已连接数量                 |
+    | disConnectCount      | int    | 未连接数量                 |
+    | inCount              | int    | 被动连接数                 |
+    | outCount             | int    | 主动连接数                 |
+    | connectCrossCount    | int    | 跨链已连接数量             |
+    | disConnectCrossCount | int    | 跨链未连接数量             |
+    | inCrossCount         | int    | 跨链被动连接数             |
+    | outCrossCount        | int    | 跨链主动连接数             |
+    | blockHeight          | long   | 网络最高区块高度           |
+    | blockHash            | String | 最大高度区块Hash值         |
+    | isActive             | int    | 0未激活，1 已激活          |
+    | isCrossActive        | int    | 0跨链网络未激活，1跨链激活 |
+    | isMoonNet            | int    | 0友链 ，1卫星链            |
 
 - 依赖服务
 
