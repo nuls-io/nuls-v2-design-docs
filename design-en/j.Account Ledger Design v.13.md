@@ -227,6 +227,7 @@
 | --------- | :--------: | -----------------------------------------------------------: |
 | available | BigInteger |                                       User available balance |
 | nonce     |   String   | A random value of the account that holds the hash of the user's last transaction. |
+| nonceType |    int     | 1The last transaction has been confirmed, 0 the transaction has not been confirmed |
 
 #### 3.1.4  Verify coinData
 
