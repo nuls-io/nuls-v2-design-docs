@@ -1013,50 +1013,44 @@
 
 * 功能说明:
 
-  略
+  启动区块管理模块
 
 * 流程描述
 
 ![](./image/block-module/block-module-boot.png)
 
-- 1.加载区块模块配置信息
-- 2.加载区块模块消息、消息处理器
-- 3.注册区块模块服务接口（向核心模块注册）
-- 4.注册区块模块事件（向事件总线模块注册）
-- 5.启动同步区块线程、区块监控线程、分叉链处理线程
+- 1.RPC服务初始化
+- 2.初始化通用数据库
+- 3.加载配置信息
+- 4.初始化各链数据库
+- 5.等待依赖模块就绪
+- 6.向网络模块注册消息处理类
+- 7.启动同步区块线程、数据库大小监控线程、分叉链处理线程、孤儿链处理线程、孤儿链维护线程
 
 * 依赖服务
 
-  工具模块、内核模块
+  工具模块、内核模块、网络模块、交易管理模块
 
 #### 2.3.2 区块存储
 
 * 功能说明:
 
-    说明存储表划分
-    
-   * 主链存储
-   ```
-        不同的链存到不同的表，表名加chainID后缀
-        一个完整的区块由区块头和交易组成，区块头与交易分别进行存储。
-          区块头:(放在区块管理模块)
-              key(区块高度)-value(区块头hash)              block-header-index
-              key(区块头hash)-value(完整的区块头)           block-header
-          交易:(放在交易管理模块)
-   ```
-   * 分叉链存储
-   ```
-        内存中缓存每一个分叉链的(起始高度、起始hash、结束高度、结束hash)，在硬盘中缓存全量分叉链数据
-        不同链的分叉链集合存在不同的表，表名加chainID后缀，每一个分叉链对象如下:
-            key(start区块高度+start区块hash)-value(完整的chains)          fork chains
-        private Chain chain;
-                private String id;
-                private String preChainId;
-                private BlockHeader startBlockHeader;
-                private BlockHeader endBlockHeader;
-                private List<BlockHeader> blockHeaderList;
-                private List<Block> blockList;
-   ```
+    存储主链上区块头数据以及分叉链、孤儿链的完整区块数据
+
+    - 主链存储
+
+      不同的链存到不同的表，表名加chainID后缀
+              一个完整的区块由区块头和交易组成，区块头与交易分别进行存储。
+      	区块头:(放在区块管理模块)
+                    key(区块高度)-value(区块头hash)              		block-header-index
+                    key(区块头hash)-value(完整的区块头)           	block-header
+      	交易:(放在交易管理模块)
+
+    - 分叉链、孤儿链存储
+
+      内存中缓存所有分叉链与孤儿链对象(只记录起始高度、起始hash、结束高度、结束hash等关键信息)，在硬盘中缓存全量区块数据，如果需要分叉链切换、清理分叉链等操作，只需读取一次数据库即可
+      	不同链的分叉链集合存在不同的表，表名加chainID后缀，每一个分叉链对象如下:
+      		key(区块hash)-value(完整的区块数据)          	CachedBlock
 
 * 流程描述
 
@@ -1064,22 +1058,48 @@
 
 * 依赖服务
 
-  工具模块的数据库存储工具
+  工具模块的数据库工具
 
-#### 2.3.2 区块同步
+#### 2.3.3 区块清理
+
+- 功能说明:
+
+  为了避免过多垃圾数据占用硬盘空间，对分叉链和孤儿链进行定时清理
+
+- 流程描述
+
+  1. 按照配置的最大缓存区块数量进行清理，当分叉链+孤儿链缓存的区块数量大于阈值时，进行清理
+  2. 按照分叉链或孤儿链的起始高度与主链的最新高度差进行清理
+  3. 按照孤儿链的年龄进行清理，孤儿链的年龄初始值为0，每经过一次孤儿链维护，但该孤儿链的链首并没有新增合法区块时，该孤儿链年龄加一
+
+- 依赖服务
+
+  工具模块的数据库工具
+
+#### 2.3.4 区块同步
 
 * 功能说明:
 
-  略
+  系统启动后，定时维护本地区块数据与网络上大部分节点保持一致。
+
+  主要由一个总调度线程，三个子工作线程组成：
+
+  ​	总调度线程：BlockSynchronizer，工作内容：统计网络上最新一致高度、检查本地区块是否需要回滚、初始化各种区块同步期间的参数、调度三个子线程
+
+  ​	子工作线程1：BlockDownloader，工作内容：从起始高度开始，根据各下载节点的信用值分配下载任务，并启动后台下载任务
+
+  ​	子工作线程2：BlockCollector，工作内容：收集BlockDownloader下载到的区块，排序后放入共享队列供BlockConsumer消费
+
+  ​	子工作线程3：BlockConsumer，工作内容：取出共享队列中的区块，依次保存
 
 * 流程描述
 
     * 区块同步主流程
-    
+
     ![](./image/block-module/block-synchronization.png)
-    
+
     * 获取网络上可用节点列表
-    
+
     ```
         1. 遍历节点，统计两个MAP，假定每个节点的(最新HASH+最新高度)是key
         2. 一个以key为主键统计次数
@@ -1090,9 +1110,9 @@
         现在同时连接到10个节点。其中4个节点(A,B,C,D)的最新区块高度是100，最新区块hash是aaa，其中6个节点(E,F,G,H,I,J)的最新区块高度是101，最新区块hash是bbb。
         最终返回(101，bbb,[E,F,G,H,I,J])。
     ```
-    
+
     * 下载区块逻辑
-    
+
     ![](./image/block-module/block-synchronization2.png)
     ```
         在正式下载区块前，要判断本地与网络是否发生分叉，是否需要回滚。以便找到准确的区块下载高度。
@@ -1108,29 +1128,33 @@
         
         场景1、2需要额外从节点下载与本地高度一致的区块，进行hash判断
         上述需要回滚的场景，要满足可用节点数(10个)>配置，一致可用节点数(6个)占比超80%两个条件，避免节点太少导致频繁回滚。以上两个条件都不满足，清空已连接节点，重新获取可用节点。
- 
+     
         真正下载区块时，举个栗子:
-        当前高度100，网络高度500，可用节点12个，一致可用节点10个，每个节点每次下载区块2个
-        那么计算得出需要下载区块400个，400/(2*10)=20轮下载完毕，同时可以计算出每轮每个节点下载区块的高度范围
+        当前高度100，网络高度500，可用节点12个，一致可用节点10个，每个节点初始下载区块2个，下载时缓存队列最多允许缓存100个区块
         伪代码表示
-            For(20轮){
-                for(10个节点){
-                    每个节点下载对应区块，并放到共享队列给区块验证线程处理
-                }
-            }
-        考虑下载过程中，节点掉线的情况。可能20轮不能下载完，所以外层加循环。
-            while(没有下载完){
-                重新计算轮次、各节点下载区块高度区间
-                For(20轮){
-                    for(10个节点){
-                        每个节点下载对应区块，并放到共享队列给区块验证线程处理
+        	空闲的下载节点队列：nodes(每个下载节点会有初始下载信用值，每下载成功一次信用值增加，信用最大值为初始值的2倍)
+        	下载到的区块缓存队列：queue
+            下载起始高度：startHeight = 101;
+            下载结束高度：netLatestHeight = 500;
+            while (startHeight <= netLatestHeight) {
+                    while (queue.size() > 100) {
+                        BlockDownloader wait！ cached queue size beyond config
                     }
-                }
+                    Node node = nodes.take();
+                    int size = maxDowncount * node.getCredit() / 100;
+                    if (startHeight + size > netLatestHeight) {
+                        size = (int) (netLatestHeight - startHeight + 1);
+                    }
+                    Future<BlockDownLoadResult> future = executor.submit(BlockWorker);
+                    futures.offer(future);
+                    startHeight += size;
             }
+    如果某节点下载失败，则由其他节点代为下载
+    考虑下载过程中，网络上其他节点还会继续生成新区块。下载结束后，需要判断本地最新区块高度与网上最新一致高度是否相同，如果相同，标志区块同步结束，如果不相同，则需要等待下次调度继续下载
     ```
-    
+
     * 从节点下载某高度区间内的区块
-    
+
     ![](./image/block-module/block-synchronization3.png)
 
 * 依赖服务
@@ -1199,7 +1223,6 @@
   判断分叉链与主链是否需要进行切换
 
 * 流程描述
-  ​      
   - 检查是否有分叉链能链接上主链，如果有则链接
   - 取出最长的一条分叉链与主链长度对比判断是否需要切换主链
       - 如果分叉链长度比主链长度长3（配置）个区块以上则需要切换主链
@@ -1216,6 +1239,25 @@
 
 #### 2.3.5 孤儿链管理
 
+功能说明:
+
+详细说明
+
+- 功能说明:
+
+  详细说明
+
+- 流程描述
+
+1. 使用blockHash组装ForwardSmallBlockMessage，发送给目标节点
+2. 目标节点收到ForwardSmallBlockMessage后，取出hash判断是否重复，如果不重复，使用hash组装GetSmallBlockMessage发给源节点
+3. 源节点收到GetSmallBlockMessage后，取出hash，查询SmallBlock并组装SmallBlockMessage，发给目标节点
+4. 后续交互流程参考广播区块
+
+- 依赖服务
+
+  工具模块的数据库存储工具
+
 #### 2.3.6 转发区块
 
 * 功能说明:
@@ -1224,8 +1266,8 @@
 
 * 流程描述
 
-1. 使用blockHash组装ForwardSmallBlockMessage，发送给目标节点
-2. 目标节点收到ForwardSmallBlockMessage后，取出hash判断是否重复，如果不重复，使用hash组装GetSmallBlockMessage发给源节点
+1. 使用blockHash组装HashMessage，发送给目标节点
+2. 目标节点收到HashMessage后，取出hash判断是否重复，如果不重复，使用hash组装HashMessage发给源节点
 3. 源节点收到GetSmallBlockMessage后，取出hash，查询SmallBlock并组装SmallBlockMessage，发给目标节点
 4. 后续交互流程参考广播区块
 
@@ -1243,26 +1285,10 @@
 
 1. 根据HASH获取BlockHeader,TxList,组装成SmallBlock，
 2. 将一个<SmallBlock.hash,SmallBlock>放入缓存中，若不主动删除，则在缓存存满或者存在时间超过1000秒时，自动清理
-3. 组装SmallBlockMessage，调用RPC模块发送消息给目标节点
-4. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装GetTxGroupRequest发给源节点
+3. 组装SmallBlockMessage，调用网络模块广播消息
+4. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装HashListMessage发给源节点
 5. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
 6. 至此所有区块数据已经发送给目标节点。
-
-* 依赖服务
-
-  工具模块的数据库存储工具
-
-#### 2.3.8 区块监控
-
-* 功能说明:
-
-  略
-
-* 流程描述
-
-  - 启动监控定时任务，每分钟执行一次
-  - 取本地最新区块头
-  - 验证网络模块是否需要重启（如果本地最新区块3分钟都没有更新过则需要网络模块断开并随机重连），这里区分chainID
 
 * 依赖服务
 
