@@ -119,7 +119,7 @@
 
    2.链管理模块进行链交易的封装发送给交易模块。期间需要通过账本模块获取账户余额及交易nonce值。
 
-​      并且通过网络模块获取跨链的种子节点信息 返回给用户。
+​      发送交易后返回成功或失败信息给用户。
 
    3.交易模块会在交易处理过程中进行数据校验的回调。
 
@@ -191,9 +191,7 @@
      Success
 
      ```
-     {
-     "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
-     }
+     统一RPC标准格式
      
      ```
 
@@ -697,7 +695,8 @@
             "regTxHash":"FFFFF", 
             "selfAssetKeyList":["1232_32","528_8"],
             "totalAssetKeyList":["1232_32","528_8"],
-            "createTime":1212131
+            "createTime":1212131,
+            "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
     }
     ```
 
@@ -717,6 +716,7 @@
   | selfAssetKeyList        | list   | 链下注册的资产列表，由chainId_assetId 组合的资产key值 |
   | totalAssetKeyList       | list   | 链下流通的资产列表，由chainId_assetId 组合的资产key值 |
   | createTime              | long   | 创建时间                                              |
+  | seeds                   | String | cross Seed node                                       |
 
 
 - 依赖服务
