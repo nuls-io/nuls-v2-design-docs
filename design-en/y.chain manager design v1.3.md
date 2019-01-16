@@ -110,7 +110,7 @@ Step description:
     
     2> The chain management module performs the encapsulation of the chain transaction and sends it to the transaction module.
          During the period, you need to obtain the account balance and the transaction nonce value through the ledger module.
-          And the seed node information of the cross-chain is obtained through the network module and returned to the user.
+          A success or failure message is returned to the user after the transaction is sent.
     
     3>The transaction module will perform a callback of the data check during the transaction process.
     
@@ -664,7 +664,8 @@ Step description:
             "regTxHash":"FFFFF", 
             "selfAssetKeyList":["1232_32","528_8"],
             "totalAssetKeyList":["1232_32","528_8"],
-            "createTime":1212131
+            "createTime":1212131，
+            "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
     }
     ```
 
@@ -684,6 +685,7 @@ Step description:
   | selfAssetKeyList        | list   | List of assets registered under the chain, asset key value combined by chainId_assetId |
   | totalAssetKeyList       | list   | List of assets circulating under the chain, asset key value combined by chainId_assetId |
   | createTime              | long   | Creation time                                                |
+  | seeds                   | String | cross Seed node                                              |
 
 
 - Dependent service
