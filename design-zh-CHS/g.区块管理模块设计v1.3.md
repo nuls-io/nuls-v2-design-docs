@@ -608,59 +608,7 @@
 
     略
 
-#### 2.2.7 获取当前同步区块状态
-
-* 接口说明
-
-某个ChainID上的区块同步完成时，更新缓存的同步状态标识。同步区块未完成时，禁止发起交易
-
-* 请求示例
-
-    ```
-    {
-      "cmd": "bl_getSynchronizeInfo",
-      "minVersion":"1.1",
-      "params": ["888"]
-    }
-    ```
-
-* 请求参数说明
-
-| index | parameter | required | type    | description |
-| ----- | --------- | -------- | ------- | :---------: |
-| 0     | chainId   | true     | Long  |   链ID    |
-
-* 返回示例
-
-    Failed
-    
-    ```
-    {
-        "version": 1.2,
-        "code": 1,
-        "msg": "error message",
-        "result": {}
-    }
-    ```
-    
-    Success
-    
-    ```
-    {
-        "version": 1.2,
-        "code": 0,
-        "result": {"chainId": "888", "sync": "true"}
-    }
-    ```
-    
-* 返回字段说明
-  
-| parameter | type      | description                                |
-| --------- | --------- | ------------------------------------------ |
-| chainId   | String    | 链ID                                |
-| sync      | String    | 区块同步是否完成                                |
-
-#### 2.2.8 获取某高度区间内区块头
+#### 2.2.7 获取某高度区间内区块头
 
 * 接口说明
 
@@ -748,7 +696,7 @@
 | extend   | String   | 扩展字段,HEX,包含roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot                              |
 | scriptSig   | String    | 区块签名                              |
 
-#### 2.2.9 获取某高度区间内区块
+#### 2.2.8 获取某高度区间内区块
 
 * 接口说明
 
@@ -858,7 +806,7 @@
   
     略
 
-#### 2.2.10 接收最新打包区块
+#### 2.2.9 接收最新打包区块
 
 * 接口说明
 
@@ -909,7 +857,7 @@
 | --------- | --------- | ------------------------------------------ |
 | sync      | String    | 区块是否保存成功                          |
 
-#### 2.2.11 运行一条链
+#### 2.2.10 运行一条链
 
 * 接口说明
 
@@ -958,7 +906,7 @@
 | --------- | --------- | ------------------------------------------ |
 | result      | String    | 新链是否启动成功                          |
 
-#### 2.2.12 停止一条链
+#### 2.2.11 停止一条链
 
 * 接口说明
 
@@ -1070,7 +1018,7 @@
 
   1. 按照配置的最大缓存区块数量进行清理，当分叉链+孤儿链缓存的区块数量大于阈值时，进行清理
   2. 按照分叉链或孤儿链的起始高度与主链的最新高度差进行清理
-  3. 按照孤儿链的年龄进行清理，孤儿链的年龄初始值为0，每经过一次孤儿链维护，但该孤儿链的链首并没有新增合法区块时，该孤儿链年龄加一
+  3. 按照孤儿链的年龄进行清理，孤儿链的年龄初始值为0，每经过一次孤儿链维护，但该孤儿链的链首并没有新增合法区块时，该孤儿链年龄加一，当孤儿链年龄大于阈值时，进行清理
 
 - 依赖服务
 
@@ -1086,7 +1034,9 @@
 
   ​	总调度线程：BlockSynchronizer，工作内容：统计网络上最新一致高度、检查本地区块是否需要回滚、初始化各种区块同步期间的参数、调度三个子线程
 
-  ​	子工作线程1：BlockDownloader，工作内容：从起始高度开始，根据各下载节点的信用值分配下载任务，并启动后台下载任务
+  ​	子工作线程1：BlockDownloader，工作内容：从起始高度开始，根据各下载节点的信用值分配下载任务，并启动后台下载任务BlockWorker
+
+  ​	子工作线程1-1：BlockWorker，工作内容：组装HeightRangeMessage，发送给目标节点，并计算messageHash缓存起来，等待目标节点返回的CompleteMessage(携带的messageHash要对应)
 
   ​	子工作线程2：BlockCollector，工作内容：收集BlockDownloader下载到的区块，排序后放入共享队列供BlockConsumer消费
 
@@ -1140,17 +1090,13 @@
                     while (queue.size() > 100) {
                         BlockDownloader wait！ cached queue size beyond config
                     }
-                    Node node = nodes.take();
-                    int size = maxDowncount * node.getCredit() / 100;
-                    if (startHeight + size > netLatestHeight) {
-                        size = (int) (netLatestHeight - startHeight + 1);
-                    }
-                    Future<BlockDownLoadResult> future = executor.submit(BlockWorker);
-                    futures.offer(future);
+                    获取一个可用节点
+                    根据节点下载信用值计算本次下载区块数量为size
+                    提交异步下载任务
                     startHeight += size;
             }
     如果某节点下载失败，则由其他节点代为下载
-    考虑下载过程中，网络上其他节点还会继续生成新区块。下载结束后，需要判断本地最新区块高度与网上最新一致高度是否相同，如果相同，标志区块同步结束，如果不相同，则需要等待下次调度继续下载
+    考虑下载过程中，网络上其他节点还会继续生成新区块。下载结束后，需要判断本地最新区块高度与网上最新一致高度是否相同，如果相同，标志区块同步结束，如果不相同，则需要继续下载
     ```
 
     * 从节点下载某高度区间内的区块
@@ -1239,22 +1185,34 @@
 
 #### 2.3.5 孤儿链管理
 
-功能说明:
+* 功能说明:
 
-详细说明
+    用来进行孤儿链与分叉链、主链的相连、分叉操作
 
-- 功能说明:
+* 流程描述
 
-  详细说明
-
-- 流程描述
-
-1. 使用blockHash组装ForwardSmallBlockMessage，发送给目标节点
-2. 目标节点收到ForwardSmallBlockMessage后，取出hash判断是否重复，如果不重复，使用hash组装GetSmallBlockMessage发给源节点
+1. 使用blockHash组装HashMessage，发送给目标节点
+2. 目标节点收到HashMessage后，取出hash判断是否重复，如果不重复，使用hash组装HashMessage发给源节点
 3. 源节点收到GetSmallBlockMessage后，取出hash，查询SmallBlock并组装SmallBlockMessage，发给目标节点
 4. 后续交互流程参考广播区块
 
-- 依赖服务
+* 依赖服务
+
+  工具模块的数据库存储工具
+
+#### 2.3.5 孤儿链维护
+
+* 功能说明:
+
+    定时尝试在孤儿链的链首请求增加区块
+
+* 流程描述
+
+    链与链之间的关系就两种，相连，或者分叉，
+ 1. 标记
+ 2. 复制、清除
+
+* 依赖服务
 
   工具模块的数据库存储工具
 
@@ -1262,7 +1220,7 @@
 
 * 功能说明:
 
-    详细说明
+    非出块节点保存完区块后走转发流程
 
 * 流程描述
 
@@ -1279,16 +1237,15 @@
 
 * 功能说明:
 
-  略
+  出块的节点走广播流程
 
 * 流程描述
 
-1. 根据HASH获取BlockHeader,TxList,组装成SmallBlock，
-2. 将一个<SmallBlock.hash,SmallBlock>放入缓存中，若不主动删除，则在缓存存满或者存在时间超过1000秒时，自动清理
-3. 组装SmallBlockMessage，调用网络模块广播消息
-4. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装HashListMessage发给源节点
-5. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
-6. 至此所有区块数据已经发送给目标节点。
+1. 收到共识模块的打包区块，保存成功后，根据Block组装SmallBlockMessage
+2. 调用网络模块广播消息
+3. 目标节点收到消息后根据txHashList判断哪些交易本地没有,再组装HashListMessage发给源节点
+4. 源节点收到信息后按照hashlist组装TxGroupMessage,返回给目标节点
+5. 至此完整区块数据已经发送给目标节点。
 
 * 依赖服务
 
@@ -1360,7 +1317,62 @@ data:{
 
 ### 4.2 消息协议
 
-#### 4.2.1 单个摘要消息HashMessage
+#### 4.2.1 摘要信息NulsDigestData
+
+* 消息说明:基础消息，被别的业务消息引用
+
+* 消息类型（cmd）
+
+  略
+
+* 消息的格式（messageBody）
+
+| Length | Fields  | Type      | Remark         |
+| ------ | ------- | --------- | -------------- |
+| 1     | digestAlgType  | byte      | 摘要算法标识(0-SHA256, 1-SHA160)           |
+| ?     | hashLength     | VarInt    | hash bytes length  |
+| ?     | hash        | byte[]    | hash bytes           |
+
+* 消息的验证
+
+    略
+
+* 消息的处理逻辑
+
+    略
+
+#### 4.2.2 交易信息Transaction
+
+* 消息说明:基础消息，被别的业务消息引用
+
+* 消息类型（cmd）
+
+  略
+
+* 消息的格式（messageBody）
+
+| Length | Fields  | Type      | Remark         |
+| ------ | ------- | --------- | -------------- |
+| 16     | type  | Uint16      | 交易类型           |
+| 48     | time   | Uint48    | 交易时间戳           |
+| ?     | remark   | VarInt    | 交易备注           |
+| ?     | remark      | byte[]    | 交易备注           |
+| ?     | txData   | VarInt    | 交易数据           |
+| ?     | txData      | byte[]    | 交易数据           |
+| ?     | coinData   | VarInt    | 交易转账数据           |
+| ?     | coinData      | byte[]    | 交易转账数据           |
+| ?     | transactionSignature   | VarInt    | 交易签名    |
+| ?     | transactionSignature      | byte[]    | 交易签名   |
+
+* 消息的验证
+
+    略
+
+* 消息的处理逻辑
+
+    略
+
+#### 4.2.3 单个摘要消息HashMessage
 
 * 消息说明:用于"转发区块","孤儿链维护"功能
 
@@ -1372,10 +1384,7 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
-| 1     | digestAlgType  | byte      | 摘要算法标识           |
-| ?     | hashLength        | VarInt    | 数组长度           |
-| ?     | hash        | byte[]    | hash           |
+| ?     | hash  | NulsDigestData  | 结构参考4.2.1  |
 
 * 消息的验证
 
@@ -1387,7 +1396,7 @@ data:{
 2. 如果重复，说明已经收到别的节点转发的SmallBlock，丢弃消息
 3. 如果没有重复，用hash组装GetSmallBlockMessage，并发送给源节点
 
-#### 4.2.2 摘要列表消息HashListMessage
+#### 4.2.4 摘要列表消息HashListMessage
 
 * 消息说明:用于"转发区块"功能
 
@@ -1417,7 +1426,7 @@ data:{
 1. 根据chainID、hash获取SmallBlock对象
 2. 组装SmallBlockMessage，并发送给源节点
 
-#### 4.2.3 区块广播消息SmallBlockMessage
+#### 4.2.5 区块广播消息SmallBlockMessage
 
 * 消息说明:用于"转发区块"、"广播区块"功能
 
@@ -1464,7 +1473,7 @@ data:{
 5. 取txHashList，判断那些tx本地没有，组装HashListMessage，发给源节点，获取没有的那些交易信息
 6. 如果交易都有，组放入缓存队列，等待验证线程验证后存储
 
-#### 4.2.4 高度区间消息HeightRangeMessage
+#### 4.2.6 高度区间消息HeightRangeMessage
 
 * 消息说明:用于"同步区块"功能
 
@@ -1491,7 +1500,7 @@ data:{
 3. 从endHeight开始查找Block,组装BlockMessage，发给目标节点
 4. 查找到startHeight为止，组装CompleteMessage，发给目标节点
 
-#### 4.2.5 完整的区块消息BlockMessage
+#### 4.2.7 完整的区块消息BlockMessage
 
 * 消息说明:用于"区块同步"
 
@@ -1549,7 +1558,7 @@ data:{
 1. 放入缓存队列
 2. 等待其他区块同步中
 
-#### 4.2.6 请求完成消息CompleteMessage
+#### 4.2.8 请求完成消息CompleteMessage
 
 * 消息说明:通用消息，用于异步请求，标志异步请求处理结束。
 
@@ -1575,7 +1584,7 @@ data:{
 
 1. 根据chainID、hash查找源节点缓存的异步请求，把处理结果标志设置为完成。
 
-#### 4.2.7 交易列表的消息TxGroupMessage
+#### 4.2.9 交易列表的消息TxGroupMessage
 
 * 消息说明:用于"转发区块"
 
@@ -1623,111 +1632,110 @@ data:{
 ## 五、模块配置
 
 ```
-{
-    {
-        "name": "validBlockInterval",
-        "remark": "为阻止恶意节点提前出块，设置此参数，区块时间戳大于当前时间多少就丢弃该区块",
-        "readOnly": "true",
-        "value": "1000"
-    },
-    {
-        "name": "blockCache",
-        "remark": "同步区块时最多缓存多少个区块",
-        "readOnly": "true",
-        "value": "1000"
-    },
-    {
-        "name": "smallBlockCache",
-        "remark": "系统正常运行时最多缓存多少个从别的节点接收到的小区块",
-        "readOnly": "true",
-        "value": "100"
-    },
-    {
-        "name": "chainSwtichThreshold",
-        "remark": "分叉链切换为主链的高度差阈值",
-        "readOnly": "true",
-        "value": "1"
-    },
-    {
-        "name": "chainName",
-        "remark": "链名称",
-        "readOnly": "true",
-        "value": "nuls"
-    },
-    {
-        "name": "serverIp",
-        "remark": "服务ip",
-        "readOnly": "true",
-        "value": "127.0.0.1"
-    },
-    {
-        "name": "serverPort",
-        "remark": "服务端口",
-        "readOnly": "true",
-        "value": ""
-    },
-    {
-        "name": "blockMaxSize",
-        "remark": "区块大小最大值",
-        "readOnly": "false",
-        "value": "3145728"
-    },
-    {
-        "name": "resetTime",
-        "remark": "持续多长时间区块高度没有更新时，就重新获取可用节点",
-        "readOnly": "true",
-        "value": "180"
-    },
-    {
-        "name": "cacheSize",
-        "remark": "分叉链、孤儿链缓存区块最大数量",
-        "readOnly": "true",
-        "value": "10000"
-    },
-    {
-        "name": "heightRange",
-        "remark": "缓存到分叉链的高度区间",
-        "readOnly": "false",
-        "value": "1000"
-    },
-    {
-        "name": "maxRollback",
-        "remark": "每次最多回滚多少区块",
-        "readOnly": "true",
-        "value": "20"
-    },
-    {
-        "name": "consistencyNodePercent",
-        "remark": "一致可用节点最低比例，低于此数不同步区块",
-        "readOnly": "false",
-        "value": "80"
-    },
-    {
-        "name": "minNodeAmount",
-        "remark": "最小可用节点个数，低于此数不同步区块",
-        "readOnly": "false",
-        "value": "1"
-    },
-    {
-        "name": "downloadNumber",
-        "remark": "同步时，每次从一个节点下载多少区块",
-        "readOnly": "true",
-        "value": "20"
-    },
-    {
-        "name": "orphanChainMaxAge",
-        "remark": "孤儿链最大年龄",
-        "readOnly": "true",
-        "value": "10"
-    },
-    {
-        "name": "extendMaxSize",
-        "remark": "区块头扩展字段最大值",
-        "readOnly": "false",
-        "value": "1024"
-    }
-}
-
+[
+  {
+    "name": "logLevel",
+    "remark": "日志级别",
+    "readOnly": "false",
+    "value": "DEBUG"
+  },
+  {
+    "name": "orphanChainMaxAge",
+    "remark": "孤儿链最大年龄",
+    "readOnly": "true",
+    "value": "10"
+  },
+  {
+    "name": "validBlockInterval",
+    "remark": "为阻止恶意节点提前出块,设置此参数,区块时间戳大于当前时间多少就丢弃该区块",
+    "readOnly": "true",
+    "value": "60000"
+  },
+  {
+    "name": "blockCache",
+    "remark": "同步区块时最多缓存多少个区块",
+    "readOnly": "true",
+    "value": "10000"
+  },
+  {
+    "name": "smallBlockCache",
+    "remark": "系统正常运行时最多缓存多少个从别的节点接收到的小区块",
+    "readOnly": "true",
+    "value": "100"
+  },
+  {
+    "name": "chainSwtichThreshold",
+    "remark": "分叉链切换为主链的高度差阈值",
+    "readOnly": "true",
+    "value": "1"
+  },
+  {
+    "name": "chainName",
+    "remark": "链名称",
+    "readOnly": "true",
+    "value": "nuls2.0"
+  },
+  {
+    "name": "chainId",
+    "remark": "链ID",
+    "readOnly": "true",
+    "value": "1"
+  },
+  {
+    "name": "blockMaxSize",
+    "remark": "区块大小最大值",
+    "readOnly": "false",
+    "value": "2097152"
+  },
+  {
+    "name": "resetTime",
+    "remark": "持续多长时间区块高度没有更新时,就重新获取可用节点",
+    "readOnly": "true",
+    "value": "180"
+  },
+  {
+    "name": "cacheSize",
+    "remark": "分叉链、孤儿链缓存区块最大数量",
+    "readOnly": "true",
+    "value": "100"
+  },
+  {
+    "name": "heightRange",
+    "remark": "缓存到分叉链的高度区间",
+    "readOnly": "false",
+    "value": "1000"
+  },
+  {
+    "name": "maxRollback",
+    "remark": "每次最多回滚多少区块",
+    "readOnly": "true",
+    "value": "10"
+  },
+  {
+    "name": "consistencyNodePercent",
+    "remark": "一致可用节点最低比例,低于此数不同步区块",
+    "readOnly": "false",
+    "value": "60"
+  },
+  {
+    "name": "minNodeAmount",
+    "remark": "最小可用节点个数,低于此数不同步区块",
+    "readOnly": "false",
+    "value": "3"
+  },
+  {
+    "name": "downloadNumber",
+    "remark": "同步时,每次从一个节点下载多少区块",
+    "readOnly": "true",
+    "value": "20"
+  },
+  {
+    "name": "extendMaxSize",
+    "remark": "区块头扩展字段最大值",
+    "readOnly": "false",
+    "value": "1024"
+  }
+]
 ```
 
 ## 六、Java特有的设计
@@ -1754,7 +1762,6 @@ data:{
 > | height             | int     | 区块高度   |
 > | time             | long     | 区块打包时间   |
 > | txCount             | short     | 交易数   |
-> | packingAddress             | String     | 打包地址   |
 > | extend             | byte[]     | 扩展字段   |
 > | blockSignature             | BlockSignature     | 区块签名   |
 
@@ -1763,5 +1770,19 @@ data:{
 > | ------------------- | ---------- | ---------- |
 > | signData            | String     | 区块签名   |
 > | publicKey           | byte[]     | 公钥 |
+
+- Chain对象设计
+> | `字段名称`          | `字段类型` | `说明`     |
+> | ------------------- | ---------- | ---------- |
+> | parent              | Chain     | 父链   |
+> | sons                | SortedSet<Chain>     | 子链集合 |
+> | chainId             | int     | 链ID   |
+> | previousHash        | NulsDigestData     | 链上起始区块的previousHash   |
+> | startHeight         | long     | 链起始高度   |
+> | startHashCode       | int     | 链起始hash转换int(排序用)   |
+> | endHeight           | long     | 链结束高度   |
+> | hashList            | LinkedList     | 链上区块hash列表   |
+> | type                | ChainTypeEnum     | 链类型   |
+> | age                 | AtomicInteger     | 链年龄(孤儿链清理使用)   |
 
 ## 七、补充内容
