@@ -607,58 +607,7 @@ Be dependent
 
     omit
 
-#### 2.2.7 get sync status
-
-* Interface specification
-
-When the block synchronization on a ChainID is completed, the cached synchronization status identifier is updated. It is forbidden to initiate a transaction when the block synchronization is not completed.
-
-* Sample request
-
-    ```
-    {
-      "cmd": "bl_getSynchronizeInfo",
-      "minVersion":"1.1",
-      "params": ["888"]
-    }
-    ```
-
-* Instructions of request parameters
-
-| index | parameter | required | type    | description |
-| ----- | --------- | -------- | ------- | :---------: |
-| 0     | chainId   | true     | Long  |   chain ID    |
-    
-* response sample
-
-    Failed
-    
-    ```
-    {
-        "version": 1.2,
-        "code": 1,
-        "msg": "error message",
-        "result": {}
-    }
-    ```
-    
-    Success
-    
-    ```
-    {
-        "version": 1.2,
-        "code": 0,
-        "result": {"sync": "true"}
-    }
-    ```
-    
-* Instructions of response parameters
-  
-| parameter | type      | description                                |
-| --------- | --------- | ------------------------------------------ |
-| sync      | String    | Block the synchronization to be achieved   |
-
-#### 2.2.8 get block header according to the height range
+#### 2.2.7 get block header according to the height range
 
 * Interface specification
 
@@ -746,7 +695,7 @@ When the block synchronization on a ChainID is completed, the cached synchroniza
 | extend   | String   | Extension field,HEX,contains roundIndex、roundStartTime、consensusMemberCount、packingIndexOfRound、stateRoot                              |
 | scriptSig   | String    | Signature of block                              |
 
-#### 2.2.9 get block according to the height range
+#### 2.2.8 get block according to the height range
 
 * Interface specification
 
@@ -856,7 +805,7 @@ When the block synchronization on a ChainID is completed, the cached synchroniza
   
     omit
 
-#### 2.2.10 Receive the latest packaging block
+#### 2.2.9 Receive the latest packaging block
 
 * Interface specification
 
@@ -907,7 +856,7 @@ After the local node's consensus module paking a block, this interface is called
 | --------- | --------- | ------------------------------------------ |
 | sync      | String    | wherther the Block's save is completed    |
 
-#### 2.2.11 run a chain
+#### 2.2.10 run a chain
 
 * Interface specification
 
@@ -956,7 +905,7 @@ After the chain factory releases a chain, the core module calls the interface of
 | --------- | --------- | ------------------------------------------ |
 | result      | String    | whether the new chain started successfully    |
 
-#### 2.2.12 stop a chain
+#### 2.2.11 stop a chain
 
 * Interface specification
 
@@ -1017,11 +966,13 @@ After stopping a chain in the chain factory, the core module will call the inter
 
 ![](./image/block-module/block-module-boot.png)
 
-1. Load block module configuration information
-2. Register block module's message handlers
-3. Register block module's service interfaces
-4. Register block module's events
-5. Start the synchronization thread, the block monitoring thread, branching chain processing thread.
+-1.RPC service initialization
+-2. Initialize the universal database
+-3. Load configuration information
+-4. Initialize each chain database
+-5. Wait for dependent modules to be ready
+-6. Register the message processing class with the network module
+-7. Start synchronized block thread, database size monitoring thread, fork chain processing thread, orphan chain processing thread, and orphan chain maintenance thread
 
 * Dependent service
 
@@ -1033,26 +984,22 @@ After stopping a chain in the chain factory, the core module will call the inter
 
 Description storage table division
 
-   * main chain's storage
+    Store the block header data on the main chain and the complete block data of bifurcated chain and orphan chain
 
-A complete block consists of a block header and a transaction, and the block header is stored separately from the transaction.
-    Block header: (in the block management module)
-        Key(block's height)-value(block header hash) block-header-index
-        Key(block headerhash)-value(complete block header) block-header
-    Trading: (put in the transaction management module)
+- main chain storage
 
-   
-   * fork chain's storage
-Cache each forked chain (starting height, starting hash, ending height, ending hash) in memory, and cache full forked chain data in the hard disk
-         There are different tables for the bifurcation chain collection of different chains. The table name is added with the chainID suffix. Each bifurcation chain object is as follows:
-             Key (start block height + start block hash) - value (complete chains) fork chains
-         Private chain chain;
-                 Private String id;
-                 Private String preChainId;
-                 Private BlockHeader startBlockHeader;
-                 Private BlockHeader endBlockHeader;
-                 Private List<BlockHeader> blockHeaderList;
-                 Private List<Block> blockList;
+    Different chains are stored in different tables, with the table name suffix chainID
+    A complete block consists of a block header and a transaction, which are stored separately from the transaction.
+    Block header :(placed in the block management module)
+        Key (block height)-value(block head hash) block-header-index
+        Key (block head hash)-value(full block head) block-header
+    Transaction :(put in the transaction management module)
+
+- fork chain, orphan chain storage
+
+    All forked chain and orphan chain objects are cached in memory (only key information such as starting height, starting hash, ending height and ending hash are recorded), and the full amount of block data is cached in the hard disk. If the operation of switching and cleaning the forked chain is needed, the database can be read only once
+    The bifurcated chain sets of different chains have different tables, the table name plus the suffix of chainID, and each bifurcated chain object is as follows:
+        Key (block hash)-value(full block data) CachedBlock
 
 * process description
 
@@ -1062,11 +1009,41 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
 
   Database storage tool of tool modules
 
-#### 2.3.2 block's Synchronization
+#### 2.3.2 Block's clean
 
 * Functional specifications：
 
-  omit
+Description storage table division
+
+    In order to avoid excessive garbage data occupying disk space, bifurcation chain and orphan chain are cleaned regularly
+
+* process description
+
+    1. Clean up according to the configured maximum number of cache blocks. When the number of blocks in the bifurcated chain + orphan chain cache is greater than the threshold value, clean up
+    2. Clean up according to the difference between the starting height of the bifurcated chain or orphan chain and the latest height of the main chain
+    3. According to the age of the orphan chain, the initial value of the age of the orphan chain is 0. Every time the orphan chain is maintained, the age of the orphan chain increases by 1 when no legal block is added to the chain head of the orphan chain
+
+* Dependent service
+
+  Database storage tool of tool modules
+
+#### 2.3.4 block's Synchronization
+
+* Functional specifications：
+
+  After the system is started, local block data is maintained consistent with most nodes on the network.
+
+It is mainly composed of a total scheduling thread and three sub-worker threads:
+
+Total synchronizer thread: BlockSynchronizer calculates the latest synchronized height on a network, checks whether a local block needs to be rolled back, initializes parameters during synchronization of various blocks, and schedules three child threads
+
+Sub-worker thread 1: BlockDownloader, work content: starting from the initial height, according to the credit value of each download node to allocate the download task, and start the background download task BlockWorker
+
+Sub-worker thread 1-1: BlockWorker, job content: assemble the HeightRangeMessage, send it to the target node, calculate the messageHash, cache it, and wait for the CompleteMessage to be returned from the target node (messageHash to be carried).
+
+Sub-worker thread 2: BlockCollector, job content: collect BlockDownloader downloaded to the block, sort into the Shared queue for BlockConsumer consumption
+
+Subworker thread 3: BlockConsumer. What it does: it takes out the blocks in the Shared queue and saves them one by one
 
 * process description
 
@@ -1098,34 +1075,33 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
             1. Local height 100 < network height 101, LH (100) == RH (100), normal, behind the remote node, download block
             2. Local height 100 < network height 101, LH (100)! = RH (100), think local fork, roll back the local block, if LH (99) == RH (99)
             At the end of the rollback, download from 99 blocks. If LH(99)!=RH(99), continue to roll back and repeat the above logic. However, if you roll back 10 blocks at most, it will stop and wait for the next synchronization. This will avoid being attacked by malicious nodes and roll back normal blocks in large quantities.
-            3. Local height 102> network height 101, LH (101) == RH (101), normal, leading than remote node, no need to download block
-            4. Local height 102> network height 101, LH (101)! = RH (101), think local fork, first roll back to the height and remote consistency, repeat scene 2
-            5. Local height 101 = network height 101, LH (101) == RH (101), normal, consistent with the remote node, no need to download the block
-            6. Local height 101 = network height 101, LH (101)! = RH (101), think local fork, repeat scene 2
+            1. Local height 102> network height 101, LH (101) == RH (101), normal, leading than remote node, no need to download block
+            2. Local height 102> network height 101, LH (101)! = RH (101), think local fork, first roll back to the height and remote consistency, repeat scene 2
+            3. Local height 101 = network height 101, LH (101) == RH (101), normal, consistent with the remote node, no need to download the block
+            4. Local height 101 = network height 101, LH (101)! = RH (101), think local fork, repeat scene 2
             
             In the scenario that needs to be rolled back, the number of available nodes (10) > configuration, the number of consistent available nodes (6) accounted for more than 80%, and avoiding too few nodes leads to frequent rollback. The above two conditions are not met, empty the connected nodes, and re-acquire the available nodes.
      
-            When you actually download the block, give a chestnut:
-            The current height is 100, the network height is 500, 12 nodes are available, 10 nodes are consistently available, and each node downloads 2 blocks at a time.
-            Then calculate that you need to download 400 blocks, 400/(2*10)=20 rounds of downloading, and you can calculate the height range of each node download block per round.
-            Pseudo code representation
-                For (20 rounds){
-                    For (10 nodes) {
-                        Each node downloads the corresponding block and puts it in the shared queue for the block verification thread to process
-                    }
-                }
-            Consider the case where the node is dropped during the download process. It is possible that 20 rounds cannot be downloaded, so the outer layer is added to the loop.
-                While (not downloaded){
-                    Recalculate the round, download the block's height interval for each node
-                    For (20 rounds){
-                        For (10 nodes) {
-                            Each node downloads the corresponding block and puts it in the shared queue for the block verification thread to process
-                        }
-                    }
-                }
+            When you actually download the block, for example:
+    The current height is 100 and the network height is 500. There are 12 available nodes and 10 uniformly available nodes. Each node has 2 initial download blocks
+    Pseudocode representation
+    Idle download node queue: nodes(each download node has an initial download credit value, which increases every time the download succeeds, and the maximum credit value is twice the initial value)
+    Download to the block cache queue: queue
+    Download starting height: startHeight = 101;
+    End of download height: netLatestHeight = 500;
+        While (startHeight <= netLatestHeight) {
+            While (queue.size() > 100) {
+                BlockDownloader wait! Cached queue size beyond config
+            }
+            Gets an available node
+            The number of download blocks is calculated as size according to the node download credit value
+            Submit the asynchronous download task
+            StartHeight + = size;
+        }
     ```
     
-    * Download blocks from a height interval from a node
+    If one node fails to download, the other node does the downloading for it
+Consider that other nodes on the network continue to generate new blocks during the download process. After the download, it is necessary to determine whether the latest local block height is the same as the latest online consistent height. If the height is the same, it indicates the end of block synchronization. If not, it is necessary to continue downloading
     
     ![](./image/block-module/block-synchronization3.png)
 
@@ -1133,7 +1109,7 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
 
   Database storage tool of tool modules、RPC tool
 
-#### 2.3.3 block's validation
+#### 2.3.5 block's validation
 
 * Functional specifications：
 
@@ -1157,7 +1133,7 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
 
   Database storage tool of tool modules
 
-#### 2.3.4 fork block management
+#### 2.3.6 Verification of forked block and orphan block
 
 * Functional specifications：
 
@@ -1166,32 +1142,22 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
 
 * process description
 
-    - Define a main chain (MasterChain), a fork chain set (forkChains)
-    - Define the block to be verified as Block
-    - Define the main chain height MG, to be verified block's heightBG
-    - Define the latest block HASH of the main chain as MH, the HASH of the block to be verified is BH, and the PHHASH of the block to be verified is BPH
-    
-    - Discussion in six situations
-    - 1.MG==BG, MH==BH, indicating that the latest main chain block is repeatedly received and discarded.
-    - 2.MG==BG, MH!=BH, indicating network fork
-        - Traverse the existing set of forked chains to determine if this block already exists
-            - discard the block if it already exists
-            - If it does not exist, create a new fork chain
-              - Determine if you can connect to other fork chains (if you can connect, connect to other fork chains as a chain)
-              - Recursive judgment
-    - 3.MG==BG-1, MH==BPH, indicating that the block is continuous and saved to the main chain
-    - 4.MG==BG-1, MH!=BPH, indicating network fork, processing the same as step 2
-    - 5.MG<BG-1, indicating network fork, processing the same as step 2
-    - 6.MG>BG, indicating network fork, processing the same as step 2
-    
-    The height difference is less than 1000 cached to disk, the disk space is limited in size, and the height is discarded. 
-    If the cache space is full, the forked chain is cleared in the order of adding cache time.
+* verification of forked block and orphan block
+* there are four relationships between blockchain B and chain A:
+* 1.B is the repeated block on A
+* 2.B is the bifurcated block on A
+* 3.B can connect directly to A
+* 4.B has nothing to do with A
+* the above four relationships apply to main chain, bifurcated chain and orphan chain
+
+If the height difference is less than 1000, it will be cached to disk, the disk space will be limited to size, if it exceeds the height, it will be discarded, and if the cache space is full, it will clean up the bifurcation chain according to the order of adding cache time.
+If it is in normal operation, after receiving the block forwarded by other nodes, it is found that the bifurcation should inform the consensus module to give the node generating this block a red card punishment, and this judgment will not be made in the synchronization process after the system starts
 
 * Dependent service
 
   Database storage tool of tool modules
 
-#### 2.3.5 fork chain management
+#### 2.3.7 fork chain management
 
 * Functional specifications：
 
@@ -1199,67 +1165,100 @@ Cache each forked chain (starting height, starting hash, ending height, ending h
 
 * process description
   ​      
-    - Check if there is an orphan chain that links to the main chain or the forked chain, if any
-    - Take the longest one of the fork chains and compare the length of the main chain to determine whether you need to switch the main chain
-        - If the length of the fork chain is longer than the length of the main chain by 3 (configured), you need to switch the main chain.
-        - Find the bifurcation point of the main chain and the longest bifurcation chain
-        - Verify the block in the forked chain if the verification continues by going down
-        - Roll back the main chain block
-        - Switch the fork chain as the main chain
+- find out the maximum height difference and compare it with the chain switching threshold. If it is greater than the threshold, the chain switching will be carried out
+- find the bifurcation point of the main chain and the longest bifurcation chain, and find the chain switching path
+- roll back the main chain block. The rolled back blocks form a new bifurcated chain and link to the original main chain
+- successively add the block of the branch chain on the switching path
+- switch complete
 
 * Dependent service
 
   Database storage tool of tool modules
 
-#### 2.3.6 forward block
+#### 2.3.8 Orphan chain management
 
 * Functional specifications：
 
-    omit
+    It is used to connect orphan chain with bifurcated chain and main chain and bifurcate operation
 
 * process description
 
-1. Use the blockHash to assemble the ForwardSmallBlockMessage and send it to the target node.
-2. After receiving the ForwardSmallBlockMessage, the target node takes out the hash to determine whether it is duplicated. If it does not repeat, use the hash assembly GetSmallBlockMessage to send to the source node.
-3. After the source node receives the GetSmallBlockMessage, it takes out the hash, queries the SmallBlock and assembles the SmallBlockMessage, and sends it to the target node.
-4. Subsequent interaction process reference broadcast block
+Chains are related to each other in two ways, by joining, or by bifurcating.
+
+1. Marking (change chain attribute stage)
+Main chain, FORK chain and ORPHAN chain correspond to MASTER, FORK and ORPHAN respectively
+* if the orphan chain is connected to the main chain, temporarily mark the orphan chain as MASTER_APPEND, and the child chain of the marked orphan chain as MASTER_FORK
+* if the orphan chain and the main chain fork, temporarily mark the orphan chain as MASTER_FORK, mark the child chain of the orphan chain as FORK_FORK
+* if the orphan chain is connected to the bifurcated chain, temporarily mark the orphan chain as FORK_APPEND and the child chain of the marked orphan chain as FORK_FORK
+* if the orphan chain is forked with the forked chain, temporarily mark the orphan chain as FORK_FORK, and mark the child chain of the orphan chain as FORK_FORK
+* if the orphans are connected to the orphan chain chain, temporary marker for ORPHAN_APPEND orphan chain, chain of sub chain for ORPHAN_FORK tag orphans
+* if orphan chain chain and orphan bifurcate, temporary marker for ORPHAN_FORK orphan chain, chain of sub chain for ORPHAN_FORK tag orphans
+* if the ORPHAN chain has not changed through the above process, it is not associated with other chains, and the flag is still ORPHAN
+
+2. Copy and clear
+
+* if marked as connected to the main chain, chain orphanChain not copied into the new orphan collection, collection will not enter the branch chain, but the immediate child orphanChain marked chain ChainTypeEnum. MASTER_FORK
+
+* if marked as split from the main chain, chain orphanChain not copied into the new orphan collection, collection, but can split into chain all marked orphanChain immediate child chain ChainTypeEnum FORK_FORK
+
+* if marked as connected with branch chain, chain orphanChain not copied into the new orphan collection, collection will not enter the branch chain, but all marked orphanChain immediate child chain ChainTypeEnum FORK_FORK
+
+* if marked as from bifurcation chain, chain orphanChain not copied into the new orphan collection, collection, but can split into chain all marked orphanChain immediate child chain ChainTypeEnum FORK_FORK
+
+* if marked with orphan chains are linked together, not copied into the new orphans chain set, all orphanChain immediate child of the chain will be copied into the new orphans chain set, type the same
+
+* if marked with orphan chain bifurcate, chain set, will be copied into the new orphan all orphanChain immediate child of the chain will be copied into the new orphans chain set, type the same
+
+* if marked as orphan chain (unchanged), or forked from orphan chain, copied to new set of orphan chain
 
 * Dependent service
 
   Database storage tool of tool modules
 
-#### 2.3.7 braodcast block
+#### 2.3.9 Orphan chain maintenance
 
 * Functional specifications：
 
-  omit
+  Timed attempt to add block at the head of the orphan chain request, maintenance failed orphan chain age plus one.
 
 * process description
 
-1. Get BlockHeader, TxList according to HASH, assemble into SmallBlock,
-2. Put a SmallBlock into the memory. If it is not deleted actively, it will be automatically cleared when the cache is full or exists for more than 1000 seconds.
-3. Local cache blockHash for filtering duplicate downloads
-4. Assem the SmallBlockMessage and call the RPC module to send a message to the target node.
-5. After receiving the message, the target node determines which transactions are not locally based on txHashList, and then assembles GetTxGroupRequest to the source node.
-6. After receiving the information, the source node assembles the TxGroupMessage according to the hashlist and returns it to the target node.
-7. All block data has been sent to the target node.
+PreHash the starting block of the chain, assemble it into a HashMessage, send it to any of the currently available nodes, and wait for the result to be returned asynchronously.
   
 * Dependent service
 
   Database storage tool of tool modules
   
-#### 2.3.8 Block monitoring
+#### 2.3.10 Block forward
 
 * Functional specifications：
 
-  omit
+  After the non-outgoing node saves the block, it goes through the forwarding process
 
 * process description
 
-    - Start monitoring scheduled tasks, once every minute
-    - Take the local latest block header
-    - Verify that the network module needs to be restarted (if the latest local block has not been updated for 3 minutes, the network module needs to be disconnected and reconnected randomly)
-    - to be perfected
+1. Using blockHash to assemble the HashMessage, which is sent to the target node
+2. After the target node receives the HashMessage, the hash is taken out to determine whether the HashMessage is repeated. If not, the HashMessage is assembled and sent to the source node using hash
+3. After the source node receives the GetSmallBlockMessage, it takes out the hash, queries the SmallBlock, assembles the SmallBlockMessage, and sends it to the target node
+4. Reference broadcast block for subsequent interactive process
+
+* Dependent service
+
+  Database storage tool of tool modules
+
+#### 2.3.11 Block broadcast
+
+* Functional specifications：
+
+  The block node goes through the broadcast process
+
+* process description
+
+1. Received the packaged Block of the consensus module, saved successfully, and assembled the SmallBlockMessage according to the Block
+2. Call the network module to broadcast the message
+3. After the target node receives the message, it determines which transactions are not local according to the txHashList, and reassembles the HashListMessage to send to the source node
+4. After the source node receives the information, assemble TxGroupMessage according to hashlist and return it to the target node
+5. At this point, the complete block data has been sent to the target node.
 
 * Dependent service
 
@@ -1319,23 +1318,22 @@ data:{
 
 ### 4.1 Network communication protocol
 
-    omit
+    See network module
 
 ### 4.2 Message protocol
 
-#### 4.2.1 Forward block message-ForwardSmallBlockMessage
+#### 4.2.1 Digest message-NulsDigestData
 
-* Message description：Used for the "forward block" function
+* Message description：Base message, referenced by another business message
 
 * Message type（cmd）
 
-  ForwardSmallBlock
+  omit
 
 * Message format（txData）
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
 | 1     | digestAlgType  | byte      | digest algorithm identifier           |
 | ?     | hashLength        | VarInt    | array's length           |
 | ?     | hash        | byte[]    | hash           |
@@ -1346,13 +1344,11 @@ data:{
 
 * Message processing logic
 
-1. After receiving the message, the target node first determines whether the hash in the cache is duplicated according to the chainID.
-2. If it is repeated, it indicates that the SmallBlock forwarded by another node has been received, and the message is discarded.
-3. If there is no duplication, assemble GetSmallBlockMessage with hash and send it to the source node.
+    omit
 
-#### 4.2.2 Get small block message-GetSmallBlockMessage
+#### 4.2.2 Transaction message-Transaction
 
-* Message description：Used for the "forward block" function
+* Message description：Base message, referenced by another business message
 
 * Message type（cmd）
 
@@ -1362,10 +1358,16 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | hashLength      | VarInt    | array's length           |
-| ?     | hash            | byte[]    | hash           |
+| 16     | type  | Uint16      | Transaction type           |
+| 48     | time   | Uint48    | Transaction timestamp           |
+| ?     | remark   | VarInt    | Transaction remark           |
+| ?     | remark      | byte[]    | Transaction remark           |
+| ?     | txData   | VarInt    | Transaction data           |
+| ?     | txData      | byte[]    | Transaction data           |
+| ?     | coinData   | VarInt    | Transaction coin data           |
+| ?     | coinData      | byte[]    | Transaction coin data           |
+| ?     | transactionSignature   | VarInt    | Transaction sign    |
+| ?     | transactionSignature      | byte[]    | Transaction sign   |
 
 * Message validation
 
@@ -1373,12 +1375,64 @@ data:{
 
 * Message processing logic
 
-1. Get the SmallBlock object according to the hash
-2. Assem the SmallBlockMessage and send it to the source node
+    omit
 
-#### 4.2.3 Block broadcast message-SmallBlockMessage
+#### 4.2.3 single hash message-HashMessage
 
-* Message description：Used for "forwarding block" and "broadcast block" functions
+* Message description：Used for "forwarding block "," orphan chain maintenance" function
+
+* Message type（cmd）
+
+  forward,getBlock,getsBlock
+
+* Message format（txData）
+
+| Length | Fields  | Type      | Remark         |
+| ------ | ------- | --------- | -------------- |
+| ?     | hash  | NulsDigestData  | Structure of the reference 4.2.1  |
+
+* Message validation
+
+    omit
+
+* Message processing logic
+
+1. After the target node receives the message, it first determines whether the hash in the cache is repeated according to the chainID
+2. If it is repeated, it means that it has received the SmallBlock forwarded by other nodes and discarded the message
+3. If there is no duplication, assemble the GetSmallBlockMessage with hash and send it to the source node
+
+#### 4.2.4 hash list message-HashListMessage
+
+* Message description：Used for the "forward block" function
+
+* Message type（cmd）
+
+  GetTxGroup
+
+* Message format（txData）
+
+| Length | Fields  | Type      | Remark         |
+| ------ | ------- | --------- | -------------- |
+| 1     | digestAlgType  | byte      | Abstract algorithm identification           |
+| ?     | hashLength      | VarInt    | The length of the array           |
+| ?     | blockHash            | byte[]    | hash           |
+| ?     | hashLength      | VarInt    | The length of the array           |
+| 1     | digestAlgType  | byte      | Abstract algorithm identification           |
+| ?     | hashLength        | VarInt    | The length of the array           |
+| ?     | hash        | byte[]    | hash           |
+
+* Message validation
+
+    omit
+
+* Message processing logic
+
+1. Transaction list is obtained according to chainID and hash
+2. Assemble TxGroupMessage and send it to the source node
+
+#### 4.2.5 small block message-SmallBlockMessage
+
+* Message description：Used for "forwarding block" and "broadcasting block" functions
 
 * Message type（cmd）
 
@@ -1388,26 +1442,25 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | preHashLength   | VarInt    | preHash array's length           |
+| 1     | digestAlgType  | byte      | Abstract algorithm identification           |
+| ?     | preHashLength   | VarInt    |  The length of the preHash array           |
 | ?     | preHash         | byte[]    | preHash           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | merkleHashLength| VarInt    | merkleHash array's length           |
+| 1     | digestAlgType  | byte      | Abstract algorithm identification           |
+| ?     | merkleHashLength| VarInt    |  The length of the merkleHash array          |
 | ?     | merkleHash      | byte[]    | merkleHash           |
 | 48     | time          | Uint48    | time           |
 | 32     | height      | Uint32    | block's height           |
-| 32     | txCount      | Uint32    | count of transactions           |
-| ?     | extendLength| VarInt    | extend array's length           |
+| 32     | txCount      | Uint32    | transaction's count           |
+| ?     | extendLength| VarInt    | The length of the extend array           |
 | ?     | extend      | byte[]    | extend           |
-| 32     | publicKeyLength      | Uint32    | public key array's length           |
-| ?     | publicKey      | byte[]    | public key           |
+| 32     | publicKeyLength      | Uint32    | The length of the public key array   |
+| ?     | publicKey      | byte[]    | The public key           |
 | 1     | signAlgType      | byte    | Signature algorithm type           |
-| ?     | signBytesLength| VarInt    | sign array's length           |
-| ?     | signBytes      | byte[]    | sign bytes           |
-| ?     | txHashListLength| VarInt    | transaction's hash list array's length           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | txHashLength| VarInt    | transaction's hash array's length           |
+| ?     | signBytesLength| VarInt    | The length of the sign array           |
+| ?     | signBytes      | byte[]    | sign            |
+| ?     | txHashListLength| VarInt    | Transaction hash list array length           |
+| 1     | digestAlgType  | byte      | Abstract algorithm identification           |
+| ?     | txHashLength| VarInt    | The length of the transaction's hash array     |
 | ?     | txHash      | byte[]    | transaction's hash           |
 
 * Message validation
@@ -1416,15 +1469,16 @@ data:{
 
 * Message processing logic
 
-1. Determine whether the block timestamp is greater than (current time +10s). If it is greater than this time, it is determined to be maliciously prematurely out of the block, ignoring the message.
-2. Determine whether the message is repeated according to the block hash. If it is repeated, ignore the message (requires maintenance of a set to store the received block hash)
-3. Query the DB according to the block hash to see if the block already exists in the local area. If it already exists, ignore the message.
-4. Verify the block header, if the verification fails, ignore the message
-5. Take txHashList, determine that tx is not local, assemble GetTxGroupMessage, and send it to the source node.
+1. Determine whether the block time stamp is greater than (current time +10s). If it is greater than this time, it will be judged as malicious early block out and the message will be ignored
+2. Determine whether the message is repeated according to chainID and block hash. If it is repeated, the message will be ignored.
+3. According to the chainID and block hash, query the DB to see if the block already exists. If so, ignore the message
+4. Verify the block header. If the validation fails, the message is ignored
+5. Take txHashList, judge those tx local does not have, assemble HashListMessage, send to the source node, get the transaction information that does not have
+6. If all transactions have groups, put them into the cache queue and wait for the verification thread to verify them before storing them
 
-#### 4.2.4 Get block message based on height-GetBlocksByHeightMessage
+#### 4.2.6 height range message-HeightRangeMessage
 
-* Message description：For the "sync block" function
+* Message description：Used for the "sync block" function
 
 * Message type（cmd）
 
@@ -1434,9 +1488,8 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| 32     | startHeight  | uint32      | start Height           |
-| 32     | endHeight  | uint32      | end Height           |
+| 32     | startHeight  | uint32      | begin heitght           |
+| 32     | endHeight  | uint32      | end height           |
 
 * Message validation
 
@@ -1444,39 +1497,12 @@ data:{
 
 * Message processing logic
 
-1. Height parameter verification
-2. Return the response message ReactMessage
-3. Find the Block from endHeight, assemble the BlockMessage, and send it to the target node.
-4. Find the startHeight, assemble the CompleteMessage, and send it to the target node.
+1. Validation of chainID and height parameters
+Return the response message ReactMessage
+Find blocks, assemble blockmessages, and send them to the target node
+4. Until endHeight is found, assemble the CompleteMessage and send it to the target node
 
-#### 4.2.5 Get block message-GetBlockMessage
-
-* Message description：Used for "block synchronization"
-
-* Message type（cmd）
-
-  GetBlock
-
-* Message format（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | HashLength   | VarInt    | Hash array's length           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* Message validation
-
-    omit
-
-* Message processing logic
-
-1. Return the response message ReactMessage
-2. Find the Block according to the hash, assemble the BlockMessage, and send it to the target node.
-3. Assemble the CompleteMessage and send it to the target node.
-
-#### 4.2.6 Complete block message-BlockMessage
+#### 4.2.7 Complete block message-BlockMessage
 
 * Message description：Used for "block synchronization"
 
@@ -1534,58 +1560,7 @@ data:{
 1. Put into the cache queue
 2. Wait for other blocks to be synchronized
 
-#### 4.2.7 Data message not found-NotFoundMessage
-
-* Message description：A generic message for an asynchronous request that marks the target node not finding the corresponding information.
-
-* Message type（cmd）
-
-  NotFound
-
-* Message format（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| 1     | msgType        | byte    | Data type not found           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | HashLength   | VarInt    | Hash array's length           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* Message validation
-
-    omit
-
-* Message processing logic
-
-1. Find the asynchronous request of the source node cache according to the chainID and hash, set the processing result flag to complete, and set the return result to null.
-
-#### 4.2.8 Response message-ReactMessage
-
-* Message description：A generic message, used for asynchronous requests, to flag that the target node receives the request and is processing it.
-
-* Message type（cmd）
-
-  React
-
-* Message format（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | HashLength   | VarInt    | Hash array's length           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* Message validation
-
-    omit
-
-* Message processing logic
-
-1. Find the asynchronous request of the source node cache according to the chainID and hash, and set the processing result flag to wait.
-
-#### 4.2.9 Request completion message-CompleteMessage
+#### 4.2.8 Request completion message-CompleteMessage
 
 * Message description：A generic message for asynchronous requests that marks the end of asynchronous request processing.
 
@@ -1611,33 +1586,7 @@ data:{
 
 1. Find the asynchronous request of the source node cache according to the chainID and hash, and set the processing result flag to complete.
 
-#### 4.2.10 Get the message of the transaction list-GetTxGroupRequest
-
-* Message description：Used for "forwarding blocks"
-
-* Message type（cmd）
-
-  GetTxGroup
-
-* Message format（txData）
-
-| Length | Fields  | Type      | Remark         |
-| ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | chain ID           |
-| ?     | ArrayLength   | VarInt    | Hash list length           |
-| 1     | digestAlgType  | byte      | digest algorithm identifier           |
-| ?     | HashLength   | VarInt    | Hash array's length           |
-| ?     | Hash         | byte[]    | Hash           |
-
-* Message validation
-
-    omit
-
-* Message processing logic
-
-1. After receiving the message, the target node takes out the hashList, traverses the hashList, obtains Tx according to txHash, assembles TxGroupMessage, and sends it to the source node.
-
-#### 4.2.11 Transaction list message-TxGroupMessage
+#### 4.2.9 Transaction list message-TxGroupMessage
 
 * Message description：Used for "forwarding blocks"
 
@@ -1685,80 +1634,110 @@ data:{
 ## Chapter 5. The module configuration
 
 ```
-{
-    {
-        "name": "serverIp",
-        "remark": "service ip",
-        "changable": "true",
-        "default": "127.0.0.1"
-    },
-    {
-        "name": "serverPort",
-        "remark": "service port",
-        "changable": "true",
-        "default": ""
-    },
-    {
-        "name": "blockSize",
-        "remark": "block size",
-        "changable": "false",
-        "default": "3m"
-    },
-    {
-        "name": "resetTime",
-        "remark": "When the block height is not updated for a long time, the available nodes are reacquired",
-        "changable": "true",
-        "default": "180"
-    },
-    {
-        "name": "forkCount",
-        "remark": "When the fork chain is higher than the main chain, switch",
-        "changable": "false",
-        "default": "3"
-    },
-    {
-        "name": "cacheSize",
-        "remark": "forked chain cache size",
-        "changable": "true",
-        "default": "50m"
-    },
-    {
-        "name": "heightRange",
-        "remark": "Cache to the height range of the forked chain",
-        "changable": "false",
-        "default": "1000"
-    },
-    {
-        "name": "maxRollback",
-        "remark": "How many blocks are rolled back at most each time",
-        "changable": "true",
-        "default": "20"
-    },
-    {
-        "name": "consistencyNodePercent",
-        "remark": "The lowest percentage of consistent nodes available, below this number of unsynchronized blocks",
-        "changable": "false",
-        "default": "80"
-    },
-    {
-        "name": "minNodeAmount",
-        "remark": "The minimum number of available nodes, lower than this number of unsynchronized blocks",
-        "changable": "false",
-        "default": "10"
-    },
-    {
-        "name": "downloadNumber",
-        "remark": "How many blocks are downloaded from one node each time during synchronization",
-        "changable": "true",
-        "default": "20"
-    },
-    {
-        "name": "extendMaxSize",
-        "remark": "block header extension field maximum value",
-        "changable": "false",
-        "default": "1024"
-    }
-}
+[
+  {
+    "name": "logLevel",
+    "remark": "The level of logging",
+    "readOnly": "false",
+    "value": "DEBUG"
+  },
+  {
+    "name": "orphanChainMaxAge",
+    "remark": "Orphan chain maximum age",
+    "readOnly": "true",
+    "value": "10"
+  },
+  {
+    "name": "validBlockInterval",
+    "remark": "To prevent malicious nodes from exiting blocks early, set this parameter and discard the block if the block timestamp is greater than the current time",
+    "readOnly": "true",
+    "value": "60000"
+  },
+  {
+    "name": "blockCache",
+    "remark": "How many blocks can be cached at most when synchronizing blocks",
+    "readOnly": "true",
+    "value": "10000"
+  },
+  {
+    "name": "smallBlockCache",
+    "remark": "The maximum number of cells received from other nodes that the system can cache during normal operation",
+    "readOnly": "true",
+    "value": "100"
+  },
+  {
+    "name": "chainSwtichThreshold",
+    "remark": "Bifurcation chain switches the height difference threshold of the main chain",
+    "readOnly": "true",
+    "value": "1"
+  },
+  {
+    "name": "chainName",
+    "remark": "chain name",
+    "readOnly": "true",
+    "value": "nuls2.0"
+  },
+  {
+    "name": "chainId",
+    "remark": "chain ID",
+    "readOnly": "true",
+    "value": "1"
+  },
+  {
+    "name": "blockMaxSize",
+    "remark": "Maximum block size",
+    "readOnly": "false",
+    "value": "2097152"
+  },
+  {
+    "name": "resetTime",
+    "remark": "When the block height is not updated for how long, the available nodes are retrieved",
+    "readOnly": "true",
+    "value": "180"
+  },
+  {
+    "name": "cacheSize",
+    "remark": "Fork chain, orphan chain cache block maximum number",
+    "readOnly": "true",
+    "value": "100"
+  },
+  {
+    "name": "heightRange",
+    "remark": "Cache to the height range of the fork chain",
+    "readOnly": "false",
+    "value": "1000"
+  },
+  {
+    "name": "maxRollback",
+    "remark": "How many blocks can be rolled back at most per roll",
+    "readOnly": "true",
+    "value": "10"
+  },
+  {
+    "name": "consistencyNodePercent",
+    "remark": "Consistently lowest ratio of available nodes below this number of asynchronous blocks",
+    "readOnly": "false",
+    "value": "60"
+  },
+  {
+    "name": "minNodeAmount",
+    "remark": "Minimum number of available nodes, below which unsynchronized blocks",
+    "readOnly": "false",
+    "value": "3"
+  },
+  {
+    "name": "downloadNumber",
+    "remark": "During synchronization, how many blocks are downloaded from one node at a time",
+    "readOnly": "true",
+    "value": "20"
+  },
+  {
+    "name": "extendMaxSize",
+    "remark": "The block header extends the maximum value of the field",
+    "readOnly": "false",
+    "value": "1024"
+  }
+]
 ```
 
 ## Chapter 6. Java's design
@@ -1796,5 +1775,19 @@ data:{
 > | ------------------- | ---------- | ---------- |
 > | signData             | String     | Signature of block   |
 > | publicKey | byte[]     | public key |
+
+- Chain Object design
+> | `field name`          | `field type` | `instruction`     |
+> | ------------------- | ---------- | ---------- |
+> | parent              | Chain     | The parent chain   |
+> | sons                | SortedSet<Chain>     | Collection of sub chain |
+> | chainId             | int     | chain ID   |
+> | previousHash        | NulsDigestData     | The starting block on the chain's previousHash   |
+> | startHeight         | long     | Initial chain height   |
+> | startHashCode       | int     | Int from chain start hash   |
+> | endHeight           | long     | End of chain height   |
+> | hashList            | LinkedList     | Blockchain hash list   |
+> | type                | ChainTypeEnum     | chain type   |
+> | age                 | AtomicInteger     | Chain age (orphan chain cleaning use)   |
 
 ## Chapter 7. additional content
