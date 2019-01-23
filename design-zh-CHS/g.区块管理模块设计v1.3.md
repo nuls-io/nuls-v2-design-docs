@@ -1028,7 +1028,7 @@
 
 * 功能说明:
 
-  系统启动后，定时维护本地区块数据与网络上大部分节点保持一致。
+  系统启动后，维护本地区块数据与网络上大部分节点保持一致。
 
   主要由一个总调度线程，三个子工作线程组成：
 
@@ -1079,7 +1079,7 @@
         场景1、2需要额外从节点下载与本地高度一致的区块，进行hash判断
         上述需要回滚的场景，要满足可用节点数(10个)>配置，一致可用节点数(6个)占比超80%两个条件，避免节点太少导致频繁回滚。以上两个条件都不满足，清空已连接节点，重新获取可用节点。
      
-        真正下载区块时，举个栗子:
+        真正下载区块时，举个例子:
         当前高度100，网络高度500，可用节点12个，一致可用节点10个，每个节点初始下载区块2个，下载时缓存队列最多允许缓存100个区块
         伪代码表示
         	空闲的下载节点队列：nodes(每个下载节点会有初始下载信用值，每下载成功一次信用值增加，信用最大值为初始值的2倍)
@@ -1107,7 +1107,7 @@
 
   工具模块的数据库存储工具、RPC工具
 
-#### 2.3.3 区块基础验证
+#### 2.3.5 区块基础验证
 
 * 功能说明:
 
@@ -1127,7 +1127,7 @@
 
   工具模块的数据库存储工具
 
-#### 2.3.4 分叉区块、孤儿区块验证
+#### 2.3.6 分叉区块、孤儿区块验证
 
 * 功能说明:
 
@@ -1152,7 +1152,7 @@
 
   工具模块的数据库存储工具
 
-#### 2.3.5 分叉链管理
+#### 2.3.7 分叉链管理
 
 * 功能说明:
 
@@ -1171,7 +1171,7 @@
 
   工具模块的数据库存储工具
 
-#### 2.3.6 孤儿链管理
+#### 2.3.8 孤儿链管理
 
 * 功能说明:
 
@@ -1193,25 +1193,25 @@
 
  2.  复制、清除
  
-         //如果标记为与主链相连,orphanChain不会复制到新的孤儿链集合,也不会进入分叉链集合,但是所有orphanChain的直接子链标记为ChainTypeEnum.MASTER_FORK
-         
-         //如果标记为从主链分叉,orphanChain不会复制到新的孤儿链集合,但是会进入分叉链集合,所有orphanChain的直接子链标记为ChainTypeEnum.FORK_FORK
+    * 如果标记为与主链相连,orphanChain不会复制到新的孤儿链集合,也不会进入分叉链集合,但是orphanChain的直接子链标记为ChainTypeEnum.MASTER_FORK
+
+    * 如果标记为从主链分叉,orphanChain不会复制到新的孤儿链集合,但是会进入分叉链集合,所有orphanChain的直接子链标记为ChainTypeEnum.FORK_FORK
  
-         //如果标记为与分叉链相连,orphanChain不会复制到新的孤儿链集合,也不会进入分叉链集合,但是所有orphanChain的直接子链标记为ChainTypeEnum.FORK_FORK
+    * 如果标记为与分叉链相连,orphanChain不会复制到新的孤儿链集合,也不会进入分叉链集合,但是所有orphanChain的直接子链标记为ChainTypeEnum.FORK_FORK
          
-         //如果标记为从分叉链分叉,orphanChain不会复制到新的孤儿链集合,但是会进入分叉链集合,所有orphanChain的直接子链标记为ChainTypeEnum.FORK_FORK
+    * 如果标记为从分叉链分叉,orphanChain不会复制到新的孤儿链集合,但是会进入分叉链集合,所有orphanChain的直接子链标记为ChainTypeEnum.FORK_FORK
          
-         //如果标记为与孤儿链相连,不会复制到新的孤儿链集合,所有orphanChain的直接子链会复制到新的孤儿链集合,类型不变
+    * 如果标记为与孤儿链相连,不会复制到新的孤儿链集合,所有orphanChain的直接子链会复制到新的孤儿链集合,类型不变
          
-         //如果标记为与孤儿链分叉,会复制到新的孤儿链集合,所有orphanChain的直接子链会复制到新的孤儿链集合,类型不变
+    * 如果标记为与孤儿链分叉,会复制到新的孤儿链集合,所有orphanChain的直接子链会复制到新的孤儿链集合,类型不变
          
-         //如果标记为孤儿链(未变化),或者从孤儿链分叉,复制到新的孤儿链集合
+    * 如果标记为孤儿链(未变化),或者从孤儿链分叉,复制到新的孤儿链集合
          
 * 依赖服务
 
   工具模块的数据库存储工具
 
-#### 2.3.7 孤儿链维护
+#### 2.3.9 孤儿链维护
 
 * 功能说明:
 
@@ -1225,7 +1225,7 @@
 
   工具模块的数据库存储工具
 
-#### 2.3.8 转发区块
+#### 2.3.10 转发区块
 
 * 功能说明:
 
@@ -1242,7 +1242,7 @@
 
   工具模块的数据库存储工具
 
-#### 2.3.9 广播区块
+#### 2.3.11 广播区块
 
 * 功能说明:
 
@@ -1411,13 +1411,12 @@ data:{
 
 * 消息类型（cmd）
 
-  GetSmallBlock
+  GetTxGroup
 
 * 消息的格式（messageBody） 
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | hashLength      | VarInt    | 数组长度           |
 | ?     | blockHash            | byte[]    | hash           |
@@ -1432,8 +1431,8 @@ data:{
 
 * 消息的处理逻辑
 
-1. 根据chainID、hash获取SmallBlock对象
-2. 组装SmallBlockMessage，并发送给源节点
+1. 根据chainID、hash获取Transaction列表
+2. 组装TxGroupMessage，并发送给源节点
 
 #### 4.2.5 区块广播消息SmallBlockMessage
 
@@ -1447,7 +1446,6 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
 | 1     | digestAlgType  | byte      | 摘要算法标识           |
 | ?     | preHashLength   | VarInt    | preHash数组长度           |
 | ?     | preHash         | byte[]    | preHash           |
@@ -1494,7 +1492,6 @@ data:{
 
 | Length | Fields  | Type      | Remark         |
 | ------ | ------- | --------- | -------------- |
-| 32     | chainID  | uint32      | 链ID           |
 | 32     | startHeight  | uint32      | 起始高度           |
 | 32     | endHeight  | uint32      | 结束高度           |
 
@@ -1506,8 +1503,8 @@ data:{
 
 1. chainID、高度参数验证
 2. 返回响应消息ReactMessage
-3. 从endHeight开始查找Block,组装BlockMessage，发给目标节点
-4. 查找到startHeight为止，组装CompleteMessage，发给目标节点
+3. 从startHeight开始查找Block,组装BlockMessage，发给目标节点
+4. 查找到endHeight为止，组装CompleteMessage，发给目标节点
 
 #### 4.2.7 完整的区块消息BlockMessage
 
