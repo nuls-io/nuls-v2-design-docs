@@ -1172,7 +1172,7 @@
 
   - 接口说明
 
-    区块管理模块 调用进行节点的高度与Hash值的更新。
+     注册远程节点间的消息调用指令
 
     method : nw_protocolRegister
 
