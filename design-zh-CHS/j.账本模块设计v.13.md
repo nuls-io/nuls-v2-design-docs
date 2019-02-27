@@ -288,23 +288,21 @@
 | ----- | :------: | -----------: |
 | value |   int    | 1成功，0失败 |
 
-#### 3.1.6 提交交易
+#### 3.1.6 提交未确认交易
 
-> cmd: commitTx
+> cmd: commitUnconfirmedTx
 
 ##### 参数说明 (request)
 
-| 字段        | 是否必填 | 数据类型 |                              描述信息 |
-| ----------- | :------: | -------: | ------------------------------------: |
-| chainId     |    Y     |      int |                      接口调用链的链Id |
-| txHex       |    Y     |   String |                          交易16进制流 |
-| isConfirmTx |    Y     |  boolean | true 已确认交易  false 为确认交易回滚 |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
      "chainId": 21,
-     "txHex": "xxxxxxxx",
-     "isConfirmTx": "false"
+     "txHex": "xxxxxxxx"
 }
 ```
 
@@ -320,23 +318,87 @@
 | ----- | :------: | -----------: |
 | value |   int    | 1成功，0失败 |
 
-#### 3.1.7  回滚交易
 
-> cmd: rollBackTx
+
+#### 3.1.7 提交区块交易
+
+> cmd: commitBlockTxs
 
 ##### 参数说明 (request)
 
-| 字段        | 是否必填 | 数据类型 |                              描述信息 |
-| ----------- | :------: | -------: | ------------------------------------: |
-| chainId     |    Y     |      int |                      接口调用链的链Id |
-| txHex       |    Y     |   String |                          交易16进制流 |
-| isConfirmTx |    Y     |  boolean | true 已确认交易  false 为确认交易回滚 |
+| 字段        | 是否必填 | 数据类型 |              描述信息 |
+| ----------- | :------: | -------: | --------------------: |
+| chainId     |    Y     |      int |      接口调用链的链Id |
+| txHexList   |    Y     |    array | 交易列表 交易16进制流 |
+| blockHeight |    Y     |     long |              区块高度 |
 
 ```json
 {
      "chainId": 21,
-     "txHex": "xxxxxxxx",
-     "isConfirmTx": "true"
+     "txHex": "[xxxxxxxx,yyyyyyyy]",
+     "blockHeight": 25
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| 字段  | 数据类型 |     描述信息 |
+| ----- | :------: | -----------: |
+| value |   int    | 1成功，0失败 |
+
+
+
+#### 3.1.8  回滚未确认交易
+
+> cmd: rollBackUnconfirmTx
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txHex   |    Y     |   String |     交易16进制流 |
+
+```json
+{
+     "chainId": 21,
+     "txHex": "xxxxxxxx"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":1
+}
+```
+
+| 字段  | 数据类型 |     描述信息 |
+| ----- | :------: | -----------: |
+| value |   int    | 1成功，0失败 |
+
+#### 3.1.9  回滚区块交易
+
+> cmd: rollBackBlockTxs
+
+##### 参数说明 (request)
+
+| 字段        | 是否必填 | 数据类型 |         描述信息 |
+| ----------- | :------: | -------: | ---------------: |
+| chainId     |    Y     |      int | 接口调用链的链Id |
+| blockHeight |    Y     |     long |         区块高度 |
+
+```json
+{
+     "chainId": 21,
+     "blockHeight": 25
 }
 ```
 
