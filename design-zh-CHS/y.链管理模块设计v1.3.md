@@ -510,15 +510,17 @@
 
   ```
   {
-          "coinDatas": "FFAABB214324"       
+          "chainId": 12345,   
+          "txHex": "FFAABB214324"       
   }
   ```
 
   - 请求参数说明
 
-  | parameter | required | type   | description         |
-  | :-------- | :------- | :----- | ------------------- |
-  | coinDatas | true     | String | 交易coindata的HEX值 |
+  | parameter | required | type   | description |
+  | :-------- | :------- | :----- | ----------- |
+  | chainId   | true     | int    | 链id        |
+  | txHex     | true     | String | 交易HEX值   |
 
   - 返回示例
 
@@ -533,6 +535,9 @@
 
     ```
     统一RPC标准格式
+    {
+        "value":true
+    }
     
     ```
 
@@ -554,7 +559,7 @@
 
 - 功能说明：
 
-  交易模块在产生一笔跨链交易，并校验通过时，调用该接口进行跨链资产的提交。
+  通过验证的交易进行区块提交时，交易模块将跨跨链交易进行组装提交给跨链管理模块。
 
   用于变更链资产，并用于链资产的管理。
 
@@ -574,15 +579,19 @@
 
   ```
   {
-          "coinDatas": "FFAABB214324"       
+          "chainId":12345,
+          "txHexList": "[FFAABB214324,FFAABB214324]" ，
+           "blockHeaderDigest": "FFAABB214324"
   }
   ```
 
   - 请求参数说明
 
-  | parameter | required | type   | description         |
-  | :-------- | :------- | :----- | ------------------- |
-  | coinDatas | true     | String | 交易coindata的HEX值 |
+  | parameter         | required | type  | description |
+  | :---------------- | :------- | :---- | ----------- |
+  | chainId           | true     | int   | 链id        |
+  | txHexList         | true     | array | 交易的HEX值 |
+  | blockHeaderDigest | true     | array | 区块头信息  |
 
   - 返回示例
 
@@ -597,7 +606,9 @@
 
     ```
     统一RPC标准格式
-    
+    {
+        "value":true
+    }
     ```
 
   - 返回字段说明
@@ -614,7 +625,73 @@
 
   - 交易管理模块，跨链交易调用
 
-#### 2.2.7 链管理交易处理函数的注册
+  #### 2.2.7  跨链交易的链资产回滚
+
+  - 功能说明：
+
+    用于区块交易回滚
+
+  - 流程描述
+
+    1. 直接调用cm_assetCirculateRollBack接口
+
+  - 接口定义
+
+    - 接口说明
+
+    ​            method : cm_assetCirculateRollBack
+
+    - 请求示例
+
+    ```
+    {
+            "chainId":12345,
+            "txHexList": "[FFAABB214324,FFAABB214324]" ，
+             "blockHeaderDigest": "FFAABB214324" 
+    }
+    ```
+
+    - 请求参数说明
+
+    | parameter         | required | type  | description   |
+    | :---------------- | :------- | :---- | ------------- |
+    | chainId           | true     | int   | 链id          |
+    | txHexList         | true     | array | 交易的HEX列表 |
+    | blockHeaderDigest | true     | array | 区块头信息    |
+
+    - 返回示例
+
+    - Failed
+
+      ```
+      统一RPC标准格式
+      
+      ```
+
+      Success
+
+      ```
+      统一RPC标准格式
+      {
+          "value":true
+      }
+      ```
+
+    - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
+  
+
+  - 依赖服务
+
+    [^说明]: 文字描述依赖了哪些服务，做什么事情
+
+    - 交易管理模块，跨链交易调用
+
+#### 2.2.8 链管理交易处理函数的注册
 
 - 功能说明：
 
@@ -638,7 +715,7 @@
 
   - 交易管理模块
 
-#### 2.2.8  查询链信息
+#### 2.2.9  查询链信息
 
 - 功能说明：
 
@@ -723,7 +800,7 @@
 
    无
 
-#### 2.2.9  查询链下资产信息
+#### 2.2.10  查询链下资产信息
 
 - 功能说明：
 
