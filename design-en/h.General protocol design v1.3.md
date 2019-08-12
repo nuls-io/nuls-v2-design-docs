@@ -203,7 +203,7 @@ address:  //byte[24] The address of the account
 assetsChainId://uint16 The id of the chain which Issued this asset
 assetsId: //uint16 asset id
 amount：  //uint128，asset count
-nonce  ： //byte[8] The first eight bytes of the summary of the previous transaction(If the transaction is unlocked tx, the value here is the first eight bytes of hash that locks the transaction for that amount.)
+nonce  ： //byte[8] The last eight bytes of the summary of the previous transaction(If the transaction is unlocked tx, the value here is the first eight bytes of hash that locks the transaction for that amount.)
 locked : //byte ,If the transaction is unlocked, the value here is 1, which means that the asset is locked, otherwise it is 0.
 ```
 

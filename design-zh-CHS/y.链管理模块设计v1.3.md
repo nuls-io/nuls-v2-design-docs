@@ -119,7 +119,7 @@
 
    2.链管理模块进行链交易的封装发送给交易模块。期间需要通过账本模块获取账户余额及交易nonce值。
 
-​      并且通过网络模块获取跨链的种子节点信息 返回给用户。
+​      发送交易后返回成功或失败信息给用户。
 
    3.交易模块会在交易处理过程中进行数据校验的回调。
 
@@ -142,6 +142,7 @@
   ```
   {
           "chainId": 152,
+          "assetId": 2,
           "chainName": "nuls chain",
           "addressType": "1",
           "magicNumber":454546,
@@ -164,6 +165,7 @@
   | parameter               | required | type   | description                                 |
   | :---------------------- | :------- | :----- | ------------------------------------------- |
   | chainId                 | true     | int    | 链标识                                      |
+  | assetId                 | true     | int    | 资产id                                      |
   | chainName               | true     | string | 链名称                                      |
   | addressType             | true     | int    | 链上创建的账户的地址类型：1生态内 2非生态内 |
   | magicNumber             | true     | string | 网络魔法参数                                |
@@ -189,9 +191,7 @@
      Success
 
      ```
-     {
-     "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
-     }
+     统一RPC标准格式
      
      ```
 
@@ -510,15 +510,17 @@
 
   ```
   {
-          "coinDatas": "FFAABB214324"       
+          "chainId": 12345,   
+          "txHex": "FFAABB214324"       
   }
   ```
 
   - 请求参数说明
 
-  | parameter | required | type   | description         |
-  | :-------- | :------- | :----- | ------------------- |
-  | coinDatas | true     | String | 交易coindata的HEX值 |
+  | parameter | required | type   | description |
+  | :-------- | :------- | :----- | ----------- |
+  | chainId   | true     | int    | 链id        |
+  | txHex     | true     | String | 交易HEX值   |
 
   - 返回示例
 
@@ -533,6 +535,9 @@
 
     ```
     统一RPC标准格式
+    {
+        "value":true
+    }
     
     ```
 
@@ -554,7 +559,7 @@
 
 - 功能说明：
 
-  交易模块在产生一笔跨链交易，并校验通过时，调用该接口进行跨链资产的提交。
+  通过验证的交易进行区块提交时，交易模块将跨跨链交易进行组装提交给跨链管理模块。
 
   用于变更链资产，并用于链资产的管理。
 
@@ -574,15 +579,19 @@
 
   ```
   {
-          "coinDatas": "FFAABB214324"       
+          "chainId":12345,
+          "txHexList": "[FFAABB214324,FFAABB214324]" ，
+           "blockHeaderDigest": "FFAABB214324"
   }
   ```
 
   - 请求参数说明
 
-  | parameter | required | type   | description         |
-  | :-------- | :------- | :----- | ------------------- |
-  | coinDatas | true     | String | 交易coindata的HEX值 |
+  | parameter         | required | type  | description |
+  | :---------------- | :------- | :---- | ----------- |
+  | chainId           | true     | int   | 链id        |
+  | txHexList         | true     | array | 交易的HEX值 |
+  | blockHeaderDigest | true     | array | 区块头信息  |
 
   - 返回示例
 
@@ -597,7 +606,9 @@
 
     ```
     统一RPC标准格式
-    
+    {
+        "value":true
+    }
     ```
 
   - 返回字段说明
@@ -614,7 +625,73 @@
 
   - 交易管理模块，跨链交易调用
 
-#### 2.2.7 链管理交易处理函数的注册
+  #### 2.2.7  跨链交易的链资产回滚
+
+  - 功能说明：
+
+    用于区块交易回滚
+
+  - 流程描述
+
+    1. 直接调用cm_assetCirculateRollBack接口
+
+  - 接口定义
+
+    - 接口说明
+
+    ​            method : cm_assetCirculateRollBack
+
+    - 请求示例
+
+    ```
+    {
+            "chainId":12345,
+            "txHexList": "[FFAABB214324,FFAABB214324]" ，
+             "blockHeaderDigest": "FFAABB214324" 
+    }
+    ```
+
+    - 请求参数说明
+
+    | parameter         | required | type  | description   |
+    | :---------------- | :------- | :---- | ------------- |
+    | chainId           | true     | int   | 链id          |
+    | txHexList         | true     | array | 交易的HEX列表 |
+    | blockHeaderDigest | true     | array | 区块头信息    |
+
+    - 返回示例
+
+    - Failed
+
+      ```
+      统一RPC标准格式
+      
+      ```
+
+      Success
+
+      ```
+      统一RPC标准格式
+      {
+          "value":true
+      }
+      ```
+
+    - 返回字段说明
+
+    | parameter | type | description |
+    | --------- | ---- | ----------- |
+    |           |      |             |
+
+  
+
+  - 依赖服务
+
+    [^说明]: 文字描述依赖了哪些服务，做什么事情
+
+    - 交易管理模块，跨链交易调用
+
+#### 2.2.8 链管理交易处理函数的注册
 
 - 功能说明：
 
@@ -638,7 +715,7 @@
 
   - 交易管理模块
 
-#### 2.2.8  查询链信息
+#### 2.2.9  查询链信息
 
 - 功能说明：
 
@@ -695,7 +772,8 @@
             "regTxHash":"FFFFF", 
             "selfAssetKeyList":["1232_32","528_8"],
             "totalAssetKeyList":["1232_32","528_8"],
-            "createTime":1212131
+            "createTime":1212131,
+            "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
     }
     ```
 
@@ -715,13 +793,14 @@
   | selfAssetKeyList        | list   | 链下注册的资产列表，由chainId_assetId 组合的资产key值 |
   | totalAssetKeyList       | list   | 链下流通的资产列表，由chainId_assetId 组合的资产key值 |
   | createTime              | long   | 创建时间                                              |
+  | seeds                   | String | cross Seed node                                       |
 
 
 - 依赖服务
 
    无
 
-#### 2.2.9  查询链下资产信息
+#### 2.2.10  查询链下资产信息
 
 - 功能说明：
 

@@ -1110,17 +1110,15 @@ none
 
   ​      Gets the network information of the specified chainId.
 
-  ​        method : nw_getNodes
+  ​        method : nw_getGroupByChainId
 
   - Request example
 
     ```
+    
     {
-        "method":"nw_getGroupByChainId",
-        "minVersion":1.1,
-        "params":[
-            103
-        ]}
+        "chainId":142
+     }
     ```
 
      - Request parameter description
@@ -1150,37 +1148,48 @@ none
    "version": 1.2,
       "code":0,
       "result":{
-       
-              chainId：1212, 
-              magicNumber：324234,
-              totalCount：2323, 
-              inCount：22,  
-              outCount：33, 
-              blockHeight：6000,   
-              blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
-                       ea1a960f207778150ffb9f2c173ff", 
-              isActive：1，
-              isCrossActive:1，
-              isMoonNet:0
-      }
+              "chainId"：1212,  
+              "magicNumber"：324234, 
+              "totalCount"：2323,  
+              "connectCount"：44， 
+              "disConnectCount"：32， 
+              "inCount"：22,   
+              "outCount"：33,   
+              "connectCrossCount"：44， 
+              "disConnectCrossCount"：32， 
+              "inCrossCount"：22,    
+              "outCrossCount"：33,  
+              "blockHeight"：6000,    
+              "blockHash"："0020ba3f3f637ef53d025d3a8972462c00e84d9
+                       ea1a960f207778150ffb9f2c173ff",   
+              "isActive"：1， 
+              "isCrossActive":1，  
+              "isMoonNet":0  
+              }
   }
   
   ```
 
      - Return field description
 
-  | parameter     | type   | description                                           |
-  | ------------- | ------ | ----------------------------------------------------- |
-  | chainId       | int    | chainId                                               |
-  | magicNumber   | int    | magicNumber                                           |
-  | totalCount    | int    | total connect                                         |
-  | blockHeight   | long   | latest block height                                   |
-  | blockHash     | String | latest block hash                                     |
-  | isActive      | int    | 0 is not activated, 1 is activated                    |
-  | isCrossActive | int    | 0 is not a cross-chain network, 1 cross-chain network |
-  | outCount      | int    | active connection count                               |
-  | inCount       | int    | passive connection count                              |
-  | isMoonNet     | int    | 0 not moon node，1 moon node                          |
+  | parameter            | type   | description                                           |
+  | -------------------- | ------ | ----------------------------------------------------- |
+  | chainId              | int    | chainId                                               |
+  | magicNumber          | int    | magicNumber                                           |
+  | totalCount           | int    | total connect                                         |
+  | blockHeight          | long   | latest block height                                   |
+  | blockHash            | String | latest block hash                                     |
+  | isActive             | int    | 0 is not activated, 1 is activated                    |
+  | isCrossActive        | int    | 0 is not a cross-chain network, 1 cross-chain network |
+  | connectCount         | int    | had connected count                                   |
+  | disConnectCount      | int    | disconnect count                                      |
+  | outCount             | int    | active connection count                               |
+  | inCount              | int    | passive connection count                              |
+  | connectCrossCount    | int    | cross connect count                                   |
+  | disConnectCrossCount | int    | cross disconnect count                                |
+  | outCrossCount        | int    | active cross connection count                         |
+  | inCrossCount         | int    | passive cross connection count                        |
+  | isMoonNet            | int    | 0 not moon node，1 moon node                          |
 
 
 

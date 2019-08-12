@@ -110,7 +110,7 @@ Step description:
     
     2> The chain management module performs the encapsulation of the chain transaction and sends it to the transaction module.
          During the period, you need to obtain the account balance and the transaction nonce value through the ledger module.
-          And the seed node information of the cross-chain is obtained through the network module and returned to the user.
+          A success or failure message is returned to the user after the transaction is sent.
     
     3>The transaction module will perform a callback of the data check during the transaction process.
     
@@ -119,7 +119,7 @@ Step description:
     5> The chain management module stores the data and sends the registration information to the network module.
     
     6> The registration chain requires 1000NULS, of which 20% is directly destroyed, 80% is used for mortgages, and is returned when assets are deleted.
-  
+
 
 - Interface definition
 
@@ -134,6 +134,7 @@ Step description:
   ```
   {
           "chainId": 152,
+          "assetId": 23,
           "chainName": "nuls chain",
           "addressType": "1",
           "magicNumber":454546,
@@ -156,6 +157,7 @@ Step description:
   | parameter               | required | type   | description                                                  |
   | :---------------------- | :------- | :----- | ------------------------------------------------------------ |
   | chainId                 | true     | int    | Chain identification                                         |
+  | assetId                 | true     | int    | asset id                                                     |
   | chainName               | true     | string | Chain name                                                   |
   | addressType             | true     | int    | The address type of the account created on the chain: 1 within the ecological 2 non-ecological |
   | magicNumber             | true     | string | Network magic parameter                                      |
@@ -662,7 +664,8 @@ Step description:
             "regTxHash":"FFFFF", 
             "selfAssetKeyList":["1232_32","528_8"],
             "totalAssetKeyList":["1232_32","528_8"],
-            "createTime":1212131
+            "createTime":1212131，
+            "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
     }
     ```
 
@@ -682,6 +685,7 @@ Step description:
   | selfAssetKeyList        | list   | List of assets registered under the chain, asset key value combined by chainId_assetId |
   | totalAssetKeyList       | list   | List of assets circulating under the chain, asset key value combined by chainId_assetId |
   | createTime              | long   | Creation time                                                |
+  | seeds                   | String | cross Seed node                                              |
 
 
 - Dependent service

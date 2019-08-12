@@ -206,7 +206,7 @@ address:  //byte[24] 账户地址
 assetsChainId://uint16 资产发行链的id
 assetsId: //uint16 资产id
 amount：  //uint128，转出数量
-nonce  ： //byte[8] 交易顺序号，前一笔交易的hash的前8个字节
+nonce  ： //byte[8] 交易顺序号，前一笔交易的hash的后8个字节
 locked ： //byte 是否是锁定状态(locktime:-1),1代表锁定，0代表非锁定
 ```
 
