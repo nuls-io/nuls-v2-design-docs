@@ -1021,17 +1021,11 @@
 
   系统启动后，维护本地区块数据与网络上大部分节点保持一致。
 
-  主要由一个总调度线程，三个子工作线程组成：
+  BlockSynchronizer:统计网络上最新一致高度、检查本地区块是否需要回滚、初始化各种区块同步期间的参数
 
-  ​	总调度线程：BlockSynchronizer，工作内容：统计网络上最新一致高度、检查本地区块是否需要回滚、初始化各种区块同步期间的参数、调度三个子线程
+  ​BlockDownloader:从起始高度开始，根据各下载节点的信用值分配下载任务，组装HeightRangeMessage，发送给目标节点
 
-  ​	子工作线程1：BlockDownloader，工作内容：从起始高度开始，根据各下载节点的信用值分配下载任务，并启动后台下载任务BlockWorker
-
-  ​	子工作线程1-1：BlockWorker，工作内容：组装HeightRangeMessage，发送给目标节点，并计算messageHash缓存起来，等待目标节点返回的CompleteMessage(携带的messageHash要对应)
-
-  ​	子工作线程2：BlockCollector，工作内容：收集BlockDownloader下载到的区块，排序后放入共享队列供BlockConsumer消费
-
-  ​	子工作线程3：BlockConsumer，工作内容：取出共享队列中的区块，依次保存
+  ​BlockConsumer:根据高度依次取出缓存Map中的区块，验证并保存，如果某个高度一直取不到，就组装一条HeightMessage，发送给连接到的节点单独获取该高度的区块
 
 - 流程描述
 
