@@ -59,7 +59,7 @@
   - 多资产情况，需要加入chainId.
 - 获取账户地址余额和nonce
   - 获取账户地址余额
-  - 获取账户地址nonce(该nonce是一个hash值，意味着第一个交易的nonce是0.以后该账户的每一笔交易都会包含前一笔交易的nonce值 )
+  - 获取账户地址nonce(该nonce是一个交易hash值的后八位，意味着第一个交易的nonce是0.以后该账户的每一笔支出交易都会包含前一笔交易的nonce值 )
 - 验证交易
   - 双花验证(nonce机制阻止双重支付)
   - 交易创建者验证,验证交易发出者是否拥有足够的余额,验证交易创建者的nonce是否合法
@@ -227,37 +227,35 @@
 
 #### 3.1.4  验证coinData
 
-> cmd: validateCoinData
+> cmd: verifyCoinData
 
 ##### 参数说明 (request)
 
-| 字段            | 是否必填 | 数据类型 |                                    描述信息 |
-| --------------- | :------: | -------: | ------------------------------------------: |
-| chainId         |    Y     |      int |                            接口调用链的链id |
-| txHex           |    Y     |   String |                                交易16进制流 |
-| isBatchValidate |    Y     |  boolean | true 交易的批量校验，false 单笔的未确认校验 |
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链id |
+| txHex   |    Y     |   String |     交易16进制流 |
 
 ```json
 {
     "chainId": 458,
-    "txHex": "xxxxxxxx",
-    "isBatchValidate": "false"
+    "txHex": "xxxxxxxx"
 }
 ```
 
 ##### 返回值说明：(response)
 
 ```json
+失败下情况下，统一返回fail错误码。
+成功下：
 {
-    "validateCode":1,
-    "validateDesc":"success" 
+    "orphan":true
 }
 ```
 
-| 字段         | 数据类型 |                              描述信息 |
-| ------------ | :------: | ------------------------------------: |
-| validateCode |   int    | 1校验通过，2孤儿交易 3双花 4 其他异常 |
-| validateDesc |  String  |                          校验返回描述 |
+| 字段   | 数据类型 |   描述信息    |
+| ------ | :------: | :-----------: |
+| orphan | boolean  | true 孤儿交易 |
 
 
 #### 3.1.5   批量校验通知
@@ -309,18 +307,53 @@
 ##### 返回值说明：(response)
 
 ```json
+失败下情况下，统一返回fail错误码。
+
+成功下：
 {
-    "value":1
+    "orphan":true
 }
 ```
 
-| 字段  | 数据类型 |     描述信息 |
-| ----- | :------: | -----------: |
-| value |   int    | 1成功，0失败 |
+| 字段   | 数据类型 |    描述信息     |
+| ------ | :------: | :-------------: |
+| orphan | boolean  | true 为孤儿交易 |
+
+#### 3.1.7  批量提交未确认交易
+
+> cmd: commitBatchUnconfirmedTxs
+
+##### 参数说明 (request)
+
+| 字段    | 是否必填 | 数据类型 |         描述信息 |
+| ------- | :------: | -------: | ---------------: |
+| chainId |    Y     |      int | 接口调用链的链Id |
+| txList  |    Y     |   String |    交易Hex值列表 |
+
+```json
+{
+     "chainId": 21,
+     "txList": "[xxxxxxxx，yyyyyyyyy]"
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "orphan":"[xxxxxxxx，yyyyyyyyy]"，
+    "fail":"[aaaaaaaa，bbbbbbbbb]"
+}
+```
+
+| 字段   |   数据类型   |     描述信息     |
+| ------ | :----------: | :--------------: |
+| orphan | List<String> | 返回孤儿交易列表 |
+| fail   | List<String> | 返回失败交易列表 |
 
 
 
-#### 3.1.7 提交区块交易
+#### 3.1.8 提交区块交易
 
 > cmd: commitBlockTxs
 
@@ -344,17 +377,17 @@
 
 ```json
 {
-    "value":1
+    "value":true
 }
 ```
 
-| 字段  | 数据类型 |     描述信息 |
-| ----- | :------: | -----------: |
-| value |   int    | 1成功，0失败 |
+| 字段  | 数据类型 |            描述信息 |
+| ----- | :------: | ------------------: |
+| value |   int    | true成功，false失败 |
 
 
 
-#### 3.1.8  回滚未确认交易
+#### 3.1.9  回滚未确认交易
 
 > cmd: rollBackUnconfirmTx
 
@@ -384,7 +417,7 @@
 | ----- | :------: | -----------: |
 | value |   int    | 1成功，0失败 |
 
-#### 3.1.9  回滚区块交易
+#### 3.1.10  回滚区块交易
 
 > cmd: rollBackBlockTxs
 
@@ -413,6 +446,38 @@
 | 字段  | 数据类型 |     描述信息 |
 | ----- | :------: | -----------: |
 | value |   int    | 1成功，0失败 |
+
+#### 3.1.11  整区块校验
+
+> cmd: blockValidate
+
+##### 参数说明 (request)
+
+| 字段        | 是否必填 | 数据类型 |         描述信息 |
+| ----------- | :------: | -------: | ---------------: |
+| chainId     |    Y     |      int | 接口调用链的链Id |
+| txList      |    Y     |   String |    交易Hex值列表 |
+| blockHeight |    Y     |     long |         区块高度 |
+
+```json
+{
+     "chainId": 21,
+     "txList": "[xxxxxxxx，yyyyyyyyy]",
+     "blockHeight":20
+}
+```
+
+##### 返回值说明：(response)
+
+```json
+{
+    "value":true
+}
+```
+
+| 字段  | 数据类型 |       描述信息       |
+| ----- | :------: | :------------------: |
+| value | boolean  | true成功，false 失败 |
 
 
 
@@ -474,6 +539,8 @@
 
 ### 5.2 交易协议
 
+无
+
 ## 六、模块配置
 ### 6.1 配置说明
 
@@ -481,9 +548,14 @@
 
 - 内核模块
   - 模块注册
+
   - 模块注销
+
   - 模块状态上报（心跳）
+
   - 服务接口数据获取及定时更新
+- 网络模块
+  
 
 ## 七、Java特有的设计
 

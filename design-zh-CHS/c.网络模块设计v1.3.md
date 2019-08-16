@@ -24,8 +24,8 @@
 * 网络模块是底层应用模块，任何需要网络通讯的模块都要通过网络模块来进行消息的收发。
 * 网络模块依赖核心模块进行服务接口的治理。
 * 网络模块按网络id（魔法参数） 来进行不同网络的构建。
-* 网络模块在卫星链中的节点在进行跨链网络组建时，需要链管理模块提供跨链配置信息。
-* 网络模块在子链中的节点在进行跨链网络组建时，需要跨链模块提供跨链配置信息。
+* 网络模块在主网链中的节点在进行跨链网络组建时，需要链管理模块提供跨链配置信息。
+* 网络模块在平行链中的节点在进行跨链网络组建时，需要跨链模块提供跨链配置信息。
 
 ### 1.2 架构图
 
@@ -65,26 +65,22 @@
 - 连接器管理 Connection management
 
   - 初始化连接
-    - 卫星链节点：随机连接
-    - 跨链节点：已固定的算法连接，目标是将跨链节点分散并全部连接
-  - 连接管理：心跳维护
+    - 链内节点：初始通过种子节点进行连接，通过协议请求peer地址或接收到分享的peer地址后，进行缓存。
+    - 跨链节点：主网被动等待平行链节点的连接。
+  - 连接管理：需要进行节点的可用性探测，心跳维护，有多余可用节点时候，断开种子节点连接。
   - 连接断开
 
 - 消息收发管理
 
   1>消息接收 Message receiver
 
-  接收网络节点发送过来的消息，对消息进行简单的判断（判断cmd），根据消息cmd字段，将消息发送到关心的模块服务中。
-
-[^注]: 服务接口信息（url）从kernel模块定时获取并缓存。
-
-
+  接收网络节点发送过来的消息，对消息进行判断（判断cmd），根据消息cmd字段，将消息透传到对应的模块服务中。
 
 ​      2>  消息发送 Message sender
 
-​                  a> 对NodeGroup广播消息
+​                  a> 对网络组(NodeGroup)广播消息
 
-​                  b> 对一个节点发送消息
+​                  b> 指定peer节点发送消息
 
 - 模块状态管理
 
@@ -96,9 +92,9 @@
 
 - 接口管理
 
-  a>注册自身接口到kernel模块中
+  a>注册自身接口到NUSTAR模块中
 
-  b>同步模块信息与状态到kernel模块中 
+  b>同步模块信息与状态到NUSTAR模块中 
 
   c>获取服务列表到本地模块
 
@@ -110,9 +106,7 @@
 
   b>管理 节点发现/淘汰机制线程
 
-  c>管理  接口信息同步线程
-
-
+  
 
 ### 2.2 模块服务
 
@@ -163,6 +157,8 @@
 
   b> 对NodeGroup（指定某个网络）广播消息，并排除某些节点。
 
+  c> 对NodeGroup（指定某个网络）按指定比例广播消息，并排除某些节点。
+
 - 流程描述
 
 
@@ -173,7 +169,7 @@
 
   - 接口说明
 
-     method : nw_broadcast
+    method : nw_broadcast
 
     外部模块可以通过该接口去广播消息
 
@@ -183,17 +179,23 @@
     {
        "chainId":1234，
        "excludeNodes": "10.13.25.36:5003,20.30.25.65:8009",
-       "params":     "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+       "messageBody":     "03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"，
+       "command":"block"，
+       "isCross":"false"，
+       "percent":"50"，
         }
     ```
 
   - 请求参数说明
 
-    | index | parameter    | required | type   |    description    |
-    | ----- | ------------ | -------- | ------ | :---------------: |
-    | 0     | chainId      | true     | int    |      链标识       |
-    | 1     | excludeNodes | true     | String | 排除节点,逗号分割 |
-    | 2     | message      | true     | String |  对象16进制字符   |
+    | index | parameter    | required | type    |         description         |
+    | ----- | ------------ | -------- | ------- | :-------------------------: |
+    | 0     | chainId      | true     | int     |           链标识            |
+    | 1     | excludeNodes | true     | String  |      排除节点,逗号分割      |
+    | 2     | messageBody  | true     | String  |       对象16进制字符        |
+    | 3     | command      | true     | String  |        消息协议指令         |
+    | 4     | isCross      | true     | boolean |         是否是跨链          |
+    | 5     | percent      | false    | int     | 广播发送比例,不填写,默认100 |
 
   - 返回示例
 
@@ -204,7 +206,9 @@
        "version": 1.2,
         "code":1,
         "msg" :"xxxxxxxxxxxxxxxxxx",
-        "result":{}
+        "result":{
+            "value":false
+        }
     }
     ```
 
@@ -215,7 +219,7 @@
      "version": 1.2,
         "code":0,
         "result":{
-           
+           "value":true
         }
     }
     ```
@@ -243,23 +247,34 @@
 
     method : nw_sendPeersMsg
 
+  ```
+  @Parameter(parameterName = "chainId", requestType = @TypeDescriptor(value = int.class), parameterValidRange = "[1-65535]", parameterDes = "连接的链Id,取值区间[1-65535]"),
+  @Parameter(parameterName = "nodes", requestType = @TypeDescriptor(value = String.class), parameterDes = "指定发送peer节点Id，用逗号拼接的字符串"),
+  @Parameter(parameterName = "messageBody", requestType = @TypeDescriptor(value = String.class), parameterDes = "消息体Hex"),
+  @Parameter(parameterName = "command", requestType = @TypeDescriptor(value = String.class), parameterDes = "消息协议指令")
+  ```
+
+  
+
   - 请求示例
 
     ```
     {
-          "chainId":  1234，
-          "nodes":  "10.13.25.36:5003,20.30.25.65:8009",
-       "message":"03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"
+    "chainId":  1234，
+    "nodes":  "10.13.25.36:5003,20.30.25.65:8009",
+    "messageBody":"03847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF303847ABDFF3"，
+    "command":  "block"
         }
     ```
 
   - 请求参数说明
 
-    | index | parameter | required | type   |    description    |
-    | ----- | --------- | -------- | ------ | :---------------: |
-    | 0     | chainId   | true     | int    |      链标识       |
-    | 1     | nodes     | true     | String | 发送节点,逗号分割 |
-    | 2     | message   | true     | String |  对象16进制字符   |
+    | index | parameter   | required | type   |    description    |
+    | ----- | ----------- | -------- | ------ | :---------------: |
+    | 0     | chainId     | true     | int    |      链标识       |
+    | 1     | nodes       | true     | String | 发送节点,逗号分割 |
+    | 2     | messageBody | true     | String |    16进制字符     |
+    |       | command     | true     | String |       指令        |
 
   - 返回示例
 
@@ -298,21 +313,23 @@
 
 #### 2.2.3 创建节点组
 
-卫星链除了自身卫星网络，还存在n个跨链网络，友链上除了自身网络，还可以注册跨链网络。
+主网链除了自身网络，还存在n个跨链网络，自身网络与跨链网络使用不同的magicNumber.
+
+平行链上除了自身网络，还可以去主网上注册跨链网络，自身网络与跨链网络使用同一个magicNumber。
 
 节点组就是用来管理不同网络信息的。网络模块通过节点组去隔离维护不同网络。
 
-节点组类型：1>自身网络 2>跨链网络 (卫星链跨链网络&友链跨链网络)
+节点组类型：1>自身网络 2>跨链网络 (主网链跨链网络&平行链跨链网络)
 
-网络模块是接收外部模块的调用，来创建节点组。跨链的基本网络配置信息主要通过2种途径获得:
+网络模块的创建节点组:
 
 1>自身的配置文件加载创建自身网络组。
 
 2>跨链网络：
 
-​    作为卫星链节点，由链管理模块进行注册登记后，系统产生交易验证确认后调用，产生跨链网络组，之后存储配置，后续模块启动自动加载。
+​    作为主网链节点，平行链向链管理模块进行注册登记后，系统产生交易验证确认后调用网络模块，产生跨链网络组，之后存储配置，后续模块启动自动加载。
 
-​    作为友链节点，由跨链协议模块启动时，跨链协议模块从模块配置中获取跨链配置信息，通知网络模块，
+​    作为平行链节点，由跨链协议模块启动时，跨链协议模块从模块配置中获取跨链配置信息，调用网络模块，
 
 网络模块触发跨链 连接。
 
@@ -338,13 +355,13 @@
 
 - 功能说明：
 
-  卫星链上的跨链节点组由友链在卫星链进行跨链注册触发。友链则获得跨链配置信息，由跨链协议来更新自有网络组的跨链状态。
+  主网链上的跨链节点组由平行链在主网链进行跨链注册触发。平行链则获得跨链配置信息，由跨链协议来更新自有网络组的跨链状态。
 
 * 流程描述
 
-  1>卫星链通过 链管理模块调用来触发跨链节点组的创建。
+  1>主网链通过 链管理模块调用来触发跨链节点组的创建。
 
-  2>友链通过跨链协议模块来 更新自有网络组的跨链状态。
+  2>平行链通过跨链协议模块来 更新自有网络组的跨链状态。
 
  ![](./image/network-module/createNodeGroup.png)
 
@@ -366,21 +383,21 @@
           "maxIn":  100,
           "minAvailableCount":  20，
           "seedIps":  "10.20.30.10:8002,48.25.32.12:8003,52.23.25.32:9003",
-          "isMoonNode":  0
+          "isCrossGroup":  0
         }
     ```
 
   - 请求参数说明
 
-    | index | parameter         | required | type   |      description      |
-    | ----- | ----------------- | -------- | ------ | :-------------------: |
-    | 0     | chainId           | true     | int    |        链标识         |
-    | 1     | magicNumber       | true     | long   |       魔法参数        |
-    | 2     | maxOut            | true     | int    |    最大主动连接数     |
-    | 3     | maxIn             | true     | int    |    最大被动连接数     |
-    | 4     | minAvailableCount | true     | int    |    友链最小连接数     |
-    | 5     | seedIps           | true     | String |  种子节点，逗号分割   |
-    | 6     | isMoonNode        | true     | int    | 是否卫星链节点，默认0 |
+    | index | parameter         | required | type    |                   description                    |
+    | ----- | ----------------- | -------- | ------- | :----------------------------------------------: |
+    | 0     | chainId           | true     | int     |                      链标识                      |
+    | 1     | magicNumber       | true     | long    |                     魔法参数                     |
+    | 2     | maxOut            | true     | int     |                  最大主动连接数                  |
+    | 3     | maxIn             | true     | int     |                  最大被动连接数                  |
+    | 4     | minAvailableCount | true     | int     |                  友链最小连接数                  |
+    | 5     | seedIps           | true     | String  |                种子节点，逗号分割                |
+    | 6     | isMoonNode        | true     | boolean | 是否创建跨链连接组:true 跨链连接，false 普通连接 |
 
   - 返回示例
 
@@ -426,7 +443,7 @@
 
   接收外部模块的调用，注销跨链节点组。
 
-  作为卫星链节点，由链管理模块进行注销登记，系统产生交易验证确认后调用。
+  作为主网链节点，由链管理模块进行注销登记，系统产生交易验证确认后调用。
 
 - 流程描述
 
@@ -497,7 +514,7 @@
 
 - 功能说明：
 
-  种子节点是在网络初始化时候，用于提供peer连接信息的节点。链管理模块在进行链注册时，需要获取卫星链上种子节点信息用于初始化连接。
+  种子节点是在网络初始化时候，用于提供peer连接信息的节点。链管理模块在进行链注册时，需要获取主网链上跨链种子节点信息用于初始化连接。
 
 - 流程描述
 
@@ -929,7 +946,6 @@
                   chainId：122,//链id
                   nodeId:"20.20.30.10:9902"
                   magicNumber：134124,//魔法参数
-                  version：2,//协议版本号
                   blockHeight：6000,   //区块高度
                   blockHash："0020ba3f3f637ef53d025d3a8972462c00e84d9
                        ea1a960f207778150ffb9f2c173ff",  //区块Hash值
@@ -956,7 +972,6 @@
 | chainId     | int    | 链id                     |
 | nodeId      | String | 节点id                   |
 | magicNumber | int    | 魔法参数                 |
-| version     | int    | 协议版本号               |
 | blockHeight | long   | 最新区块高度             |
 | blockHash   | String | 最新区块hash             |
 | ip          | String | ip地址                   |
@@ -1036,9 +1051,6 @@
                 "disConnectCrossCount"：32，//未连接数量
                 "inCrossCount"：22,   //跨链被动连接数
                 "outCrossCount"：33,  //跨链主动连接数
-                "blockHeight"：6000,   //网络最高区块高度
-                "blockHash"："0020ba3f3f637ef53d025d3a8972462c00e84d9
-                         ea1a960f207778150ffb9f2c173ff",  //最大高度区块Hash值
                 "isActive"：1，//0未激活，1 已激活
                 "isCrossActive":1， //0跨链网络未激活，1跨链激活
                 "isMoonNet":0 //0友链 ，1卫星链
@@ -1048,24 +1060,22 @@
 
   - 返回字段说明
 
-    | parameter            | type   | description                |
-    | -------------------- | ------ | -------------------------- |
-    | chainId              | int    | 链id                       |
-    | magicNumber          | int    | 魔法参数                   |
-    | totalCount           | int    | 总连接数                   |
-    | connectCount         | int    | 已连接数量                 |
-    | disConnectCount      | int    | 未连接数量                 |
-    | inCount              | int    | 被动连接数                 |
-    | outCount             | int    | 主动连接数                 |
-    | connectCrossCount    | int    | 跨链已连接数量             |
-    | disConnectCrossCount | int    | 跨链未连接数量             |
-    | inCrossCount         | int    | 跨链被动连接数             |
-    | outCrossCount        | int    | 跨链主动连接数             |
-    | blockHeight          | long   | 网络最高区块高度           |
-    | blockHash            | String | 最大高度区块Hash值         |
-    | isActive             | int    | 0未激活，1 已激活          |
-    | isCrossActive        | int    | 0跨链网络未激活，1跨链激活 |
-    | isMoonNet            | int    | 0友链 ，1卫星链            |
+    | parameter            | type | description                |
+    | -------------------- | ---- | -------------------------- |
+    | chainId              | int  | 链id                       |
+    | magicNumber          | int  | 魔法参数                   |
+    | totalCount           | int  | 总连接数                   |
+    | connectCount         | int  | 已连接数量                 |
+    | disConnectCount      | int  | 未连接数量                 |
+    | inCount              | int  | 被动连接数                 |
+    | outCount             | int  | 主动连接数                 |
+    | connectCrossCount    | int  | 跨链已连接数量             |
+    | disConnectCrossCount | int  | 跨链未连接数量             |
+    | inCrossCount         | int  | 跨链被动连接数             |
+    | outCrossCount        | int  | 跨链主动连接数             |
+    | isActive             | int  | 0未激活，1 已激活          |
+    | isCrossActive        | int  | 0跨链网络未激活，1跨链激活 |
+    | isMoonNet            | int  | 0友链 ，1卫星链            |
 
 - 依赖服务
 
@@ -1083,7 +1093,7 @@
 
       1>节点启动时等待 区块管理接口 初始化完成，然后调用区块管理接口获取最新区块高度及hash值。
 
-      2>握手时将节点相关信息放入Verion信息中发送到peer端。
+      2>握手时将节点相关信息放入Verion协议消息中发送到peer端。
 
       3>建立连接后，区块管理模块会调用该接口进行最新区块高度与hash值的更新。
 
@@ -1182,14 +1192,8 @@
     {
       "role": "bl",
       "protocolCmds": [
-        {
-        "protocolCmd":"getBlock",
-        "handler":"getBlockRequest"
-        },
-        {
-        "protocolCmd":"sendBlock",
-        "handler":"downLoadBlock"
-        }
+       "getBlockRequest",
+        "downLoadBlock"
       ]
     }
     
@@ -1197,13 +1201,11 @@
 
   - 请求参数说明
 
-  | index | parameter    | required | type   |   description    |
-  | ----- | ------------ | -------- | ------ | :--------------: |
-  | 0     | role         | true     | String |     模块角色     |
-  | 1     | protocolCmds | true     | array  |   协议指令数组   |
-  | 2     | protocolCmd  | true     | String | 协议指令，12字节 |
-  | 3     | handler      | true     | String |  对应模块处理器  |
-  |       |              |          |        |                  |
+  | index | parameter    | required | type   | description  |
+  | ----- | ------------ | -------- | ------ | :----------: |
+  | 0     | role         | true     | String |   模块角色   |
+  | 1     | protocolCmds | true     | array  | 协议指令数组 |
+  |       |              |          |        |              |
 
   - 返回示例
 
@@ -1211,7 +1213,7 @@
 
   ```
   {
-     "registerStatus":"0"
+    
   }
   
   
@@ -1221,16 +1223,14 @@
 
   ```
   {
-     "registerStatus":"1" 
+     
   }
   
   ```
 
   - 返回字段说明
 
-| parameter      | type   | description                   |
-| -------------- | ------ | ----------------------------- |
-| registerStatus | String | 注册状态"0"为失败，"1" 为成功 |
+    
 
 - 依赖服务
 
@@ -1315,11 +1315,11 @@
 
 ​       3>初始化完成，进入peer节点连接。
 
-​       4>网络模块在启动连接稳定后，通知区块管理模块  网络 最大区块高度与hash值。区块管理模块提供接口供           网络模块调用。
+​       4>网络模块在启动连接稳定后，可作为事件发送出去。
 
  网络模块启动连接稳定的判定条件：x秒内 无新的握手连接产生，x秒内无高度的增长。x=10
 
-​      5>网络稳定后代表该网络处于可工作状态，各个chain的业务状态以事件方式发布给其他模块。
+​     
 
 - 依赖服务
 
@@ -1353,7 +1353,7 @@
 
   2>接收广播过来的节点消息。
 
-  2>跨链网络的连接，比如作为卫星链上的节点与子链的连接，或者子链上的节点与卫星链的连接。
+  2>跨链网络的连接，比如作为主网链上的节点与平行链的连接，或者平行链上的节点与主网链的连接。
 
 - 流程描述
 
@@ -1388,10 +1388,6 @@
 2>只有通过version协议，才能建立业务连接，否则等待X=1分钟后将断开连接。
 
 ![](./image/network-module/connection.png)
-
- PS：为了满足一个进程同时承载多链业务需求，一个node peer 连接建立后，应该满足多个NodeGroup业务。
-
-​         即 node peer connection 与 nodeGroup 对象间是 多对多，n:n 关系。
 
 - 依赖服务
 
@@ -1452,7 +1448,7 @@
 
 - 功能说明：
 
-​        一个节点在建立连接时，可以广播自身的外网IP+port，给其他节点。但若一个节点是在某局域网内，则其外网的IP地址是是无法直接去连接通的。因此为了检测节点的外网IP是否可用，可以通过自己的client连接自己的server来，如果连接成功，则IP可以用于广播，如果不成功则节点外网IP不能广播给其他节点。
+​        一个节点在建立连接时，可以广播自身的外网IP+port，给其他节点。但若一个节点是在某局域网内，则其外网的IP地址是无法直接去连接通的。因此为了检测节点的外网IP是否可用，可以通过自己的client连接自己的server来判断，如果连接成功，则IP可以用于广播，如果不成功则节点外网IP不能广播给其他节点。
 
 - 流程描述
 
@@ -1469,11 +1465,10 @@
 
 - 功能说明：
 
-  将自身节点广播给网络中其他节点，在设计中，我们将通过上面建立的自我连接，成功时，便可进行广播。
+  将自身节点广播给网络中其他节点，在设计中，我们将通过组网网络稳定后，促发广播自身外网IP。
 
 - 流程描述
 
-   约束：跨链网络peer间不进行地址的广播，即 卫星链中节点发现不会广播给子链，同样子链中的节点发现，不会广播给卫星链。卫星链与子链需要建立连接可以通过初始peer节点发getAdrr消息来请求连接地址。
 
 ![](./image/network-module/connectSelf-recieve.png)
 
@@ -1491,13 +1486,11 @@
 
      请求getaddr：
 
-​         1>一个nodeGroup里连接未达到网络业务需要阈值minAvailableCount时，向种子节点请求地址列表。
-
-​         2>卫星链节点中的跨链nodeGroup可以直接向已连接的peer节点请求获取地址。
+​         1>网络稳定后，广播给peer连接节点，请求可连接地址列表。
 
 ​      回复 getaddr
 
-​       1>peer跨链连接，节点则回复地址列表（ IP+跨链端口）
+​       1>peer跨链连接，主网链回复主网nodeGroup 的地址列表（ IP+跨链端口），平行链回复自有链地址列表(IP+跨链端口)
 
 ​       2>peer自有网络连接，节点则回复地址列表（IP+自有链端口）
 
@@ -1523,9 +1516,7 @@
 
 ​       1>判断地址是否本地已经拥有，如果拥有不转发，获取新增的addr。
 
-​       2>PEER是跨链网络不转发
-
-​       3>自有网络，新增addr>0, 存储并广播转发（接收peer除外）
+​       2>接收到的节点要通过 连接验证后，才能进行转发。
 
 - 依赖服务
 
@@ -1540,7 +1531,7 @@
 
 - 流程描述
 
-  如下图，我们卫星链网络与友链网络产生一个跨链连接，当卫星链中有个节点2连接上节点1时，是通过内部服务Port1来建立的连接，而节点1是可以将节点2 发送给 友链的节点A与节点B来进行连接，则此时发送给友链的信息中 应该是serverPort2，因此serverPort2需要再卫星链的内部交互中进行传递。我们将该部分数据定义在version协议中进行传递。
+  如下图，我们主网链网络与平行链网络产生一个跨链连接，当主网链中有个节点2连接上节点1时，是通过内部服务Port1来建立的连接，而节点1是可以将节点2 发送给 友链的节点A与节点B来进行连接，则此时发送给友链的信息中 应该是serverPort2，因此serverPort2需要再主网链的内部交互中进行传递。我们将该部分数据定义在version协议中进行传递。
 
 ​      ![](./image/network-module/crossPortDeliver.png)
 
@@ -1552,94 +1543,16 @@
 
 ### 3.1 发布的事件
 
-[^说明]: 这里说明事件的topic，事件的格式协议（精确到字节），事件的发生情景。
-
-[参考<事件总线>]: ./
-
-
-
-#### 3.1.1 NodeGroup达到节点数量下限
-
-说明：NodeGroup达到节点数量下限，发布该事件   
-
- event_topic : "evt_nw_inNodeLimit",
-
-```
-data:{
-    chainId
-    magicNumber
-    nodeCount
-    nodeLimit
-    time
-}
-```
-
-#### 3.1.2 NodeGroup少于节点数量下限
-
-说明：NodeGroup少于节点数量下限，发布该事件   
-
- event_topic : "evt_nw_lessNodeLimit",
-
-```
-data:{
-    chainId
-    magicNumber
-    nodeCount
-    nodeLimit
-    time
-}
-```
-
-#### 3.1.3 节点握手成功
-
-说明：节点握手成功，发布该事件   
-
- event_topic : "evt_nw_connectSuccess",
-
-```
-data:{
-    chainId
-    magicNumber
-    nodeId
-    time
-    version
-}
-```
-
-#### 3.1.4 节点断开连接
-
-说明：节点断开连接，发布该事件   
-
- event_topic : "evt_nw_nodeDisconnect",
-
-```
-data:{
-    chainId
-    magicNumber
-    nodeId
-    time
-    version
-}
-```
-
-
-
-
+​      暂无
 
 ### 3.2 订阅的事件
 
 ​       暂无
 
-[^说明]: 这里说明订阅哪些事件，订阅的原因，事件发生后的处理逻辑
-
-*  
-
 
 ## 四、协议
 
 ### 4.1 网络通讯协议
-
-[^说明]: 节点间通讯的具体协议，参考《网络模块》
 
 #### version
 
@@ -1652,7 +1565,6 @@ data:{
 | 20     | addr_me      | byte[20] | 本节点网络地址【IP+PORT1+PORT2】PORT2为跨链server端口   如：[20.32.12.25 7003 6003]    16byte+2byte+2byte |
 | 4      | block_height | uint32   | 节点高度                                                     |
 | ？     | block_hash   | varInt   | 区块hash                                                     |
-| 6      | network_time | uint48   | 网络时间                                                     |
 | ??     | extend       | VarByte  | 扩展字段，不超过10个字节？                                   |
 
 #### verack
@@ -1681,11 +1593,16 @@ data:{
 
 #### getaddr
 
-用于获取网络中可用节点的连接信息，无消息体
+用于请求网络中可用节点的连接信息。
+
+| Length | Fields         | Type   | Remark           |
+| ------ | -------------- | ------ | ---------------- |
+| 2      | chainId        | uint16 | 链id             |
+| 1      | isCrossAddress | uint8  | 是否请求跨链地址 |
 
 #### addr
 
-用于应答getaddr，或向网络中宣告自身的存在，节点接收到该消息后，判断节点是否已知，如果是未知节点，则向网络中传播该消息
+用于应答getaddr，或向网络中宣告自身的存在，节点接收到该消息后，判断节点是否已知，如果是未知节点，则保存，待验证通过后向网络中传播该地址。
 
 | Length | Fields    | Type            | Remark                               |
 | ------ | --------- | --------------- | ------------------------------------ |
@@ -1730,18 +1647,18 @@ data:{
 
 ```
 [network]
-network.self.server.port=8003
-network.self.chainId=9861
-network.self.magic=68866996
-network.self.max.in=100
-network.self.max.out=10
-network.self.seed.ip=127.0.0.1:8003
-#卫星链配置信息
-network.moon.node=true
-network.moon.server.port=8004
-network.moon.max.in=100
-network.moon.max.out=10
-network.moon.seed.ip=215.159.216.58:8003,215.159.69.140:8003,223.206.200.74:8003
+port=18001
+crossPort=18002
+#魔法参数
+packetMagic=20190807
+#种子节点
+selfSeedIps=39.98.226.51:18001,47.244.186.65:18001,47.254.234.223:18001,47.74.86.85:18001
+#主网的跨链种子连接节点，供平行链初始连接使用
+moonSeedIps=39.98.226.51:18002,47.244.186.65:18002,47.254.234.223:18002,47.74.86.85:18002
+#最大入网连接数
+maxInCount=100
+#最大出网连接数
+maxOutCount=20
 ```
 
 ## 六、Java特有的设计
