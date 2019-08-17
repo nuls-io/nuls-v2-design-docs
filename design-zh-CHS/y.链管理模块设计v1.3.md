@@ -12,35 +12,35 @@
 
 在NULS 1.0中，只有一条链（NULS主网），因此不需要链管理模块。
 
-在NULS 2.0中，NULS主网上可以注册其他友链信息，包括:        
+在NULS 2.0中，NULS主网上可以注册其他平行链信息，包括:        
 
 - NULS生态圈中的链：与NULS主网使用同一套代码衍生出来。
 - 其他链：比特币、以太坊等
 
-《链管理》模块用来管理所有加入NULS主网的友链的信息
+《链管理》模块用来管理所有加入NULS主网的平行链的信息
 
 
 
 名词解释：
 
-- NULS主网：不同于NULS 1.0，是独立运行的另一条链，也称之为NULS 2.0。
+- NULS主网：架构不同于NULS 1.0，是独立运行的另一条链，也称之为NULS 2.0。
   《链管理》是NULS主网的其中一个模块
-- 友链：在NULS主网上注册的其他链
+- 平行链：在NULS主网上注册的其他链
 
 
 
-假设1：友链A，其拥有资产A
+假设1：平行链A，其拥有资产A
 
-假设2：友链B，其拥有资产B
+假设2：平行链B，其拥有资产B
 
 - 跨链交易：
-  - 友链A把资产A转到友链B
-  - 友链B内部转移资产A
-  - 友链B把资产A转回到友链A
-  - 友链B把资产A转到其他友链（C,D等）
+  - 平行链A把资产A转到平行链B
+  - 平行链B内部转移资产A
+  - 平行链B把资产A转回到平行链A
+  - 平行链B把资产A转到其他平行链（C,D等）
 - 非跨链交易：
-  - 友链A内部转移资产A
-  - 友链B内部转移资产B
+  - 平行链A内部转移资产A
+  - 平行链B内部转移资产B
 
 备注：不论链内资产，还是链外资产，只要资产跨链进行交易，就需要主网进行确认。
 
@@ -53,11 +53,11 @@
 
 《链管理》模块用来管理加入NULS主网的链的基本信息，包括：
 
-* 注册一条新的友链
-* 销毁已经存在的友链
-* 查询友链信息
-* 特定友链增加资产类型
-* 特定友链销毁资产类型
+* 注册一条新的平行链
+* 销毁已经存在的平行链
+* 查询平行链信息
+* 平行链增加资产类型
+* 平行链销毁资产类型
 * 跨链资产校验
 
 
@@ -97,15 +97,15 @@
 
 ### 2.2 模块服务
 
-[^说明]: 这里说明该模块对外提供哪些服务，每个服务的功能说明、流程描述、接口定义、实现中依赖的外部服务
+[^说明]: 这里说明该模块对外提供哪些服务，每个服务的功能说明、流程描述、接口定义实现中依赖的外部服务
 
-#### 2.2.1 注册一条新的友链
+#### 2.2.1 注册一条新的链
 
 * 功能说明：
 
-  NULS主网会提供一个入口（网页），可以通过这个入口注册新的友链到NULS主网。
+  NULS主网会提供一个入口（网页），可以通过这个入口注册新的平行链到NULS主网。
 
-  注册一条友链必须含一个注册资产。
+  注册一条平行链必须含一个注册资产。
 
 * 流程描述
 
@@ -117,15 +117,17 @@
 
    1.用户通过终端注册登记链信息以及随链初始化的资产信息。
 
-   2.链管理模块进行链交易的封装发送给交易模块。期间需要通过账本模块获取账户余额及交易nonce值。
+   2.链管理模块进行链交易的封装发送给交易模块。期间需要通过账本模块获取账户余额及交易nonce值.
 
-​      发送交易后返回成功或失败信息给用户。
+​      并通过账户模块校验账户正确性。
+
+​      发送交易后返回成功或失败信息给用户，成功时包含主网跨链种子节点与主网种子验证人列表信息。
 
    3.交易模块会在交易处理过程中进行数据校验的回调。
 
    4.链管理模块通过 交易模块回调 “提交链注册交易”的接口 来进行注册数据提交。
 
-   5.链管理模块存储数据并将注册信息下发给网络模块。
+   5.链管理模块存储数据并将注册信息下发给网络模块与跨链协议模块。
 
    6.注册链需要1000NULS，其中20%直接销毁，80%用于抵押，删除资产时退回。
 
@@ -162,22 +164,24 @@
   ```
   - 请求参数说明
 
-  | parameter               | required | type   | description                                 |
-  | :---------------------- | :------- | :----- | ------------------------------------------- |
-  | chainId                 | true     | int    | 链标识                                      |
-  | assetId                 | true     | int    | 资产id                                      |
-  | chainName               | true     | string | 链名称                                      |
-  | addressType             | true     | int    | 链上创建的账户的地址类型：1生态内 2非生态内 |
-  | magicNumber             | true     | string | 网络魔法参数                                |
-  | minAvailableNodeNum     | true     | int    | 最小可用节点数量                            |
-  | singleNodeConMinNodeNum | true     | int    | 单节点连接最小数量                          |
-  | txConfirmBlockNum       | true     | int    | 交易确认块数                                |
-  | symbol                  | true     | string | 资产符号                                    |
-  | assetName               | true     | string | 资产名称                                    |
-  | initNumber              | true     | string | 资产初始值                                  |
-  | decimalPlaces           | true     | int    | 最小资产可分割位数                          |
-  | address                 | true     | string | 创建链的主网地址                            |
-  | password                | true     | string | 私钥对应的密码                              |
+  | parameter           | required | type   | description            |
+  | :------------------ | :------- | :----- | ---------------------- |
+  | chainId             | true     | int    | 链标识                 |
+  | assetId             | true     | int    | 资产id                 |
+  | chainName           | true     | string | 链名称                 |
+  | magicNumber         | true     | string | 网络魔法参数           |
+  | minAvailableNodeNum | false    | int    | 最小可用节点数量       |
+  | addressPrefix       | true     | String | 地址前缀               |
+  | txConfirmBlockNum   | false    | int    | 交易确认块数           |
+  | maxSignatureCount   | true     | int    | 最大签名数             |
+  | signatureBFTRatio   | true     | int    | 拜占庭比例 [67-100]    |
+  | verifierList        | true     | String | 注册链的初始验证人列表 |
+  | symbol              | true     | string | 资产符号               |
+  | assetName           | true     | string | 资产名称               |
+  | initNumber          | true     | string | 资产初始值             |
+  | decimalPlaces       | true     | int    | 最小资产可分割位数     |
+  | address             | true     | string | 创建链的主网地址       |
+  | password            | true     | string | 私钥对应的密码         |
 
   - 返回示例
 
@@ -192,14 +196,20 @@
 
      ```
      统一RPC标准格式
-     
+     {
+       "mainNetVerifierSeeds" : "tNULSeBaMkrt4z9FYEkkR9D6choPVvQr94oYZp",
+       "txHash" : "25b3a57507086d5d895895b41ef744a160f3251f4e5db118b7ca833eb6c9fff3",
+       "mainNetCrossConnectSeeds" : "192.168.1.192:8088"
+     }
      ```
 
   - 返回字段说明
 
-  | parameter | type   | description |
-  | --------- | ------ | ----------- |
-  | seeds     | String | 种子节点    |
+  | parameter                | type   | description           |
+  | ------------------------ | ------ | --------------------- |
+  | mainNetVerifierSeeds     | String | #主网验证人列表       |
+  | txHash                   | String | #交 易hash            |
+  | mainNetCrossConnectSeeds | String | #主网跨链种子连接节点 |
 
 
 * 依赖服务
@@ -209,11 +219,12 @@
   - 网络管理模块
   - 交易管理模块，发送交易
   - 账本模块，获取账本信息
+  - 账户模块
 
 
 
 
-#### 2.2.2 注销已经存在的友链
+#### 2.2.2 注销已经存在的平行链
 
 - 功能说明：
 
@@ -289,14 +300,16 @@
 
     ```
     统一RPC标准格式
-    
+    {
+        "txHash" : "25b3a57507086d5d895895b41ef744a160f3251f4e5db118b7ca833eb6c9fff3"
+    }
     ```
 
   - 返回字段说明
 
-  | parameter | type | description |
-  | --------- | ---- | ----------- |
-  |           |      |             |
+  | parameter | type   | description |
+  | --------- | ------ | ----------- |
+  | txHash    | String | 交易hash    |
 
 - 依赖服务
 
@@ -380,13 +393,16 @@
 
     ```
     统一RPC标准格式
+    {
+        "txHash" : "25b3a57507086d5d895895b41ef744a160f3251f4e5db118b7ca833eb6c9fff3"
+    }
     ```
 
   - 返回字段说明
 
-  | parameter | type | description |
-  | --------- | ---- | ----------- |
-  |           |      |             |
+  | parameter | type   | description |
+  | --------- | ------ | ----------- |
+  | txHash    | String | 交易hash    |
 
 
 - 依赖服务
@@ -395,10 +411,11 @@
 
   - 交易管理模块，发送交易
   - 账本模块，获取账本信息
+  - 账户模块校验
 
 
 
-#### 2.2.4 特定友链删除资产类型
+#### 2.2.4 平行链资产注销
 
 - 功能说明：
 
@@ -468,14 +485,16 @@
 
     ```
     统一RPC标准格式
-    
+    {
+        "txHash" : "25b3a57507086d5d895895b41ef744a160f3251f4e5db118b7ca833eb6c9fff3"
+    }
     ```
 
   - 返回字段说明
 
   | parameter | type | description |
   | --------- | ---- | ----------- |
-  |           |      |             |
+  | txHash    |      |             |
 
 
 
@@ -759,41 +778,56 @@
     Success
 
     ```
-    {
-            "chainId": 152,
-            "chainName": "nuls chain",
-            "addressType": 1,
-            "magicNumber":454546,
-            "supportInflowAsset":"1",
-            "minAvailableNodeNum":5,
-            "singleNodeMinConnectionNum":5,
-            "txConfirmedBlockNum":30,
-            "regAddress":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
-            "regTxHash":"FFFFF", 
-            "selfAssetKeyList":["1232_32","528_8"],
-            "totalAssetKeyList":["1232_32","528_8"],
-            "createTime":1212131,
-            "seeds":"xxx.xxx.xxx.xxx:8001,xxx.xxx.xxx.xxx:8002"
+     {
+      "chainId" : 3,
+      "chainName" : "testchain",
+      "addressType" : "1",
+      "addressPrefix" : "TBTC",
+      "magicNumber" : 123456,
+      "minAvailableNodeNum" : 5,
+      "txConfirmedBlockNum" : 0,
+      "regAddress" : "tNULSeBaMnrs6JKrCy6TQdzYJZkMZJDng7QAsD",
+      "regTxHash" : "6c29d99c2b02cfc766ef25bee2ea619610a5fce1d778c3038885111f590ae312",
+      "createTime" : 1557739548367,
+      "verifierList" : [ "TBTCdusmPf5EfdEwbA8nRZEYqMbRXKp6y3oCb" ],
+      "signatureByzantineRatio" : 67,
+      "maxSignatureCount" : 12,
+      "selfAssetKeyList" : [ "3-10" ],
+      "totalAssetKeyList" : [ "3-10" ]，
+      "mainNetVerifierSeeds" : "tNULSeBaMkrt4z9FYEkkR9D6choPVvQr94oYZp",
+      "mainNetCrossConnectSeeds" : "192.168.1.192:8088",
+      "enable" : true
     }
     ```
 
-  - 返回字段说明
+  - 返回参数说明
 
-  | parameter               | type   | description                                           |
-  | :---------------------- | :----- | ----------------------------------------------------- |
-  | chainId                 | int    | 链标识                                                |
-  | chainName               | string | 链名称                                                |
-  | addressType             | int    | 链上创建的账户的地址类型：1生态内 2非生态内           |
-  | magicNumber             | string | 网络魔法参数                                          |
-  | minAvailableNodeNum     | int    | 最小可用节点数量                                      |
-  | singleNodeConMinNodeNum | int    | 单节点连接最小数量                                    |
-  | txConfirmBlockNum       | int    | 交易确认块数                                          |
-  | regTxHash               | string | 交易hash                                              |
-  | regAddress              | string | 创建链的主网地址                                      |
-  | selfAssetKeyList        | list   | 链下注册的资产列表，由chainId_assetId 组合的资产key值 |
-  | totalAssetKeyList       | list   | 链下流通的资产列表，由chainId_assetId 组合的资产key值 |
-  | createTime              | long   | 创建时间                                              |
-  | seeds                   | String | cross Seed node                                       |
+    | parameter                | required | type   | description                                |
+    | ------------------------ | -------- | ------ | ------------------------------------------ |
+    | chainId                  | true     | int    | 链标识                                     |
+    | assetId                  | true     | int    | 资产id                                     |
+    | chainName                | true     | string | 链名称                                     |
+    | addressType              | true     | int    | 链上创建的账户的地址类型：1生态内2非生态内 |
+    | addressPrefix            | true     | string | 地址前缀 1-5个 大写字母或数字              |
+    | magicNumber              | true     | string | 网络魔法参数                               |
+    | minAvailableNodeNum      | true     | int    | 最小可用节点数量                           |
+    | txConfirmBlockNum        | true     | int    | 交易确认块数                               |
+    | regAddress               | true     | string | 注册支付地址                               |
+    | regTxHash                | true     | string | 交易hash                                   |
+    | createTime               | true     | long   | 交易提交时间 ，1970相差的秒数              |
+    | verifierList             | true     | string | 验证人列表                                 |
+    | signatureByzantineRatio  | true     | int    | 拜占庭比例 [67-100]                        |
+    | maxSignatureCount        | true     | int    | 最大签名数                                 |
+    | symbol                   | true     | string | 资产符号                                   |
+    | assetName                | true     | string | 资产名称                                   |
+    | initNumber               | true     | string | 资产初始值                                 |
+    | decimalPlaces            | true     | int    | 最小资产可分割位数                         |
+    | mainNetVerifierSeeds     | true     | string | 主网种子验证人地址                         |
+    | mainNetCrossConnectSeeds | true     | string | 主网种子连接节点地址                       |
+    | enable                   | true     | string | 是否使用中                                 |
+
+    
+
 
 
 - 依赖服务
@@ -846,31 +880,38 @@
     Success
 
     ```
-    {
-            "chainId": 152,
-            "assetId":85,
-            "symbol":"NULS",
-            "assetName":"纳斯",
-            "initNumber":"1000000000",
-            "decimalPlaces":8,
-            "address":"NsdxSexqXF4eVXkcGLPpZCPKo92A8xpp",
-            "txHash":"xxxxxxxxxxxxx",
-            "createTime":125848
-            }
+     {
+      "chainId" : 10,
+      "assetId" : 2,
+      "symbol" : "CCY",
+      "assetName" : "yuer",
+      "depositNuls" : "100000000000",
+      "destroyNuls" : "20000000000",
+      "initNumber" : "30000000000",
+      "decimalPlaces" : 2,
+      "enable" : false,
+      "createTime" : 1565229429,
+      "address" : "tNULSeBaMqywZjfSrKNQKBfuQtVxAHBQ8rB2Zn",
+      "txHash" : "612eda872c6ca16c5a5f63cce70a64ac15852e2b3a403309b0d963d22d6391bc"
+    }
     ```
 
   - 返回字段说明
 
-  | parameter     | type   | description        |
-  | :------------ | :----- | ------------------ |
-  | chainId       | int    | 链标识             |
-  | symbol        | string | 资产符号           |
-  | assetName     | string | 资产名称           |
-  | initNumber    | string | 资产初始值         |
-  | decimalPlaces | int    | 最小资产可分割位数 |
-  | address       | string | 创建链的主网地址   |
-  | txHash        | string | 交易hash           |
-  | createTime    | long   | 创建时间           |
+    | parameter     | required | type    | description                  |
+    | ------------- | -------- | ------- | ---------------------------- |
+    | chainId       | true     | int     | 链标识                       |
+    | assetId       | true     | int     | 资产id                       |
+    | &lt;symbol>   | true     | string  | 资产简称 e.g. BTC            |
+    | assetName     | true     | string  | 资产名称                     |
+    | depositNuls   | true     | long    | 抵押的主网资产数量           |
+    | destroyNuls   | true     | long    | 销毁的主网资产数量           |
+    | initNumber    | true     | string  | 资产初始值                   |
+    | decimalPlaces | true     | int     | 资产可切割位数               |
+    | enable        | true     | boolean | 是否可用 true可用,false 停用 |
+    | createTime    | true     | long    | 交易产生时间                 |
+    | address       | true     | String  | 交易支付地址                 |
+    | txHash        | true     | String  | 交易hash                     |
 
 - 依赖服务
 
@@ -892,30 +933,7 @@
 
 ### 4.1 网络通讯协议
 
-####  4.1.1 向友链请求获取发行的资产总量   
-
-- 消息说明：定期链管理向友链发起发行资产总量数据请求消息。
-- cmd：requestAssetAmount
-
-| Length | Fields     | Type   | Remark |
-| ------ | ---------- | ------ | ------ |
-| 2      | chainId    | uint16 | 链Id   |
-| 2      | assetId    | uint16 | 资产id |
-| 4      | randomCode | uint32 | 随机数 |
-
-#### 4.1.1 接收友链回复的资产总量   
-
-- 消息说明：接收到友链对资产的回复。
-- cmd：responseAssetAmount
-
-| Length | Fields     | Type       | Remark   |
-| ------ | ---------- | ---------- | -------- |
-| 2      | chainId    | uint16     | 链Id     |
-| 2      | assetId    | uint16     | 资产id   |
-| 48     | amount     | biginteger | 资产总量 |
-| 4      | randomCode | uint32     | 随机数   |
-
-
+ 无
 
 
 ### 4.2 交易协议
@@ -928,22 +946,25 @@
 
 txData定义
 
-| Length | Fields                     | Type       | Remark           |
-| ------ | -------------------------- | ---------- | ---------------- |
-| 2      | chainId                    | uint16     | 链Id             |
-| ？     | name                       | byte[]     | 链名称           |
-| 1      | addressType                | uint8      | 地址类型         |
-| 4      | magicNumber                | uint32     | 魔法参数         |
-| 1      | supportInflowAsset         | uint8      | 是否支出资产流入 |
-| 2      | minAvailableNodeNum        | uint16     | 最小可用节点数   |
-| 2      | singleNodeMinConnectionNum | uint16     | 单节点最小连接数 |
-| ？     | address                    | byte[]     | 账户地址         |
-| 2      | assetId                    | uint16     | 资产id           |
-| ？     | symbol                     | byte[]     | 单位             |
-| ？     | assetName                  | byte[]     | 资产名称         |
-| 2      | depositNuls                | uint16     | 抵押NULS数量     |
-| 48     | initNumber                 | Biginteger | 资产初始数量     |
-| 1      | decimalPlaces              | uint8      | 资产最小分割位数 |
+| Length | Fields                  | Type       | Remark           |
+| ------ | ----------------------- | ---------- | ---------------- |
+| 2      | chainId                 | uint16     | 链Id             |
+| ？     | name                    | byte[]     | 链名称           |
+| 1      | addressType             | uint8      | 地址类型         |
+| 5      | addressPrefix           | byte[]     | 地址前缀         |
+| 4      | magicNumber             | uint32     | 魔法参数         |
+| 1      | supportInflowAsset      | uint8      | 是否支出资产流入 |
+| 2      | minAvailableNodeNum     | uint16     | 最小可用节点数   |
+| ?      | verifierList            | byte[]     | 验证人列表       |
+| 2      | signatureByzantineRatio | uint16     | 拜占庭比例       |
+| 2      | maxSignatureCount       | uint16     | 最大签名数       |
+| ？     | address                 | byte[]     | 账户地址         |
+| 2      | assetId                 | uint16     | 资产id           |
+| ？     | symbol                  | byte[]     | 单位             |
+| ？     | assetName               | byte[]     | 资产名称         |
+| 2      | depositNuls             | uint16     | 抵押NULS数量     |
+| 48     | initNumber              | Biginteger | 资产初始数量     |
+| 1      | decimalPlaces           | uint8      | 资产最小分割位数 |
 
 
 
